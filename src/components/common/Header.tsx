@@ -6,9 +6,9 @@ import { Search, ShoppingCart } from 'lucide-react';
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setSearchQuery(e.target.value);
-  // };
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
   const categories = [
     { name: 'Dogs', link: '/dogs' },
@@ -54,13 +54,14 @@ const Header = () => {
           
           <div className="w-full md:w-1/2 lg:w-2/5 relative">
             <div className="relative">
-              {/* <Input
+              <input
                 type="text"
                 placeholder="Search among more than 10,000 products"
-                className="w-full pl-4 pr-10 py-2 border rounded-full bg-gray-100"
+                className="custom-input w-full pl-4 pr-10 py-2 rounded-full bg-gray-100 "
                 value={searchQuery}
                 onChange={handleSearchChange}
-              /> */}
+              />
+
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
@@ -81,8 +82,8 @@ const Header = () => {
 
       {/* Navigation menu */}
       <div className="w-full" style={{backgroundColor: '#6CA6CD'}}>
-        <div className="container mx-auto text-center">
-          <nav className="flex justify-center flex-wrap">
+        <div className="container mx-auto py-3">
+          <nav className="inline-flex items-center justify-center flex-wrap w-full">
             {categories.map((category, index) => (
               <Link
                 key={index}

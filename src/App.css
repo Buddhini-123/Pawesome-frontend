@@ -32,6 +32,11 @@
   color: #61dafb;
 }
 
+.custom-input::placeholder {
+  color: #6CA6CD; /* Tailwind's blue-500 */
+}
+
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
