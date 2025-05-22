@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart } from 'lucide-react';
-// import { Input } from '../ui/input';
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
