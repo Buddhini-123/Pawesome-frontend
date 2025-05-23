@@ -6,6 +6,7 @@ import './output.css';
 
 // Components
 import Header from './components/common/Header';
+import Footer from './components/common/Footer/Footer.tsx';
 
 // Pages
 import Home from './components/pages/Home/Home';
@@ -41,6 +42,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 };
