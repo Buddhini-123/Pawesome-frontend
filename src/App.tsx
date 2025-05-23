@@ -9,19 +9,19 @@ import Header from './components/common/Header';
 
 // Pages
 import Home from './components/pages/Home/Home';
-import Dogs from './components/pages/Categories/Dogs.tsx';
-import Cats from './components/pages/Categories/Cats.tsx';
-import VetDiet from './components/pages/Categories/VetDiet.tsx';
-import Birds from './components/pages/Categories/Birds.tsx';
-import OtherAnimals from './components/pages/Categories/OtherAnimals.tsx';
-import Offers from './components/pages/Shop/Offers.tsx';
-import Brands from './components/pages/Shop/Brands.tsx';
-import Cart from './components/pages/Shop/Cart.tsx';
-import Account from './components/pages/Account/Account.tsx';
-import Contact from './components/pages/Account/Contact.tsx';
-import NotFound from './components/pages/NotFound.tsx';
+import Dogs from './components/pages/Categories/Dogs';
+import Cats from './components/pages/Categories/Cats';
+import VetDiet from './components/pages/Categories/VetDiet';
+import Birds from './components/pages/Categories/Birds';
+import OtherAnimals from './components/pages/Categories/OtherAnimals';
+import Offers from './components/pages/Shop/Offers';
+import Brands from './components/pages/Shop/Brands';
+import Cart from './components/pages/Shop/Cart';
+import Account from './components/pages/Account/Account';
+import Contact from './components/pages/Account/Contact';
+import NotFound from './components/pages/NotFound';
 
-const App = () => {
+const App: React.FC = () => {
   return (
     <div className="App">
       <Header />
