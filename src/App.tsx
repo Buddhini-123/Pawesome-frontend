@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 import './index.css';
 import './output.css';
@@ -27,11 +27,16 @@ import Subscriptions from './components/pages/Features/Subscriptions.tsx';
 import Gifts from './components/pages/Features/Gifts.tsx';
 import Deals from './components/pages/Features/Deals.tsx';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards.tsx';
+import Login from './components/pages/Login/Login.tsx';
 
 const App: React.FC = () => {
+
+  const location = useLocation();
+  const hideLayout = location.pathname === '/login';
+
   return (
     <div className="App">
-      <Header />
+      {!hideLayout && <Header />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -45,6 +50,7 @@ const App: React.FC = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/account" element={<Account />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
           
           {/* New Feature Routes */}
           <Route path="/subscriptions" element={<Subscriptions />} />
@@ -55,7 +61,7 @@ const App: React.FC = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <Footer />
+      {!hideLayout && <Footer />}
     </div>
   );
 };
