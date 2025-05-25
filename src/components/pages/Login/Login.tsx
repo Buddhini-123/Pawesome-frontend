@@ -28,15 +28,15 @@ const Login = () => {
               className="h-16 w-auto object-contain"
             />
           </div>
-          <p className="text-calmblue text-sm leading-relaxed">
+          <p className="text-calmblue text-base leading-relaxed font-figtree">
             Sign in to your Pawsome pet care account to order your pet food, manage your rewards, get advises and more !
           </p>
         </div>
 
         {/* New member link */}
         <div className="text-center mb-6">
-          <span className="text-gray-700 text-sm">New Member? </span>
-          <Link to="/register" className="text-energeticorange font-medium text-sm hover:underline">
+          <span className="text-gray-700 text-base font-figtree">New Member? </span>
+          <Link to="/register" className="text-energeticorange font-medium text-base hover:underline">
             Create Account
           </Link>
         </div>
@@ -49,7 +49,7 @@ const Login = () => {
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-full bg-offwhite focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 text-base font-figtree rounded-full bg-offwhite focus:outline-none focus:ring-2 focus:ring-calmblue focus:border-transparent"
               required
               />
           </div>
@@ -60,21 +60,21 @@ const Login = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-full bg-offwhite focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-full text-base font-figtree bg-offwhite focus:outline-none focus:ring-2 focus:ring-calmblue focus:border-transparent"
               required
               />
           </div>
+            
+            <div className="flex items-center mt-4 px-8">
+                <Link to="/forgot-password" className="text-energeticorange text-base font-medium hover:underline whitespace-nowrap"
+                >Forgot Password ?
+                </Link>
 
-          <div className="text-center">
-            <Link to="/forgot-password" className="text-energeticorange text-sm hover:underline">
-              Forgot Password ?
-            </Link>
-          </div>
+                <button type="submit" className="bg-energeticorange hover:bg-orange-600 text-white text-base font-medium py-3 px-14 rounded-full transition-colors ml-4"
+                >Sign In
+                </button>
+            </div>
 
-           <button type="submit"
-            className="w-full bg-energeticorange hover:bg-orange-600 text-white font-medium py-3 rounded-full transition-colors">
-                Sign In
-            </button>
         </form>
 
         {/* Terms and privacy */}

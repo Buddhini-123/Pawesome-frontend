@@ -56,7 +56,7 @@ const Header = () => {
               <input
                 type="text"
                 placeholder="Search among more than 10,000 products"
-                className="custom-input w-full pl-4 pr-10 py-2 rounded-full bg-gray-100 "
+                className="custom-input w-full pl-4 pr-10 py-2 rounded-full bg-gray-100 focus:ring-calmblue"
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
