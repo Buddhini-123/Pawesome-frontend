@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-// import { Button } from '@/components/ui/button';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -29,7 +28,7 @@ const Login = () => {
               className="h-16 w-auto object-contain"
             />
           </div>
-          <p className="text-gray-600 text-sm leading-relaxed">
+          <p className="text-calmblue text-sm leading-relaxed">
             Sign in to your Pawsome pet care account to order your pet food, manage your rewards, get advises and more !
           </p>
         </div>
@@ -37,7 +36,7 @@ const Login = () => {
         {/* New member link */}
         <div className="text-center mb-6">
           <span className="text-gray-700 text-sm">New Member? </span>
-          <Link to="/register" className="text-orange-500 font-medium text-sm hover:underline">
+          <Link to="/register" className="text-energeticorange font-medium text-sm hover:underline">
             Create Account
           </Link>
         </div>
@@ -50,7 +49,7 @@ const Login = () => {
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-full bg-offwhite focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
               />
           </div>
@@ -61,32 +60,32 @@ const Login = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-full bg-offwhite focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
               />
           </div>
 
           <div className="text-center">
-            <Link to="/forgot-password" className="text-orange-500 text-sm hover:underline">
+            <Link to="/forgot-password" className="text-energeticorange text-sm hover:underline">
               Forgot Password ?
             </Link>
           </div>
 
            <button type="submit"
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-full transition-colors">
+            className="w-full bg-energeticorange hover:bg-orange-600 text-white font-medium py-3 rounded-full transition-colors">
                 Sign In
             </button>
         </form>
 
         {/* Terms and privacy */}
         <div className="text-center mt-7 space-y-4">
-          <p className="text-xs text-blue-400">
+          <p className="text-xs text-calmblue">
             By signing in you confirm that you accept our{' '}
             <Link to="/terms" className="underline hover:text-blue-600">
               Account Terms and Conditions
             </Link>.
           </p>
-          <p className="text-xs text-blue-400">
+          <p className="text-xs text-calmblue">
             You also acknowledge{' '}
             <Link to="/privacy" className="underline hover:text-blue-600">
               Pawsome's privacy policy
