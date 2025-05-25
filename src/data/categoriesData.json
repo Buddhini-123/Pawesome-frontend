@@ -1,0 +1,32 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Dog",
+      "image": "/api/placeholder/300/200",
+      "backgroundColor": "bg-yellow-200",
+      "link": "/dogs"
+    },
+    {
+      "id": 2,
+      "name": "Cat", 
+      "image": "/api/placeholder/300/200",
+      "backgroundColor": "bg-purple-200",
+      "link": "/cats"
+    },
+    {
+      "id": 3,
+      "name": "Birds",
+      "image": "/api/placeholder/300/200", 
+      "backgroundColor": "bg-blue-200",
+      "link": "/birds"
+    },
+    {
+      "id": 4,
+      "name": "Rodents",
+      "image": "/api/placeholder/300/200",
+      "backgroundColor": "bg-orange-200",
+      "link": "/other-animals"
+    }
+  ]
+}

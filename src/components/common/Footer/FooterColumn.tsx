@@ -17,9 +17,9 @@ const FooterColumn: React.FC<FooterColumnProps> = ({ title, items }) => {
             key={index}
             className="mt-3.5 first:mt-0 text-neutral-700"
           >
-            <a href="#" className="hover:text-neutral-900 transition-colors">
+            <button className="hover:text-neutral-900 transition-colors text-left">
               {item}
-            </a>
+            </button>
           </li>
         ))}
       </ul>

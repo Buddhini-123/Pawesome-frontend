@@ -1,0 +1,186 @@
+{
+  "recommendations": [
+    {
+      "id": 1,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00,
+      "originalPrice": 3200.00,
+      "discount": 15
+    },
+    {
+      "id": 2,
+      "name": "Pedigree Dog Biscuit", 
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00,
+      "originalPrice": 3200.00,
+      "discount": 15
+    },
+    {
+      "id": 3,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150", 
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00,
+      "originalPrice": 3200.00,
+      "discount": 15
+    },
+    {
+      "id": 4,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00,
+      "originalPrice": 3200.00,
+      "discount": 15
+    },
+    {
+      "id": 5,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00,
+      "originalPrice": 3200.00,
+      "discount": 15
+    },
+    {
+      "id": 6,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00,
+      "originalPrice": 3200.00,
+      "discount": 15
+    }
+  ],
+  "additional": [
+    {
+      "id": 7,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 8,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 9,
+      "name": "Pedigree Dog Biscuit", 
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 10,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 11,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 12,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 13,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 14,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 15,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 16,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 17,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 18,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 19,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 20,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    },
+    {
+      "id": 21,
+      "name": "Pedigree Dog Biscuit",
+      "image": "/api/placeholder/150/150",
+      "rating": 4.5,
+      "reviews": 150,
+      "price": 2900.00
+    }
+  ]
+}

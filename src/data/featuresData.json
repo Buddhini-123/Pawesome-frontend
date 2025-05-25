@@ -1,0 +1,28 @@
+{
+  "features": [
+    {
+      "id": 1,
+      "title": "10% off your first subscription order",
+      "subtitle": "Save 5% with regular deliveries",
+      "icon": "💰",
+      "iconBg": "bg-green-100",
+      "iconColor": "text-green-600"
+    },
+    {
+      "id": 2,
+      "title": "Earn points and redeem rewards",
+      "subtitle": "Get more with every order",
+      "icon": "⭐",
+      "iconBg": "bg-yellow-100", 
+      "iconColor": "text-yellow-600"
+    },
+    {
+      "id": 3,
+      "title": "Expert advice for your pet",
+      "subtitle": "Everything your pet will love",
+      "icon": "🩺",
+      "iconBg": "bg-blue-100",
+      "iconColor": "text-blue-600"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "faqs": [
+    {
+      "id": 1,
+      "question": "Want to know who we are?",
+      "answer": "We are passionate pet lovers dedicated to providing the best care and products for your furry friends. Our team consists of veterinarians, pet specialists, and animal enthusiasts who understand what pets need to live happy, healthy lives."
+    },
+    {
+      "id": 2,
+      "question": "What brands does Pawsome offer?", 
+      "answer": "We partner with top premium brands including Pedigree, Royal Canin, Hills, Whiskas, Purina, and many more trusted names in pet care. All our products are carefully selected for quality and safety."
+    },
+    {
+      "id": 3,
+      "question": "What brands does Pawsome offer?",
+      "answer": "We offer a wide range of products including premium pet food, treats, toys, accessories, grooming supplies, health supplements, and veterinary-recommended items for dogs, cats, birds, and other small pets."
+    },
+    {
+      "id": 4,
+      "question": "What brands does Pawsome offer?",
+      "answer": "Yes! We offer free same-day delivery on orders above Rs. 2,000 within select cities. For other areas, we provide fast shipping with tracking so you always know when your pet's favorites will arrive."
+    },
+    {
+      "id": 5,
+      "question": "What brands does Pawsome offer?",
+      "answer": "Absolutely! We have qualified veterinarians and pet care specialists available 24/7 to provide expert advice on nutrition, health, behavior, and general pet care questions."
+    },
+    {
+      "id": 6,
+      "question": "What brands does Pawsome offer?",
+      "answer": "Our subscription service allows you to set up regular deliveries of your pet's favorite products. You save 10% on your first order and 5% on all recurring deliveries, plus you'll never run out of essentials."
+    }
+  ]
+}

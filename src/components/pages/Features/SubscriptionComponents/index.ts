@@ -1,0 +1,10 @@
+export { default as HeroBanner } from './HeroBanner';
+export { default as WhyPawsome } from './WhyPawsome';
+export { default as PetCategories } from './PetCategories';
+export { default as BrandPartners } from './BrandPartners';
+export { default as ProductCard } from './ProductCard';
+export { default as ProductRecommendations } from './ProductRecommendations';
+export { default as AdditionalProducts } from './AdditionalProducts';
+export { default as FeaturedDeals } from './FeaturedDeals';
+export { default as FAQ } from './FAQ';
+export { default as NewsletterSignup } from './NewsletterSignup';

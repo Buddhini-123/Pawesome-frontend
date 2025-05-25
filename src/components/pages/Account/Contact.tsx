@@ -184,21 +184,21 @@ const Contact: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">Quick Help</h3>
                 
                 <div className="space-y-3">
-                  <a href="#" className="block text-sky-600 hover:text-sky-800 transition-colors">
+                  <button className="block text-sky-600 hover:text-sky-800 transition-colors text-left">
                     → Track Your Order
-                  </a>
-                  <a href="#" className="block text-sky-600 hover:text-sky-800 transition-colors">
+                  </button>
+                  <button className="block text-sky-600 hover:text-sky-800 transition-colors text-left">
                     → Return Policy
-                  </a>
-                  <a href="#" className="block text-sky-600 hover:text-sky-800 transition-colors">
+                  </button>
+                  <button className="block text-sky-600 hover:text-sky-800 transition-colors text-left">
                     → Shipping Information
-                  </a>
-                  <a href="#" className="block text-sky-600 hover:text-sky-800 transition-colors">
+                  </button>
+                  <button className="block text-sky-600 hover:text-sky-800 transition-colors text-left">
                     → FAQs
-                  </a>
-                  <a href="#" className="block text-sky-600 hover:text-sky-800 transition-colors">
+                  </button>
+                  <button className="block text-sky-600 hover:text-sky-800 transition-colors text-left">
                     → Pet Care Guide
-                  </a>
+                  </button>
                 </div>
               </div>
               

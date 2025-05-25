@@ -67,45 +67,18 @@ const InteractiveCard = ({ button, index, inView }) => {
       onMouseLeave={handleMouseLeave}
     >
       <Link to={button.link} className="block">
-        <div className={`relative bg-gradient-to-br ${button.color} rounded-3xl p-8 text-white shadow-2xl overflow-hidden transform-gpu perspective-1000`}>
-          {/* Animated Pet Paw Prints Background */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            {[...Array(15)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute text-white text-xl"
-                style={{
-                  left: `${10 + (i % 4) * 25}%`,
-                  top: `${10 + Math.floor(i / 4) * 25}%`,
-                }}
-                animate={{
-                  opacity: [0.05, 0.3, 0.05],
-                  scale: [0.8, 1.3, 0.8],
-                  rotate: [0, 15, -15, 0],
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  delay: i * 0.4,
-                  ease: "easeInOut"
-                }}
-              >
-                🐾
-              </motion.div>
-            ))}
-          </div>
+        <div className={`relative bg-gradient-to-br ${button.color} rounded-3xl p-8 text-white shadow-xl overflow-hidden`}>
           
-          {/* Floating Pet Friend */}
-          <div className="absolute top-4 right-4 opacity-25 pointer-events-none">
+          {/* Simplified floating pet */}
+          <div className="absolute top-4 right-4 opacity-20 pointer-events-none">
             <motion.div
-              className="text-5xl"
+              className="text-4xl"
               animate={{
-                rotate: [0, 20, -20, 0],
-                scale: [1, 1.2, 1],
-                y: [0, -10, 0],
+                rotate: [0, 10, -10, 0],
+                scale: [1, 1.1, 1],
               }}
               transition={{
-                duration: 6,
+                duration: 4,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
@@ -114,130 +87,43 @@ const InteractiveCard = ({ button, index, inView }) => {
             </motion.div>
           </div>
           
-          {/* Enhanced Content */}
+          {/* Simplified content */}
           <div className="relative z-20">
-            {/* Icon with Advanced Glow Effect */}
+            {/* Icon with reduced glow effect */}
             <motion.div
               className="flex justify-center mb-8"
               whileHover={{ 
-                rotate: [0, -10, 10, 0],
-                scale: [1, 1.25, 1.2, 1.25],
+                scale: 1.1,
               }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
+              transition={{ duration: 0.3 }}
             >
-              <div className="relative">
-                {/* Multi-layered glow effect */}
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-yellow-300/60 to-orange-300/60 rounded-full blur-3xl"
-                  animate={{
-                    scale: [1, 1.4, 1],
-                    opacity: [0.4, 0.8, 0.4],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  style={{ transform: 'scale(250%)' }}
-                />
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-white/40 to-yellow-200/40 rounded-full blur-xl"
-                  animate={{
-                    scale: [1.2, 1.6, 1.2],
-                    opacity: [0.2, 0.6, 0.2],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 0.5
-                  }}
-                  style={{ transform: 'scale(180%)' }}
-                />
-                
-                <div className="relative bg-white/30 p-8 rounded-3xl backdrop-blur-md border border-white/40 shadow-2xl">
-                  <IconComponent className="h-20 w-20 relative z-10" />
-                  
-                  {/* Interactive sparkles */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    {[...Array(8)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className="absolute w-2 h-2 bg-yellow-300 rounded-full"
-                        style={{
-                          left: `${15 + Math.random() * 70}%`,
-                          top: `${15 + Math.random() * 70}%`,
-                        }}
-                        animate={{
-                          opacity: [0, 1, 0],
-                          scale: [0, 1.5, 0],
-                          rotate: [0, 180, 360],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          delay: i * 0.25,
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
+              <div className="relative bg-white/25 p-6 rounded-2xl backdrop-blur-sm border border-white/30 shadow-lg">
+                <IconComponent className="h-16 w-16 relative z-10" />
               </div>
             </motion.div>
             
-            {/* Enhanced Text Content */}
+            {/* Simplified text content */}
             <div className="text-center relative z-10">
-              <motion.h3 
-                className="text-4xl font-bold mb-6 leading-tight"
+              <h3 className="text-3xl font-bold mb-4 leading-tight">
+                {button.title}
+              </h3>
+              <p className="text-white/90 mb-8 text-base leading-relaxed">
+                {button.description}
+              </p>
+              
+              {/* Simplified CTA Button */}
+              <motion.div
+                className="flex justify-center"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
-                {button.title}
-              </motion.h3>
-              <motion.p 
-                className="text-white/95 mb-10 text-lg leading-relaxed"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                {button.description}
-              </motion.p>
-              
-              {/* Enhanced CTA Button */}
-              <motion.div
-                className="flex justify-center"
-                whileHover={{ 
-                  x: 12,
-                  scale: 1.08 
-                }}
-                transition={{ type: "spring", stiffness: 600, damping: 20 }}
-              >
-                <div className="flex items-center space-x-4 bg-white/35 px-10 py-5 rounded-3xl backdrop-blur-lg border border-white/50 shadow-xl">
-                  <motion.span 
-                    className="font-bold text-xl"
-                    animate={{
-                      color: ['#ffffff', '#fef3c7', '#ffffff']
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                    }}
-                  >
-                    Explore
-                  </motion.span>
-                  <motion.div
-                    animate={{ x: [0, 8, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <ArrowRight className="h-6 w-6" />
-                  </motion.div>
+                <div className="flex items-center space-x-3 bg-white/25 px-8 py-4 rounded-2xl backdrop-blur-sm border border-white/40 shadow-lg">
+                  <span className="font-bold text-lg">Explore</span>
+                  <ArrowRight className="h-5 w-5" />
                 </div>
               </motion.div>
             </div>
           </div>
-          
-          {/* Gradient overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/10 pointer-events-none" />
         </div>
       </Link>
     </div>
@@ -246,8 +132,9 @@ const InteractiveCard = ({ button, index, inView }) => {
 
 const Home: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [performanceMode, setPerformanceMode] = useState('auto');
   const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '25%']); // Reduced parallax intensity
   const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
   
   // Refs for scroll animations
@@ -259,6 +146,25 @@ const Home: React.FC = () => {
   const heroInView = useInView(heroRef, { once: true });
   const cardsInView = useInView(cardsRef, { once: true, threshold: 0.1 });
   const featuresInView = useInView(featuresRef, { once: true, threshold: 0.1 });
+
+  // Detect device performance and adjust settings
+  useEffect(() => {
+    const detectPerformance = () => {
+      const isMobile = window.innerWidth < 768;
+      const isLowEnd = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
+      const hasLowMemory = navigator.deviceMemory && navigator.deviceMemory < 4;
+      
+      if (isMobile || isLowEnd || hasLowMemory) {
+        setPerformanceMode('low');
+      } else if (navigator.hardwareConcurrency && navigator.hardwareConcurrency >= 8) {
+        setPerformanceMode('high');
+      } else {
+        setPerformanceMode('medium');
+      }
+    };
+
+    detectPerformance();
+  }, []);
 
   // Pet-themed main service buttons
   const mainButtons = [
@@ -296,61 +202,73 @@ const Home: React.FC = () => {
     }
   ];
 
-  // Loading sequence
+  // Loading sequence - reduced time
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 1500); // Reduced from 3000 to 1500ms
     return () => clearTimeout(timer);
   }, []);
 
-  // Hero section animations
+  // Simplified hero section animations
   useEffect(() => {
-    if (heroInView) {
+    if (heroInView && performanceMode !== 'low') {
       gsap.timeline()
         .fromTo('.hero-title', 
-          { y: 120, opacity: 0, scale: 0.7, rotationY: 45 },
-          { y: 0, opacity: 1, scale: 1, rotationY: 0, duration: 1.5, ease: "power4.out" }
+          { y: 60, opacity: 0, scale: 0.9 },
+          { y: 0, opacity: 1, scale: 1, duration: 1, ease: "power2.out" }
         )
         .fromTo('.hero-subtitle', 
-          { y: 80, opacity: 0, scale: 0.8 },
-          { y: 0, opacity: 1, scale: 1, duration: 1.2, ease: "power3.out" },
-          "-=0.8"
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" },
+          "-=0.5"
         )
         .fromTo('.hero-paws', 
-          { scale: 0, rotation: -360, opacity: 0 },
-          { scale: 1, rotation: 0, opacity: 1, duration: 1.2, ease: "back.out(2)" },
-          "-=0.6"
+          { scale: 0.5, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.2)" },
+          "-=0.4"
         );
     }
-  }, [heroInView]);
+  }, [heroInView, performanceMode]);
 
   return (
     <>
       {isLoading && <Loading3D />}
       
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-sky-50 to-amber-50 relative overflow-hidden">
-        {/* Enhanced Particle Effects */}
-        <EnhancedParticleSystem intensity={1.5} mouseInteractive={true} />
-        <MouseTrailEffect />
+        {/* Performance-adjusted effects */}
+        {performanceMode !== 'low' && (
+          <>
+            <EnhancedParticleSystem 
+              intensity={performanceMode === 'high' ? 0.8 : 0.3} 
+              mouseInteractive={performanceMode === 'high'} 
+            />
+            {performanceMode === 'high' && <MouseTrailEffect />}
+          </>
+        )}
         
-        {/* Advanced 3D Background */}
-        <div className="fixed inset-0 -z-10 opacity-90">
-          <Canvas camera={{ position: [0, 0, 15], fov: 60 }}>
-            <Suspense fallback={null}>
-              <Advanced3DBackground />
-              <Environment preset="sunset" />
-              <OrbitControls 
-                enableZoom={false} 
-                enablePan={false} 
-                autoRotate 
-                autoRotateSpeed={0.3}
-                maxPolarAngle={Math.PI / 2.2}
-                minPolarAngle={Math.PI / 2.8}
-              />
-            </Suspense>
-          </Canvas>
-        </div>
+        {/* 3D Background - conditionally rendered */}
+        {performanceMode !== 'low' && (
+          <div className="fixed inset-0 -z-10 opacity-70">
+            <Canvas 
+              camera={{ position: [0, 0, 12], fov: 50 }} // Reduced FOV and distance
+              performance={{ min: 0.5 }} // Add performance management
+            >
+              <Suspense fallback={null}>
+                <Advanced3DBackground />
+                <Environment preset="sunset" />
+                <OrbitControls 
+                  enableZoom={false} 
+                  enablePan={false} 
+                  autoRotate={performanceMode === 'high'} 
+                  autoRotateSpeed={0.2} // Slower rotation
+                  maxPolarAngle={Math.PI / 2.2}
+                  minPolarAngle={Math.PI / 2.8}
+                />
+              </Suspense>
+            </Canvas>
+          </div>
+        )}
 
         {/* Animated Background Layers */}
         <motion.div 
@@ -521,95 +439,36 @@ const Home: React.FC = () => {
                   <motion.div
                     key={index}
                     className="relative group"
-                    initial={{ opacity: 0, y: 100, scale: 0.8 }}
+                    initial={{ opacity: 0, y: 50 }}
                     animate={featuresInView ? { 
                       opacity: 1, 
-                      y: 0, 
-                      scale: 1,
+                      y: 0,
                       transition: { 
-                        duration: 1.2, 
-                        delay: index * 0.3,
-                        ease: "back.out(1.7)"
+                        duration: 0.8, 
+                        delay: index * 0.2
                       }
                     } : {}}
                   >
-                    <div className="bg-white rounded-3xl p-10 text-center shadow-2xl hover:shadow-3xl transition-all duration-700 transform hover:scale-110 hover:-translate-y-6 border border-gray-100 relative overflow-hidden">
-                      {/* Enhanced Background Effect */}
-                      <div 
-                        className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 rounded-3xl bg-gradient-to-r ${feature.color} pointer-events-none`}
-                      ></div>
+                    <div className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 border border-gray-100 relative overflow-hidden">
                       
                       {/* Benefit Badge */}
-                      <div className="absolute top-6 right-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg">
+                      <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg">
                         {feature.benefit}
                       </div>
                       
-                      {/* Enhanced Icon with Multi-layer Glow */}
+                      {/* Simplified Icon */}
                       <motion.div 
-                        className="text-7xl mb-8 relative z-10"
+                        className="text-5xl mb-6 relative z-10"
                         whileHover={{ 
-                          scale: 1.4,
-                          rotate: [0, -20, 20, 0],
+                          scale: 1.2,
                         }}
-                        transition={{ duration: 0.8, ease: "easeInOut" }}
+                        transition={{ duration: 0.3 }}
                       >
-                        <div className="relative">
-                          {/* Triple-layer glow effect */}
-                          <motion.div
-                            className={`absolute inset-0 bg-gradient-to-r ${feature.color} rounded-full blur-3xl opacity-20`}
-                            animate={{
-                              scale: [1, 1.4, 1],
-                              opacity: [0.2, 0.5, 0.2],
-                            }}
-                            transition={{
-                              duration: 4,
-                              repeat: Infinity,
-                              ease: "easeInOut"
-                            }}
-                          />
-                          <motion.div
-                            className={`absolute inset-0 bg-gradient-to-r ${feature.color} rounded-full blur-xl opacity-30`}
-                            animate={{
-                              scale: [1.2, 1.6, 1.2],
-                              opacity: [0.3, 0.6, 0.3],
-                            }}
-                            transition={{
-                              duration: 3,
-                              repeat: Infinity,
-                              ease: "easeInOut",
-                              delay: 0.5
-                            }}
-                          />
-                          <span className="relative z-10">{feature.emoji}</span>
-                        </div>
+                        {feature.emoji}
                       </motion.div>
                       
-                      <h3 className="text-3xl font-bold text-gray-800 mb-6 relative z-10">{feature.title}</h3>
-                      <p className="text-gray-600 text-lg leading-relaxed relative z-10">{feature.desc}</p>
-                      
-                      {/* Interactive hover sparkles */}
-                      <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                        {[...Array(12)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            className="absolute w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full"
-                            style={{
-                              left: `${15 + Math.random() * 70}%`,
-                              top: `${15 + Math.random() * 70}%`,
-                            }}
-                            animate={{
-                              opacity: [0, 1, 0],
-                              scale: [0, 1.5, 0],
-                              rotate: [0, 180, 360],
-                            }}
-                            transition={{
-                              duration: 3,
-                              repeat: Infinity,
-                              delay: i * 0.15,
-                            }}
-                          />
-                        ))}
-                      </div>
+                      <h3 className="text-2xl font-bold text-gray-800 mb-4 relative z-10">{feature.title}</h3>
+                      <p className="text-gray-600 text-base leading-relaxed relative z-10">{feature.desc}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -617,38 +476,38 @@ const Home: React.FC = () => {
             </div>
           </section>
 
-          {/* Enhanced Call to Action */}
-          <section className="py-24 px-4 relative z-30">
-            <div className="container mx-auto max-w-6xl text-center">
+          {/* Simplified Call to Action */}
+          <section className="py-20 px-4 relative z-30">
+            <div className="container mx-auto max-w-5xl text-center">
               <motion.div
                 className="relative"
                 whileInView={{ 
-                  scale: [0.9, 1.03, 1],
+                  scale: [0.95, 1],
                 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
+                transition={{ duration: 1, ease: "easeOut" }}
                 viewport={{ once: true }}
               >
-                <div className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 rounded-3xl p-16 shadow-3xl relative overflow-hidden">
-                  {/* Enhanced Pet elements decoration with 3D effect */}
+                <div className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 rounded-2xl p-12 shadow-2xl relative overflow-hidden">
+                  
+                  {/* Simplified pet elements decoration */}
                   {[
-                    { emoji: '🐕', position: 'top-8 left-8', delay: 0 },
-                    { emoji: '🐱', position: 'top-8 right-8', delay: 0.5 },
-                    { emoji: '🐦', position: 'bottom-8 left-8', delay: 1 },
-                    { emoji: '🐰', position: 'bottom-8 right-8', delay: 1.5 },
+                    { emoji: '🐕', position: 'top-6 left-6' },
+                    { emoji: '🐱', position: 'top-6 right-6' },
+                    { emoji: '🐦', position: 'bottom-6 left-6' },
+                    { emoji: '🐰', position: 'bottom-6 right-6' },
                   ].map((pet, index) => (
                     <motion.div 
                       key={index}
-                      className={`absolute ${pet.position} text-6xl opacity-15 pointer-events-none`}
+                      className={`absolute ${pet.position} text-4xl opacity-10 pointer-events-none`}
                       animate={{
-                        rotate: [0, 360],
-                        scale: [1, 1.3, 1],
-                        y: [0, -20, 0],
+                        rotate: [0, 15, -15, 0],
+                        scale: [1, 1.1, 1],
                       }}
                       transition={{
-                        duration: 10,
+                        duration: 4,
                         repeat: Infinity,
-                        delay: pet.delay,
-                        ease: "linear"
+                        delay: index * 0.5,
+                        ease: "easeInOut"
                       }}
                     >
                       {pet.emoji}
@@ -656,55 +515,37 @@ const Home: React.FC = () => {
                   ))}
                   
                   <motion.h2 
-                    className="text-5xl md:text-6xl font-bold text-white mb-8 relative z-10"
-                    whileHover={{ scale: 1.05 }}
+                    className="text-4xl md:text-5xl font-bold text-white mb-6 relative z-10"
+                    whileHover={{ scale: 1.02 }}
                   >
                     Ready to Spoil Your Furry Family?
                   </motion.h2>
                   <motion.p 
-                    className="text-white/95 text-2xl mb-12 max-w-4xl mx-auto relative z-10 leading-relaxed"
+                    className="text-white/95 text-xl mb-10 max-w-3xl mx-auto relative z-10 leading-relaxed"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 0.3 }}
                   >
-                    Join thousands of happy pet parents who trust Pawsome for premium care. 
-                    Start your journey today and give your pets the love they deserve!
+                    Join thousands of happy pet parents who trust Pawsome for premium care.
                   </motion.p>
                   
                   <motion.div
-                    className="flex flex-col sm:flex-row gap-6 justify-center items-center relative z-10"
-                    initial={{ opacity: 0, y: 30 }}
+                    className="flex justify-center relative z-10"
+                    initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 }}
+                    transition={{ delay: 0.5 }}
                   >
                     <motion.div
-                      whileHover={{ scale: 1.08 }}
+                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <Link
                         to="/brands"
-                        className="inline-flex items-center bg-white text-amber-600 font-bold px-12 py-6 rounded-2xl hover:bg-gray-50 transition-all duration-300 shadow-2xl text-xl"
+                        className="inline-flex items-center bg-white text-amber-600 font-bold px-10 py-4 rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-xl text-lg"
                       >
-                        <motion.span
-                          animate={{
-                            scale: [1, 1.2, 1],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                          }}
-                          className="mr-4 text-3xl"
-                        >
-                          🐾
-                        </motion.span>
+                        <span className="mr-3 text-2xl">🐾</span>
                         <span>Start Shopping</span>
-                        <motion.div
-                          className="ml-4"
-                          animate={{ x: [0, 10, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          <ArrowRight className="h-7 w-7" />
-                        </motion.div>
+                        <ArrowRight className="ml-3 h-6 w-6" />
                       </Link>
                     </motion.div>
                   </motion.div>

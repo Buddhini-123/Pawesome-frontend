@@ -1,0 +1,31 @@
+{
+  "deals": [
+    {
+      "id": 1,
+      "title": "FOOD FOR YOUR DOG",
+      "subtitle": "Premium Quality Dog Food",
+      "image": "/api/placeholder/300/200",
+      "backgroundColor": "bg-orange-400",
+      "buttonText": "Shop Now",
+      "discount": "Up to 40% Off"
+    },
+    {
+      "id": 2,
+      "title": "FOOD FOR YOUR DOG", 
+      "subtitle": "Premium Quality Dog Food",
+      "image": "/api/placeholder/300/200",
+      "backgroundColor": "bg-orange-400",
+      "buttonText": "Shop Now",
+      "discount": "Up to 40% Off"
+    },
+    {
+      "id": 3,
+      "title": "FOOD FOR YOUR DOG",
+      "subtitle": "Premium Quality Dog Food", 
+      "image": "/api/placeholder/300/200",
+      "backgroundColor": "bg-orange-400",
+      "buttonText": "Shop Now",
+      "discount": "Up to 40% Off"
+    }
+  ]
+}
