@@ -1,4 +1,4 @@
-// import { ProductGrid } from "../components/ProductGrid";
+import ProductGrid from '../../effects/ProductGrid.tsx';
 
 const ReccomendationsGrid = () => {
   const topRecommendations = [
@@ -37,13 +37,6 @@ const ReccomendationsGrid = () => {
       rating: 5,
       image: "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png"
     },
-    {
-      id: 6,
-      name: "Pedigree Dog biscuit",
-      price: "Rs. 2000.00",
-      rating: 5,
-      image: "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png"
-    }
   ];
 
   const regularProducts = Array.from({ length: 20 }, (_, index) => ({
@@ -63,7 +56,7 @@ const ReccomendationsGrid = () => {
             <h2 className="text-white text-xl font-semibold">Top Recommendations</h2>
             <span className="ml-2 text-white text-lg">🔥</span>
           </div>
-          {/* <ProductGrid products={topRecommendations} /> */}
+          <ProductGrid products={topRecommendations} />
         </div>
 
         {/* Regular Products Section */}

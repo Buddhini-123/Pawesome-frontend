@@ -1,4 +1,4 @@
-import { StarRating } from "./StarRating";
+import StarRating from "./StarRating/StarRating.tsx";
 
 interface Product {
   id: number;
@@ -12,7 +12,7 @@ interface ProductGridProps {
   products: Product[];
 }
 
-export const ProductGrid = ({ products }: ProductGridProps) => {
+const ProductGrid = ({ products }: ProductGridProps) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       {products.map((product) => (
@@ -36,3 +36,4 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
     </div>
   );
 };
+export default ProductGrid;
