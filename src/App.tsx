@@ -28,6 +28,7 @@ import Gifts from './components/pages/Features/Gifts.tsx';
 import Deals from './components/pages/Features/Deals.tsx';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards.tsx';
 import Login from './components/pages/Login/Login.tsx';
+import ProductPage from './components/pages/Products/ProductPage.tsx';
 
 const App: React.FC = () => {
 
@@ -57,6 +58,8 @@ const App: React.FC = () => {
           <Route path="/gifts" element={<Gifts />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/loyalty-cards" element={<LoyaltyCards />} />
+
+          <Route path="/product" element={<ProductPage />} />
           
           <Route path="*" element={<NotFound />} />
         </Routes>
