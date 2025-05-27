@@ -21,6 +21,8 @@ module.exports = {
 				// calmblue: '#6CA6CD',
 				// energeticorange: '#FF914D',
 				// offwhite: '#F9FAFB',
+				warmorrange: '#FFBF57',
+				naturalsage: '#9DB17C',
 				// Primary Colors
 				"energetic-orange": "#FF914D",  // CTA, branding
 				"natural-sage": "#9DB17C",  // Highlights
