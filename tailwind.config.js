@@ -21,6 +21,7 @@ module.exports = {
 				calmblue: '#6CA6CD',
 				energeticorange: '#FF914D',
 				offwhite: '#F9FAFB',
+				warmorrange: '#FFBF57',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
