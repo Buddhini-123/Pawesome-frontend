@@ -68,10 +68,13 @@ const ReccomendationsGrid = () => {
         </div>
         <ProductGrid products={regularProducts} />
          {/* Featured Deals Section */}
-        <div className="flex items-center mb-4">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6 mt-6 font-figtree">
             Featured Deals of the week
           </h2>
+          <a href="#" className="text-blue-600 underline font-medium hover:text-blue-800">
+            View all Deals
+          </a>
         </div>
         <FeaturedDeals />
       </div>
