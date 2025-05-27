@@ -1,72 +1,120 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, Clock, Package, Truck } from 'lucide-react';
+// src/pages/Subscriptions.jsx
+import React, { useState } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  ShoppingCart,
+  Award,
+  HeadphonesIcon,
+  ChevronDown,
+  ChevronUp,
+  Package,
+} from 'lucide-react'
+import SlideshowBanner from '../../banners/subscriptionbanner/SlideshowBanner'
+import WhyPawsomeSection from '../../banners/whypawsome/WhyPawsomeSection'
+import CategoryCarousel from '../../carousels/CategoryCarousel'
+import dogImg from '../../carousels/images/dog.png'
+import catImg from '../../carousels/images/cat.png'
+import birdImg from '../../carousels/images/bird.png'
+import rodentImg from '../../carousels/images/rodent.png'
+import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel'
+import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion'
 
-const Subscriptions: React.FC = () => {
+const Subscriptions = () => {
+  const [expandedFAQ, setExpandedFAQ] = useState(null)
+
+  const subscriptionSlides = [
+    {
+      image:
+        'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg',
+      title: 'Banner 1',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 1 CTA clicked'),
+    },
+    {
+      image: 'https://petpoints.co.uk/assets/purepet.jpg',
+      title: 'Banner 2',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 2 CTA clicked'),
+    },
+    {
+      image:
+        'https://cdnpublic.budgetpetproducts.com.au/contents/2025/05/21/24044014-2d7d-4f5a-938c-ed2fb11588a3.jpg',
+      title: 'Banner 3',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 3 CTA clicked'),
+    },
+    // ...other slides
+  ]
+
+  const faqs = [
+    {
+      question: 'Want to know who we are?',
+      answer: 'Discover our story, mission, and love for pets.',
+    },
+    {
+      question: 'What brands does Pawsome offer?',
+      answer:
+        'We offer premium brands like Pedigree, Royal Canin, Whiskas, and many more.',
+    },
+    // ...more FAQ items
+  ]
+
+  const petCategories = [
+    {
+      bgClass: 'bg-soft-yellow',
+      image: dogImg,
+      alt: 'Dog',
+      route: '/dogs',
+    },
+    {
+      bgClass: 'bg-calm-blue',
+      image: catImg,
+      alt: 'Cat',
+      route: '/cats',
+    },
+    {
+      bgClass: 'bg-soft-yellow',
+      image: birdImg,
+      alt: 'Bird',
+      route: '/birds',
+    },
+    {
+      bgClass: 'bg-energetic-orange',
+      image: rodentImg,
+      alt: 'Small Pet',
+      route: '/other-animals',
+    },
+    // ...more categories
+  ]
+
+  const slides = [
+    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
+    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
+    // add more banners as needed
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <div className="flex justify-center items-center mb-6">
-            <Calendar className="text-blue-600 mr-3 h-12 w-12" />
-            <h1 className="text-4xl font-bold text-gray-800">Pet Subscriptions</h1>
-          </div>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Never run out of your pet's essentials with our convenient subscription service
-          </p>
-        </motion.div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 space-y-12">
+        <SlideshowBanner slides={subscriptionSlides} autoPlay interval={6000} />
+        <WhyPawsomeSection />
+        <CategoryCarousel categories={petCategories} />
+        <TopBrandsCarousel />
+        <FAQAccordion
+          items={faqs}
+          initialIndex={0}
+          allowMultiple={false}
+        />
+        {/* <SlideshowBanner slides={slides} interval={6000} /> */}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow"
-          >
-            <Package className="h-8 w-8 text-blue-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-3">Monthly Essentials</h3>
-            <p className="text-gray-600 mb-4">Regular delivery of food, treats, and supplies</p>
-            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              Subscribe Now
-            </button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow"
-          >
-            <Clock className="h-8 w-8 text-blue-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-3">Flexible Schedule</h3>
-            <p className="text-gray-600 mb-4">Choose delivery frequency that suits your needs</p>
-            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              Customize
-            </button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow"
-          >
-            <Truck className="h-8 w-8 text-blue-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-3">Free Delivery</h3>
-            <p className="text-gray-600 mb-4">No extra charges for subscription deliveries</p>
-            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              Learn More
-            </button>
-          </motion.div>
-        </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Subscriptions;
+export default Subscriptions

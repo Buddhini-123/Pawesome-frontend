@@ -1,26 +1,44 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-	"./src/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}", 
-  ],
-  prefix: "",
-  theme: {
-    container: {
-      center: true,
-      padding: '2rem',
-      screens: {
-        '2xl': '1400px'
-      }
-    },
-    extend: {
+	darkMode: ["class"],
+	content: [
+		"./pages/**/*.{ts,tsx}",
+		"./app/**/*.{ts,tsx}",
+		"./src/**/*.{js,jsx,ts,tsx}",
+		"./components/**/*.{js,jsx,ts,tsx}",
+	],
+	prefix: "",
+	theme: {
+		container: {
+			center: true,
+			padding: '2rem',
+			screens: {
+				'2xl': '1400px'
+			}
+		},
+		extend: {
 			colors: {
-				calmblue: '#6CA6CD',
-				energeticorange: '#FF914D',
-				offwhite: '#F9FAFB',
+				// calmblue: '#6CA6CD',
+				// energeticorange: '#FF914D',
+				// offwhite: '#F9FAFB',
+				// Primary Colors
+				"energetic-orange": "#FF914D",  // CTA, branding
+				"natural-sage": "#9DB17C",  // Highlights
+				"calm-blue": "#6CA6CD",  // Highlights
+				"warm-orange": "#FFBF57",  // Highlights
+
+				// Secondary Colors
+				"soft-yellow": "#FFE066",  // Cards, backgrounds
+				"periwinkle": "#D6CDEA",  // Backgrounds, hover
+				"warm-taupe": "#A1866F",  // Backgrounds
+				"mint": "#1AB487",  // Accents, hover
+				"crimson": "#F64E4E",  // Accents
+
+				// Neutrals
+				"off-white": "#F9FAFB",  // Text, borders
+				"light-gray": "#E5E7EB",  // Borders, muted text
+				"charcoal-gray": "#3C3D3C",  // Headings, body text
+
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -93,6 +111,6 @@ module.exports = {
 				'accordion-up': 'accordion-up 0.2s ease-out'
 			}
 		}
-  },
-  plugins: [require("tailwindcss-animate")],
+	},
+	plugins: [require("tailwindcss-animate")],
 };
