@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const MouseTrailEffect: React.FC = () => {
+const MouseTrailEffect = () => {
   const [isEnabled, setIsEnabled] = useState(true);
-  const trailRef = useRef<HTMLDivElement[]>([]);
+  const trailRef = useRef([]);
   const mousePos = useRef({ x: 0, y: 0 });
 
   // Detect mobile/low-end devices and disable trail
@@ -18,9 +18,9 @@ const MouseTrailEffect: React.FC = () => {
   useEffect(() => {
     if (!isEnabled) return;
 
-    let animationId: number;
+    let animationId;
     
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e) => {
       mousePos.current = { x: e.clientX, y: e.clientY };
       
       // Throttle trail updates for better performance

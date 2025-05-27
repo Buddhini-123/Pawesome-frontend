@@ -1,474 +1,359 @@
-import React, { useEffect, useRef, Suspense, useState } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment } from '@react-three/drei';
+import React, { useRef, Suspense } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Calendar, Gift, Percent, CreditCard, ArrowRight } from 'lucide-react';
-import gsap from 'gsap';
+import { Canvas } from '@react-three/fiber';
+import { 
+  Truck, 
+  Award, 
+  Phone, 
+  ArrowRight, 
+  Heart, 
+  Shield, 
+  Globe,
+  Check,
+  Mail,
+  MapPin
+} from 'lucide-react';
 
-// Enhanced Effects
-import EnhancedParticleSystem from '../../effects/EnhancedParticleSystem.tsx';
-import MouseTrailEffect from '../../effects/MouseTrailEffect.tsx';
-import Loading3D from '../../effects/Loading3D.tsx';
-import Advanced3DBackground from '../../effects/Advanced3DBackground.tsx';
+// 3D Components
+import Advanced3DBackground from '../../effects/Advanced3DBackground';
+import EnhancedParticleSystem from '../../effects/EnhancedParticleSystem';
+import Loading3D from '../../effects/Loading3D';
 
-// Enhanced Interactive Card Component
-const InteractiveCard = ({ button, index, inView }) => {
-  const cardRef = useRef();
-  const IconComponent = button.icon;
-  
-  useEffect(() => {
-    if (inView && cardRef.current) {
-      gsap.fromTo(cardRef.current, 
-        { 
-          y: 100, 
-          opacity: 0, 
-          scale: 0.8,
-          rotationY: 30
-        },
-        { 
-          y: 0, 
-          opacity: 1, 
-          scale: 1,
-          rotationY: 0,
-          duration: 1,
-          delay: index * 0.2,
-          ease: "back.out(1.7)"
-        }
-      );
-    }
-  }, [inView, index]);
+// Component imports removed - using inline JSX instead
 
-  const handleMouseEnter = () => {
-    gsap.to(cardRef.current, {
-      scale: 1.08,
-      y: -25,
-      rotationY: 8,
-      duration: 0.5,
-      ease: "power3.out"
-    });
-  };
+// Data arrays (you may need to import these from separate files)
+const additionalServices = [
+  { title: 'Veterinary Consultation', description: '24/7 expert vet advice' },
+  { title: 'Pet Grooming', description: 'Professional grooming services' },
+  { title: 'Training Programs', description: 'Behavioral training for pets' },
+  { title: 'Emergency Care', description: 'Round-the-clock emergency support' }
+];
 
-  const handleMouseLeave = () => {
-    gsap.to(cardRef.current, {
-      scale: 1,
-      y: 0,
-      rotationY: 0,
-      duration: 0.5,
-      ease: "power3.out"
-    });
-  };
+const testimonials = [
+  { name: 'Sarah Johnson', text: 'Amazing service and quality products!' },
+  { name: 'Mike Chen', text: 'My pets love everything from Pawsome!' }
+];
 
-  return (
-    <div
-      ref={cardRef}
-      className="relative group"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <Link to={button.link} className="block">
-        <div className={`relative bg-gradient-to-br ${button.color} rounded-3xl p-8 text-white shadow-xl overflow-hidden`}>
-          
-          {/* Simplified floating pet */}
-          <div className="absolute top-4 right-4 opacity-20 pointer-events-none">
-            <motion.div
-              className="text-4xl"
-              animate={{
-                rotate: [0, 10, -10, 0],
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              {button.petEmoji}
-            </motion.div>
-          </div>
-          
-          {/* Simplified content */}
-          <div className="relative z-20">
-            {/* Icon with reduced glow effect */}
-            <motion.div
-              className="flex justify-center mb-8"
-              whileHover={{ 
-                scale: 1.1,
-              }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="relative bg-white/25 p-6 rounded-2xl backdrop-blur-sm border border-white/30 shadow-lg">
-                <IconComponent className="h-16 w-16 relative z-10" />
-              </div>
-            </motion.div>
-            
-            {/* Simplified text content */}
-            <div className="text-center relative z-10">
-              <h3 className="text-3xl font-bold mb-4 leading-tight">
-                {button.title}
-              </h3>
-              <p className="text-white/90 mb-8 text-base leading-relaxed">
-                {button.description}
-              </p>
-              
-              {/* Simplified CTA Button */}
-              <motion.div
-                className="flex justify-center"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 400 }}
-              >
-                <div className="flex items-center space-x-3 bg-white/25 px-8 py-4 rounded-2xl backdrop-blur-sm border border-white/40 shadow-lg">
-                  <span className="font-bold text-lg">Explore</span>
-                  <ArrowRight className="h-5 w-5" />
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </Link>
-    </div>
-  );
-};
+const topBrands = [
+  'Royal Canin',
+  'Hill\'s',
+  'Purina',
+  'KONG'
+];
 
 const Home: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [performanceMode, setPerformanceMode] = useState('auto');
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '25%']); // Reduced parallax intensity
-  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-  
-  // Refs for scroll animations
-  const heroRef = useRef(null);
-  const cardsRef = useRef(null);
-  const featuresRef = useRef(null);
-  
-  // In View Detection
-  const heroInView = useInView(heroRef, { once: true });
-  const cardsInView = useInView(cardsRef, { once: true, threshold: 0.1 });
-  const featuresInView = useInView(featuresRef, { once: true, threshold: 0.1 });
+  // Refs for intersection observer
+  const featuresRef = useRef<HTMLElement>(null);
+  const servicesRef = useRef<HTMLElement>(null);
+  const testimonialsRef = useRef<HTMLElement>(null);
+  const brandsRef = useRef<HTMLElement>(null);
+  const aboutRef = useRef<HTMLElement>(null);
 
-  // Detect device performance and adjust settings
-  useEffect(() => {
-    const detectPerformance = () => {
-      const isMobile = window.innerWidth < 768;
-      const isLowEnd = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
-      const hasLowMemory = navigator.deviceMemory && navigator.deviceMemory < 4;
-      
-      if (isMobile || isLowEnd || hasLowMemory) {
-        setPerformanceMode('low');
-      } else if (navigator.hardwareConcurrency && navigator.hardwareConcurrency >= 8) {
-        setPerformanceMode('high');
-      } else {
-        setPerformanceMode('medium');
-      }
-    };
-
-    detectPerformance();
-  }, []);
-
-  // Pet-themed main service buttons
-  const mainButtons = [
-    {
-      title: 'Pet Subscriptions',
-      description: 'Never run out of your pet\'s favorites with smart, personalized deliveries tailored to your pet\'s unique needs and preferences.',
-      icon: Calendar,
-      color: 'from-amber-400 via-amber-500 to-yellow-600',
-      link: '/subscriptions',
-      petEmoji: '🐕'
-    },
-    {
-      title: 'Surprise Gift Boxes',
-      description: 'Curated monthly surprise boxes filled with premium toys, treats, and accessories that will make your pet\'s tail wag with joy.',
-      icon: Gift,
-      color: 'from-sky-400 via-sky-500 to-blue-600',
-      link: '/gifts',
-      petEmoji: '🐱'
-    },
-    {
-      title: 'Daily Deals',
-      description: 'Exclusive discounts on top-rated pet products, premium food, and veterinary care services for smart pet parents.',
-      icon: Percent,
-      color: 'from-emerald-400 via-emerald-500 to-green-600',
-      link: '/deals',
-      petEmoji: '🐦'
-    },
-    {
-      title: 'Paw Rewards',
-      description: 'Earn points with every purchase, unlock exclusive benefits, and get VIP access to new products before anyone else.',
-      icon: CreditCard,
-      color: 'from-purple-400 via-purple-500 to-indigo-600',
-      link: '/loyalty-cards',
-      petEmoji: '🐰'
-    }
-  ];
-
-  // Loading sequence - reduced time
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500); // Reduced from 3000 to 1500ms
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Simplified hero section animations
-  useEffect(() => {
-    if (heroInView && performanceMode !== 'low') {
-      gsap.timeline()
-        .fromTo('.hero-title', 
-          { y: 60, opacity: 0, scale: 0.9 },
-          { y: 0, opacity: 1, scale: 1, duration: 1, ease: "power2.out" }
-        )
-        .fromTo('.hero-subtitle', 
-          { y: 40, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" },
-          "-=0.5"
-        )
-        .fromTo('.hero-paws', 
-          { scale: 0.5, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.2)" },
-          "-=0.4"
-        );
-    }
-  }, [heroInView, performanceMode]);
+  // InView hooks
+  const featuresInView = useInView(featuresRef);
+  const servicesInView = useInView(servicesRef);
+  const testimonialsInView = useInView(testimonialsRef);
+  const brandsInView = useInView(brandsRef);
+  const aboutInView = useInView(aboutRef);
 
   return (
     <>
-      {isLoading && <Loading3D />}
-      
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-sky-50 to-amber-50 relative overflow-hidden">
-        {/* Performance-adjusted effects */}
-        {performanceMode !== 'low' && (
-          <>
-            <EnhancedParticleSystem 
-              intensity={performanceMode === 'high' ? 0.8 : 0.3} 
-              mouseInteractive={performanceMode === 'high'} 
-            />
-            {performanceMode === 'high' && <MouseTrailEffect />}
-          </>
-        )}
-        
-        {/* 3D Background - conditionally rendered */}
-        {performanceMode !== 'low' && (
-          <div className="fixed inset-0 -z-10 opacity-70">
-            <Canvas 
-              camera={{ position: [0, 0, 12], fov: 50 }} // Reduced FOV and distance
-              performance={{ min: 0.5 }} // Add performance management
-            >
-              <Suspense fallback={null}>
-                <Advanced3DBackground />
-                <Environment preset="sunset" />
-                <OrbitControls 
-                  enableZoom={false} 
-                  enablePan={false} 
-                  autoRotate={performanceMode === 'high'} 
-                  autoRotateSpeed={0.2} // Slower rotation
-                  maxPolarAngle={Math.PI / 2.2}
-                  minPolarAngle={Math.PI / 2.8}
-                />
-              </Suspense>
-            </Canvas>
-          </div>
-        )}
+    {/* <Header /> */}
+      {/* Advanced 3D Background Canvas */}
+      <div className="fixed inset-0 z-0">
+        <Canvas
+          camera={{ position: [0, 0, 10], fov: 50 }}
+          style={{ background: 'transparent' }}
+          gl={{ antialias: false, alpha: true }}
+          performance={{ min: 0.5 }}
+        >
+          <Suspense fallback={<Loading3D />}>
+            <Advanced3DBackground />
+          </Suspense>
+        </Canvas>
+      </div>
 
-        {/* Animated Background Layers */}
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-br from-amber-100/40 via-sky-100/30 to-yellow-100/40 pointer-events-none -z-20"
-          style={{ y, opacity }}
-        />
+      {/* Enhanced Particle System */}
+      <EnhancedParticleSystem intensity={0.3} mouseInteractive={true} />
 
-        {/* Content Sections */}
-        <div className="relative z-20">
-          {/* Enhanced Hero Section */}
-          <motion.section 
-            ref={heroRef}
-            className="min-h-screen flex items-center justify-center px-4 relative z-30"
-          >
-            <div className="text-center max-w-7xl mx-auto">
-              {/* Enhanced Pet Paws with Advanced Effects */}
-              <div className="hero-paws flex justify-center items-center mb-10">
-                <motion.div
-                  animate={{
-                    rotate: [0, 15, -15, 0],
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="text-amber-500 mr-8 text-8xl relative"
-                  style={{
-                    filter: 'drop-shadow(0 0 30px rgba(245, 158, 11, 0.6))',
-                  }}
-                >
-                  🐾
-                </motion.div>
-                
+      <div className="min-h-screen bg-gradient-to-br from-sky-50/90 to-amber-50/90 relative z-10">
+        <div className="relative overflow-hidden">
+          
+          {/* Hero Section with 3D Interactive Elements */}
+          <section className="min-h-screen flex items-center justify-center px-4 relative z-30">
+            <div className="container mx-auto max-w-6xl text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="relative"
+              >
                 <motion.h1 
-                  className="hero-title text-8xl md:text-9xl lg:text-[12rem] font-bold bg-gradient-to-r from-amber-600 via-sky-600 to-amber-600 bg-clip-text text-transparent relative"
-                  whileHover={{ 
-                    scale: 1.05,
+                  className="text-6xl md:text-7xl lg:text-8xl font-black text-gray-800 mb-6 relative z-20"
+                  animate={{
+                    textShadow: [
+                      "0 0 20px rgba(108, 166, 205, 0.3)",
+                      "0 0 40px rgba(245, 158, 11, 0.4)",
+                      "0 0 20px rgba(108, 166, 205, 0.3)"
+                    ]
                   }}
-                  transition={{ type: "spring", stiffness: 400 }}
-                  style={{
-                    textShadow: '0 0 60px rgba(14, 165, 233, 0.4)',
-                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  Pawsome
+                  Welcome to
+                  <motion.span 
+                    className="block bg-gradient-to-r from-sky-500 via-amber-500 to-stone-500 bg-clip-text text-transparent"
+                    animate={{ 
+                      scale: [1, 1.05, 1],
+                      rotateX: [0, 5, 0]
+                    }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    Pawsome
+                  </motion.span>
                 </motion.h1>
                 
-                <motion.div
-                  animate={{
-                    rotate: [0, -15, 15, 0],
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    delay: 2.5,
-                    ease: "easeInOut"
-                  }}
-                  className="text-sky-500 ml-8 text-8xl relative"
-                  style={{
-                    filter: 'drop-shadow(0 0 30px rgba(14, 165, 233, 0.6))',
-                  }}
+                <motion.p 
+                  className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed relative z-20"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.3 }}
                 >
-                  🐾
+                  Experience premium pet care with our advanced 3D interactive platform. 
+                  Where technology meets love for your furry, feathered, and scaled family members.
+                </motion.p>
+
+                {/* Interactive 3D CTA Buttons */}
+                <motion.div
+                  className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-12"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.6 }}
+                >
+                  <motion.div
+                    whileHover={{ 
+                      scale: 1.1, 
+                      rotateY: 10,
+                      rotateX: 5,
+                      y: -10
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    style={{ transformStyle: 'preserve-3d' }}
+                  >
+                    <Link
+                      to="/dogs"
+                      className="inline-flex items-center bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold px-10 py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg group"
+                    >
+                      <motion.span 
+                        className="mr-4 text-2xl"
+                        animate={{ 
+                          rotate: [0, 15, -15, 0],
+                          scale: [1, 1.2, 1]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        🐕
+                      </motion.span>
+                      <span>Explore for Dogs</span>
+                      <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform" />
+                    </Link>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ 
+                      scale: 1.1, 
+                      rotateY: -10,
+                      rotateX: 5,
+                      y: -10
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    style={{ transformStyle: 'preserve-3d' }}
+                  >
+                    <Link
+                      to="/cats"
+                      className="inline-flex items-center bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold px-10 py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg group"
+                    >
+                      <motion.span 
+                        className="mr-4 text-2xl"
+                        animate={{ 
+                          rotate: [0, -15, 15, 0],
+                          scale: [1, 1.2, 1]
+                        }}
+                        transition={{ duration: 2.5, repeat: Infinity }}
+                      >
+                        🐱
+                      </motion.span>
+                      <span>Explore for Cats</span>
+                      <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform" />
+                    </Link>
+                  </motion.div>
                 </motion.div>
-              </div>
-              
-              <motion.p
-                className="hero-subtitle text-3xl md:text-4xl text-gray-700 max-w-6xl mx-auto leading-relaxed mb-16"
-                style={{
-                  textShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                }}
-              >
-                Your trusted partner in pet care excellence. 
-                <span className="bg-gradient-to-r from-amber-600 to-sky-600 bg-clip-text text-transparent font-bold">
-                  {" "}Every tail deserves the best{" "}
-                </span>
-                – from premium nutrition to endless love and care.
-              </motion.p>
 
-              {/* Floating Pet Companions */}
-              <motion.div
-                className="absolute bottom-16 left-1/2 transform -translate-x-1/2 pointer-events-none"
-                animate={{ 
-                  y: [0, 25, 0],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                <div className="text-6xl">🐕‍🦺</div>
+                {/* Floating Pet Stats */}
+                <motion.div
+                  className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 1 }}
+                >
+                  {[
+                    { number: '50K+', label: 'Happy Pets', emoji: '🐾' },
+                    { number: '24/7', label: 'Expert Care', emoji: '❤️' },
+                    { number: '500+', label: 'Cities Served', emoji: '🚚' },
+                    { number: '99%', label: 'Satisfaction', emoji: '⭐' }
+                  ].map((stat, index) => (
+                    <motion.div
+                      key={index}
+                      className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group"
+                      whileHover={{ 
+                        scale: 1.05, 
+                        y: -5,
+                        rotateY: 5 * (index % 2 === 0 ? 1 : -1)
+                      }}
+                      style={{ transformStyle: 'preserve-3d' }}
+                    >
+                      <motion.div 
+                        className="text-3xl mb-2"
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          rotate: [0, 10, -10, 0]
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          delay: index * 0.5
+                        }}
+                      >
+                        {stat.emoji}
+                      </motion.div>
+                      <div className="text-2xl font-bold text-gray-800 group-hover:text-sky-600 transition-colors">
+                        {stat.number}
+                      </div>
+                      <div className="text-gray-600 text-sm">
+                        {stat.label}
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
               </motion.div>
-            </div>
-          </motion.section>
-
-          {/* Enhanced Main Service Cards */}
-          <section ref={cardsRef} className="py-24 px-4 relative bg-white/95 backdrop-blur-lg z-30">
-            <div className="container mx-auto max-w-7xl">
-              <motion.div
-                className="text-center mb-20"
-                initial={{ opacity: 0, y: 50 }}
-                animate={cardsInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 1 }}
-              >
-                <h2 className="text-6xl font-bold text-gray-800 mb-8">
-                  Choose Your Pet Care Adventure
-                </h2>
-                <p className="text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-                  Discover tailored solutions for every pet's unique needs and personality. 
-                  Experience the joy of premium pet care made simple.
-                </p>
-              </motion.div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {mainButtons.map((button, index) => (
-                  <InteractiveCard
-                    key={button.title}
-                    button={button}
-                    index={index}
-                    inView={cardsInView}
-                  />
-                ))}
-              </div>
             </div>
           </section>
-
-          {/* Enhanced Pet Care Features */}
-          <section ref={featuresRef} className="py-24 px-4 relative z-30">
-            <div className="container mx-auto max-w-6xl">
+          
+          {/* Features Section */}
+          <section ref={featuresRef} className="py-16 px-4 relative z-30 bg-white">
+            <div className="container mx-auto max-w-7xl">
               <motion.div
-                className="text-center mb-20"
-                initial={{ opacity: 0, y: 50 }}
+                className="text-center mb-12"
+                initial={{ opacity: 0, y: 30 }}
                 animate={featuresInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 1 }}
+                transition={{ duration: 0.8 }}
               >
-                <h2 className="text-5xl font-bold text-gray-800 mb-6">
-                  Why Pet Parents Choose Pawsome
+                <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+                  Why Choose Pawsome?
                 </h2>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                  Experience the difference that premium care and genuine love makes for your furry family members
+                  Experience the difference with our premium services designed specifically for your beloved pets
                 </p>
               </motion.div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[
                   { 
-                    emoji: '🚚', 
+                    icon: Truck, 
                     title: 'Lightning Fast Delivery', 
-                    desc: 'Free same-day delivery on orders above Rs. 2,000. Your pets never have to wait for their favorites!',
-                    color: 'from-amber-400 to-yellow-500',
-                    benefit: 'Save Time'
+                    desc: 'Same-day delivery on orders above Rs. 2,000. Your pets never wait! Our logistics network covers over 500 cities across the country.',
+                    benefit: 'Fast & Free',
+                    borderColor: 'border-sky-200'
                   },
                   { 
-                    emoji: '⭐', 
-                    title: 'Premium Quality Guaranteed', 
-                    desc: 'Hand-picked products from trusted brands worldwide. 100% satisfaction or your money back, always.',
-                    color: 'from-sky-400 to-blue-500',
-                    benefit: 'Best Quality'
+                    icon: Award, 
+                    title: 'Premium Quality Promise', 
+                    desc: 'Hand-picked products from trusted brands worldwide. 100% satisfaction guaranteed with our quality assurance team testing every product.',
+                    benefit: 'Top Quality',
+                    borderColor: 'border-amber-200'
                   },
                   { 
-                    emoji: '🏥', 
-                    title: '24/7 Pet Care Support', 
-                    desc: 'Expert veterinary advice, emergency care guidance, and personalized nutrition consultations anytime.',
-                    color: 'from-emerald-400 to-green-500',
-                    benefit: 'Expert Care'
+                    icon: Phone, 
+                    title: '24/7 Expert Care', 
+                    desc: 'Veterinary advice, emergency support, and nutrition consultations anytime. Our team of certified vets is always ready to help.',
+                    benefit: 'Always There',
+                    borderColor: 'border-stone-200'
                   }
                 ].map((feature, index) => (
                   <motion.div
                     key={index}
                     className="relative group"
-                    initial={{ opacity: 0, y: 50 }}
+                    initial={{ opacity: 0, y: 40 }}
                     animate={featuresInView ? { 
                       opacity: 1, 
                       y: 0,
                       transition: { 
-                        duration: 0.8, 
-                        delay: index * 0.2
+                        duration: 0.6, 
+                        delay: index * 0.15
                       }
                     } : {}}
+                    whileHover={{ 
+                      scale: 1.03, 
+                      y: -8,
+                      rotateX: 5,
+                      rotateY: index % 2 === 0 ? 3 : -3,
+                      transition: { duration: 0.3 }
+                    }}
+                    style={{ transformStyle: 'preserve-3d' }}
                   >
-                    <div className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 border border-gray-100 relative overflow-hidden">
+                    <div className={`bg-white rounded-xl p-8 text-center shadow-xl border-2 ${feature.borderColor} relative overflow-hidden h-full transform-gpu transition-all duration-300 group-hover:shadow-2xl group-hover:bg-gradient-to-br group-hover:from-white group-hover:to-gray-50`}>
                       
-                      {/* Benefit Badge */}
-                      <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg">
+                      {/* Advanced glow effect on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-sky-400/10 via-amber-400/10 to-stone-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                      
+                      <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                         {feature.benefit}
                       </div>
                       
-                      {/* Simplified Icon */}
                       <motion.div 
-                        className="text-5xl mb-6 relative z-10"
+                        className="flex justify-center mb-6 relative z-10"
                         whileHover={{ 
-                          scale: 1.2,
+                          scale: 1.15,
+                          rotate: 8,
+                          y: -5
                         }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
                       >
-                        {feature.emoji}
+                        <div className="bg-gradient-to-br from-sky-100 to-sky-200 p-4 rounded-full shadow-lg group-hover:shadow-xl group-hover:from-sky-200 group-hover:to-amber-100 transition-all duration-300">
+                          <feature.icon className="h-8 w-8 text-sky-600 group-hover:text-amber-600 transition-colors duration-300" />
+                        </div>
+                        
+                        {/* Sparkle effect around icon on hover */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                          {[...Array(3)].map((_, sparkleIndex) => (
+                            <motion.div
+                              key={sparkleIndex}
+                              className="absolute w-1 h-1 bg-amber-400 rounded-full"
+                              style={{
+                                left: `${30 + sparkleIndex * 20}%`,
+                                top: `${20 + sparkleIndex * 15}%`
+                              }}
+                              animate={{
+                                scale: [0, 1, 0],
+                                opacity: [0, 1, 0],
+                                rotate: [0, 180, 360]
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                delay: sparkleIndex * 0.3 + index * 0.1
+                              }}
+                            />
+                          ))}
+                        </div>
                       </motion.div>
                       
-                      <h3 className="text-2xl font-bold text-gray-800 mb-4 relative z-10">{feature.title}</h3>
-                      <p className="text-gray-600 text-base leading-relaxed relative z-10">{feature.desc}</p>
+                      <h3 className="text-2xl font-bold text-gray-800 mb-4">{feature.title}</h3>
+                      <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
+                      
+                      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-sky-400 to-amber-400 opacity-20"></div>
                     </div>
                   </motion.div>
                 ))}
@@ -476,37 +361,333 @@ const Home: React.FC = () => {
             </div>
           </section>
 
-          {/* Simplified Call to Action */}
-          <section className="py-20 px-4 relative z-30">
+          {/* Additional Services Section */}
+          <section ref={servicesRef} className="py-16 px-4 relative z-30 bg-gradient-to-br from-amber-50 to-stone-50">
+            <div className="container mx-auto max-w-7xl">
+              <motion.div
+                className="text-center mb-12"
+                initial={{ opacity: 0, y: 30 }}
+                animate={servicesInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.8 }}
+              >
+                <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+                  Complete Pet Care Services
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  Beyond products - we offer comprehensive care solutions for your pet's health and happiness
+                </p>
+              </motion.div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {additionalServices.map((service, index) => (
+                  <div key={service.title} className="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 className="text-xl font-bold mb-2">{service.title}</h3>
+                    <p className="text-gray-600">{service.description}</p>
+                  </div>
+                ))}
+              </div>
+
+              <motion.div
+                className="text-center mt-12"
+                initial={{ opacity: 0 }}
+                animate={servicesInView ? { opacity: 1 } : {}}
+                transition={{ delay: 1, duration: 0.8 }}
+              >
+                <Link
+                  to="/contact"
+                  className="inline-flex items-center bg-gradient-to-r from-sky-500 to-amber-500 text-white font-bold px-8 py-4 rounded-xl hover:from-sky-600 hover:to-amber-600 transition-all duration-300 shadow-xl"
+                >
+                  <Phone className="mr-3 h-6 w-6" />
+                  <span>Book a Service Today</span>
+                  <ArrowRight className="ml-3 h-6 w-6" />
+                </Link>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* Customer Testimonials */}
+          <section ref={testimonialsRef} className="py-16 px-4 relative z-30 bg-white">
+            <div className="container mx-auto max-w-6xl">
+              <motion.div
+                className="text-center mb-12"
+                initial={{ opacity: 0, y: 30 }}
+                animate={testimonialsInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.8 }}
+              >
+                <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+                  What Pet Parents Say
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  Real stories from our happy customers and their beloved pets
+                </p>
+              </motion.div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {testimonials.map((testimonial, index) => (
+                  <div key={index} className="bg-white rounded-xl p-6 shadow-lg">
+                    <h4 className="text-lg font-bold mb-2">{testimonial.name}</h4>
+                    <p className="text-gray-600">{testimonial.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <motion.div
+                className="text-center mt-12"
+                initial={{ opacity: 0 }}
+                animate={testimonialsInView ? { opacity: 1 } : {}}
+                transition={{ delay: 1, duration: 0.8 }}
+              >
+                <div className="bg-gradient-to-r from-sky-50 to-amber-50 rounded-xl p-8 border-2 border-sky-100">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Join Our Happy Pet Family!</h3>
+                  <p className="text-gray-600 mb-6">Over 50,000 pet parents trust Pawsome for their furry friends' needs</p>
+                  <div className="flex justify-center space-x-4">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-sky-600">4.9/5</div>
+                      <div className="text-gray-600 text-sm">Customer Rating</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-amber-600">98%</div>
+                      <div className="text-gray-600 text-sm">Repeat Customers</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-stone-600">24h</div>
+                      <div className="text-gray-600 text-sm">Avg Response Time</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* Partner Brands Section */}
+          <section ref={brandsRef} className="py-16 px-4 relative z-30 bg-gradient-to-br from-gray-50 to-sky-50">
+            <div className="container mx-auto max-w-6xl">
+              <motion.div
+                className="text-center mb-12"
+                initial={{ opacity: 0, y: 30 }}
+                animate={brandsInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.8 }}
+              >
+                <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+                  Trusted Partner Brands
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  We work with the world's leading pet care brands to bring you the best products
+                </p>
+              </motion.div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {topBrands.map((brand, index) => (
+                  <div key={brand} className="bg-white rounded-xl p-6 shadow-lg text-center">
+                    <h4 className="text-lg font-bold">{brand}</h4>
+                  </div>
+                ))}
+              </div>
+
+              <motion.div
+                className="text-center mt-12"
+                initial={{ opacity: 0 }}
+                animate={brandsInView ? { opacity: 1 } : {}}
+                transition={{ delay: 1, duration: 0.8 }}
+              >
+                <Link
+                  to="/brands"
+                  className="inline-flex items-center bg-white text-sky-600 font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-lg border-2 border-sky-200"
+                >
+                  <Globe className="mr-3 h-6 w-6" />
+                  <span>Explore All Brands</span>
+                  <ArrowRight className="ml-3 h-6 w-6" />
+                </Link>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* About Us Section */}
+          <section ref={aboutRef} className="py-16 px-4 relative z-30 bg-white">
+            <div className="container mx-auto max-w-6xl">
+              <motion.div
+                className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+                initial={{ opacity: 0 }}
+                animate={aboutInView ? { opacity: 1 } : {}}
+                transition={{ duration: 1 }}
+              >
+                <div>
+                  <motion.h2 
+                    className="text-4xl md:text-5xl font-black text-gray-800 mb-6"
+                    initial={{ x: -50, opacity: 0 }}
+                    animate={aboutInView ? { x: 0, opacity: 1 } : {}}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                  >
+                    About Pawsome
+                  </motion.h2>
+                  <motion.div
+                    className="space-y-4 text-gray-600 text-lg leading-relaxed"
+                    initial={{ x: -50, opacity: 0 }}
+                    animate={aboutInView ? { x: 0, opacity: 1 } : {}}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                  >
+                    <p>
+                      Founded with a simple mission: to make premium pet care accessible to every pet parent. 
+                      Since 2020, we've been Sri Lanka's most trusted online pet store, serving over 50,000 
+                      happy customers across the island.
+                    </p>
+                    <p>
+                      Our team of pet lovers, veterinarians, and nutrition experts work tirelessly to curate 
+                      the best products and services for your furry, feathered, and scaled family members.
+                    </p>
+                    <p>
+                      From our automated subscription services to emergency veterinary consultations, 
+                      everything we do is designed with one goal: keeping your pets healthy, happy, and loved.
+                    </p>
+                  </motion.div>
+                  
+                  <motion.div
+                    className="mt-8 grid grid-cols-2 gap-6"
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={aboutInView ? { y: 0, opacity: 1 } : {}}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                  >
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-sky-600">2020</div>
+                      <div className="text-gray-600">Founded</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-amber-600">500+</div>
+                      <div className="text-gray-600">Cities Served</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-stone-600">50k+</div>
+                      <div className="text-gray-600">Happy Customers</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-sky-600">24/7</div>
+                      <div className="text-gray-600">Support Available</div>
+                    </div>
+                  </motion.div>
+                </div>
+
+                <motion.div
+                  className="relative"
+                  initial={{ x: 50, opacity: 0 }}
+                  animate={aboutInView ? { x: 0, opacity: 1 } : {}}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                >
+                  <div className="bg-gradient-to-br from-sky-100 to-amber-100 rounded-2xl p-8 text-center">
+                    <div className="text-6xl mb-6">🏆</div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Award Winning Service</h3>
+                    <p className="text-gray-600 mb-6">
+                      Recognized as "Best Online Pet Store" by Sri Lanka E-commerce Association 2023
+                    </p>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center space-x-2 text-sky-600">
+                        <Check className="h-5 w-5" />
+                        <span className="font-semibold">ISO 9001:2015 Certified</span>
+                      </div>
+                      <div className="flex items-center justify-center space-x-2 text-amber-600">
+                        <Check className="h-5 w-5" />
+                        <span className="font-semibold">Veterinary Approved Products</span>
+                      </div>
+                      <div className="flex items-center justify-center space-x-2 text-stone-600">
+                        <Check className="h-5 w-5" />
+                        <span className="font-semibold">100% Authentic Guarantee</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Floating pet emojis around the about section */}
+                  <div className="absolute -top-4 -left-4 text-4xl">
+                    🐕
+                  </div>
+                  <div className="absolute -top-4 -right-4 text-4xl">
+                    🐱
+                  </div>
+                  <div className="absolute -bottom-4 -left-4 text-4xl">
+                    🐦
+                  </div>
+                  <div className="absolute -bottom-4 -right-4 text-4xl">
+                    🐰
+                  </div>
+                </motion.div>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* Contact Information Section */}
+          <section className="py-16 px-4 relative z-30 bg-gradient-to-r from-sky-100 to-amber-100">
+            <div className="container mx-auto max-w-6xl">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+                  Get in Touch
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  Have questions? Our pet care experts are here to help you and your furry friends
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+                  <div className="bg-sky-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Phone className="h-8 w-8 text-sky-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Call Us</h3>
+                  <p className="text-gray-600 mb-2">24/7 Customer Support</p>
+                  <p className="text-sky-600 font-semibold">+94 11 234 5678</p>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+                  <div className="bg-amber-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Mail className="h-8 w-8 text-amber-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Email Us</h3>
+                  <p className="text-gray-600 mb-2">Quick Response Guaranteed</p>
+                  <p className="text-amber-600 font-semibold">help@pawsome.lk</p>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+                  <div className="bg-stone-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <MapPin className="h-8 w-8 text-stone-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Visit Us</h3>
+                  <p className="text-gray-600 mb-2">Main Distribution Center</p>
+                  <p className="text-stone-600 font-semibold">Colombo 03, Sri Lanka</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Call to Action - Enhanced */}
+          <section className="py-16 px-4 relative z-30">
             <div className="container mx-auto max-w-5xl text-center">
               <motion.div
                 className="relative"
                 whileInView={{ 
                   scale: [0.95, 1],
                 }}
-                transition={{ duration: 1, ease: "easeOut" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
                 viewport={{ once: true }}
               >
-                <div className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 rounded-2xl p-12 shadow-2xl relative overflow-hidden">
+                <div className="bg-gradient-to-r from-sky-500 via-amber-500 to-stone-500 rounded-2xl p-12 shadow-2xl relative overflow-hidden" style={{background: 'linear-gradient(135deg, #6CA6CD 0%, #F59E0B 50%, #A8A29E 100%)'}}>
                   
-                  {/* Simplified pet elements decoration */}
+                  {/* Animated pet decorations */}
                   {[
-                    { emoji: '🐕', position: 'top-6 left-6' },
-                    { emoji: '🐱', position: 'top-6 right-6' },
-                    { emoji: '🐦', position: 'bottom-6 left-6' },
-                    { emoji: '🐰', position: 'bottom-6 right-6' },
+                    { emoji: '🐕', position: 'top-6 left-6', delay: 0 },
+                    { emoji: '🐱', position: 'top-6 right-6', delay: 0.5 },
+                    { emoji: '🐦', position: 'bottom-6 left-6', delay: 1 },
+                    { emoji: '🐰', position: 'bottom-6 right-6', delay: 1.5 },
                   ].map((pet, index) => (
                     <motion.div 
                       key={index}
-                      className={`absolute ${pet.position} text-4xl opacity-10 pointer-events-none`}
+                      className={`absolute ${pet.position} text-4xl opacity-20 pointer-events-none`}
                       animate={{
                         rotate: [0, 15, -15, 0],
-                        scale: [1, 1.1, 1],
+                        scale: [1, 1.2, 1],
+                        y: [0, -10, 0]
                       }}
                       transition={{
                         duration: 4,
                         repeat: Infinity,
-                        delay: index * 0.5,
+                        delay: pet.delay,
                         ease: "easeInOut"
                       }}
                     >
@@ -515,39 +696,56 @@ const Home: React.FC = () => {
                   ))}
                   
                   <motion.h2 
-                    className="text-4xl md:text-5xl font-bold text-white mb-6 relative z-10"
+                    className="text-4xl md:text-5xl font-black text-white mb-6 relative z-10"
                     whileHover={{ scale: 1.02 }}
                   >
                     Ready to Spoil Your Furry Family?
                   </motion.h2>
                   <motion.p 
-                    className="text-white/95 text-xl mb-10 max-w-3xl mx-auto relative z-10 leading-relaxed"
+                    className="text-white/95 text-xl mb-8 max-w-3xl mx-auto relative z-10 leading-relaxed"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
+                    transition={{ delay: 0.2 }}
                   >
-                    Join thousands of happy pet parents who trust Pawsome for premium care.
+                    Join thousands of happy pet parents who trust Pawsome for premium care, fast delivery, 
+                    and expert advice. Your pet deserves the best - let us help you provide it.
                   </motion.p>
                   
                   <motion.div
-                    className="flex justify-center relative z-10"
+                    className="flex flex-col sm:flex-row justify-center gap-4 relative z-10"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 0.4 }}
                   >
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Link
                         to="/brands"
-                        className="inline-flex items-center bg-white text-amber-600 font-bold px-10 py-4 rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-xl text-lg"
+                        className="inline-flex items-center bg-white text-sky-600 font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-xl text-lg"
                       >
-                        <span className="mr-3 text-2xl">🐾</span>
-                        <span>Start Shopping</span>
+                        <Shield className="mr-3 h-6 w-6" />
+                        <span>Start Shopping Now</span>
                         <ArrowRight className="ml-3 h-6 w-6" />
                       </Link>
                     </motion.div>
+                    
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Link
+                        to="/contact"
+                        className="inline-flex items-center bg-white/20 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/30 transition-all duration-300 shadow-xl text-lg border border-white/30"
+                      >
+                        <Heart className="mr-3 h-6 w-6" />
+                        <span>Get Expert Advice</span>
+                      </Link>
+                    </motion.div>
+                  </motion.div>
+
+                  <motion.div
+                    className="mt-8 text-white/90 text-sm relative z-10"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    ✨ Free shipping on orders over Rs. 2,000 | 24/7 customer support | 100% satisfaction guarantee
                   </motion.div>
                 </div>
               </motion.div>

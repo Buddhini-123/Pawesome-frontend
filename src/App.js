@@ -6,18 +6,18 @@ import './output.css';
 
 // Components
 import Header from './components/common/Header';
-import Footer from './components/common/Footer/Footer.tsx';
+import Footer from './components/common/Footer/Footer';
 
 // Pages
 import Home from './components/pages/Home/Home.tsx';
-import Dogs from './components/pages/Categories/Dogs.tsx';
-import Cats from './components/pages/Categories/Cats.tsx';
+import Dogs from './components/pages/Categories/Dogs';
+import Cats from './components/pages/Categories/Cats';
 import VetDiet from './components/pages/Categories/VetDiet.tsx';
 import Birds from './components/pages/Categories/Birds.tsx';
 import OtherAnimals from './components/pages/Categories/OtherAnimals.tsx';
 import Offers from './components/pages/Shop/Offers.tsx';
 import Brands from './components/pages/Shop/Brands.tsx';
-import Cart from './components/pages/Shop/Cart.tsx';
+import Cart from './components/pages/Shop/Cart';
 import Account from './components/pages/Account/Account.tsx';
 import Contact from './components/pages/Account/Contact.tsx';
 import NotFound from './components/pages/NotFound.tsx';
@@ -28,7 +28,7 @@ import Gifts from './components/pages/Features/Gifts.tsx';
 import Deals from './components/pages/Features/Deals.tsx';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards.tsx';
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <div className="App">
       <Header />

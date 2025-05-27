@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as THREE from 'three';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Float, Stars } from '@react-three/drei';
+// import * as THREE from 'three';
+// import { Canvas, useFrame } from '@react-three/fiber';
+// import { OrbitControls, Float, Stars } from '@react-three/drei';
 import { gsap } from 'gsap';
 
 // Inline Slideshow Banner Component
@@ -204,81 +204,81 @@ interface SubscriptionPlan {
   icon: string;
 }
 
-// 3D Pet Food Bowl Component
-const PetFoodBowl: React.FC<{ position: [number, number, number] }> = ({ position }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 2) * 0.1;
-    }
-  });
+// 3D Pet Food Bowl Component - Commented out for performance optimization
+// const PetFoodBowl: React.FC<{ position: [number, number, number] }> = ({ position }) => {
+//   const meshRef = useRef<THREE.Mesh>(null);
+//   
+//   useFrame((state) => {
+//     if (meshRef.current) {
+//       meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+//       meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 2) * 0.1;
+//     }
+//   });
+// 
+//   return (
+//     <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
+//       <mesh ref={meshRef} position={position}>
+//         <cylinderGeometry args={[0.8, 1, 0.4, 16]} />
+//         <meshPhysicalMaterial 
+//           color="#FF6B35" 
+//           metalness={0.3} 
+//           roughness={0.2}
+//           clearcoat={1}
+//           clearcoatRoughness={0.1}
+//         />
+//       </mesh>
+//     </Float>
+//   );
+// };
 
-  return (
-    <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
-      <mesh ref={meshRef} position={position}>
-        <cylinderGeometry args={[0.8, 1, 0.4, 16]} />
-        <meshPhysicalMaterial 
-          color="#FF6B35" 
-          metalness={0.3} 
-          roughness={0.2}
-          clearcoat={1}
-          clearcoatRoughness={0.1}
-        />
-      </mesh>
-    </Float>
-  );
-};
+// 3D Pet Toy Component - Commented out for performance optimization
+// const PetToy: React.FC<{ position: [number, number, number], color: string }> = ({ position, color }) => {
+//   const meshRef = useRef<THREE.Mesh>(null);
+//   
+//   useFrame((state) => {
+//     if (meshRef.current) {
+//       meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 1.5) * 0.2;
+//       meshRef.current.rotation.z = Math.cos(state.clock.elapsedTime * 1.2) * 0.2;
+//     }
+//   });
+// 
+//   return (
+//     <Float speed={2} rotationIntensity={0.3} floatIntensity={0.7}>
+//       <mesh ref={meshRef} position={position}>
+//         <sphereGeometry args={[0.3, 12, 8]} />
+//         <meshPhysicalMaterial 
+//           color={color} 
+//           metalness={0.1} 
+//           roughness={0.3}
+//         />
+//       </mesh>
+//     </Float>
+//   );
+// };
 
-// 3D Pet Toy Component
-const PetToy: React.FC<{ position: [number, number, number], color: string }> = ({ position, color }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 1.5) * 0.2;
-      meshRef.current.rotation.z = Math.cos(state.clock.elapsedTime * 1.2) * 0.2;
-    }
-  });
-
-  return (
-    <Float speed={2} rotationIntensity={0.3} floatIntensity={0.7}>
-      <mesh ref={meshRef} position={position}>
-        <sphereGeometry args={[0.3, 12, 8]} />
-        <meshPhysicalMaterial 
-          color={color} 
-          metalness={0.1} 
-          roughness={0.3}
-        />
-      </mesh>
-    </Float>
-  );
-};
-
-// 3D Background Scene
-const Background3D: React.FC = () => {
-  return (
-    <Canvas 
-      camera={{ position: [0, 0, 5], fov: 75 }}
-      style={{ position: 'absolute', top: 0, left: 0, zIndex: -1 }}
-    >
-      <ambientLight intensity={0.4} />
-      <pointLight position={[10, 10, 10]} intensity={1} />
-      <pointLight position={[-10, -10, -10]} color="#FF6B35" intensity={0.5} />
-      
-      <Stars radius={100} depth={50} count={1000} factor={4} saturation={0} fade />
-      
-      <PetFoodBowl position={[-3, 2, -2]} />
-      <PetFoodBowl position={[3, -1, -3]} />
-      <PetToy position={[-2, -2, -1]} color="#4ECDC4" />
-      <PetToy position={[2, 1, -2]} color="#FFE66D" />
-      <PetToy position={[0, 3, -4]} color="#FF6B6B" />
-      
-      <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} />
-    </Canvas>
-  );
-};
+// 3D Background Scene - Commented out for performance optimization
+// const Background3D: React.FC = () => {
+//   return (
+//     <Canvas 
+//       camera={{ position: [0, 0, 5], fov: 75 }}
+//       style={{ position: 'absolute', top: 0, left: 0, zIndex: -1 }}
+//     >
+//       <ambientLight intensity={0.4} />
+//       <pointLight position={[10, 10, 10]} intensity={1} />
+//       <pointLight position={[-10, -10, -10]} color="#FF6B35" intensity={0.5} />
+//       
+//       <Stars radius={100} depth={50} count={1000} factor={4} saturation={0} fade />
+//       
+//       <PetFoodBowl position={[-3, 2, -2]} />
+//       <PetFoodBowl position={[3, -1, -3]} />
+//       <PetToy position={[-2, -2, -1]} color="#4ECDC4" />
+//       <PetToy position={[2, 1, -2]} color="#FFE66D" />
+//       <PetToy position={[0, 3, -4]} color="#FF6B6B" />
+//       
+//       <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} />
+//     </Canvas>
+//   );
+// };
 
 // Subscription Plan Card Component
 const PlanCard: React.FC<{ plan: SubscriptionPlan; onSelect: (plan: SubscriptionPlan) => void; isSelected: boolean }> = ({ 
@@ -512,8 +512,8 @@ const Subscriptions: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* 3D Background */}
-      <Background3D />
+      {/* 3D Background - Commented out for performance */}
+      {/* <Background3D /> */}
       
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-sky-100/80 via-amber-50/60 to-orange-100/80 backdrop-blur-[2px]"></div>
@@ -566,7 +566,7 @@ const Subscriptions: React.FC = () => {
             </svg>
           </div>
         </div>
-        <div className="flex-1">
+        <div className="">
           <h3 className="text-base font-semibold text-gray-800">
             Earn points and redeem rewards
           </h3>

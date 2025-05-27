@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Loading3D: React.FC = () => {
+const Loading3D = () => {
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-sky-50 to-amber-50 flex items-center justify-center z-50">
       <div className="text-center">

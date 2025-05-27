@@ -2,7 +2,7 @@ import React from 'react';
 import NewsletterSection from './NewsletterSection.tsx';
 import FooterColumns from './FooterColumns.tsx';
 
-const Footer: React.FC = () => {
+const Footer = () => {
   return (
     <footer className="overflow-hidden bg-white">
       <NewsletterSection />

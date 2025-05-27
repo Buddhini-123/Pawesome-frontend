@@ -1,30 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  type: 'sparkle';
-  opacity: number;
-}
-
-interface EnhancedParticleSystemProps {
-  intensity?: number;
-  mouseInteractive?: boolean;
-}
-
-const EnhancedParticleSystem: React.FC<EnhancedParticleSystemProps> = ({ 
+const EnhancedParticleSystem = ({ 
   intensity = 0.5, // Reduced default intensity
   mouseInteractive = false // Disabled by default for performance
 }) => {
-  const [particles, setParticles] = useState<Particle[]>([]);
+  const [particles, setParticles] = useState([]);
 
   // Reduced color palette for better performance
   const colors = useMemo(() => [
@@ -32,7 +13,7 @@ const EnhancedParticleSystem: React.FC<EnhancedParticleSystemProps> = ({
   ], []);
 
   // Simplified particle generation
-  const generateParticle = useCallback((): Particle => {
+  const generateParticle = useCallback(() => {
     if (!window || !window.innerWidth || !window.innerHeight) {
       return null;
     }
@@ -59,7 +40,7 @@ const EnhancedParticleSystem: React.FC<EnhancedParticleSystemProps> = ({
       try {
         if (!window || !window.innerWidth || !window.innerHeight) return;
         
-        const newParticles: Particle[] = [];
+        const newParticles = [];
         const baseCount = Math.floor(8 * intensity); // Reduced from 15 to 8
         
         for (let i = 0; i < baseCount; i++) {

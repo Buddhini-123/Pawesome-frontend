@@ -1,34 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-  duration: number;
-  delay: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  type: 'normal' | 'interactive' | 'magical';
-}
-
-interface ParticleSystemProps {
-  interactive?: boolean;
-  intensity?: number;
-}
-
-const ParticleSystem: React.FC<ParticleSystemProps> = ({ 
+const ParticleSystem = ({ 
   interactive = false, 
   intensity = 1 
 }) => {
-  const [particles, setParticles] = useState<Particle[]>([]);
+  const [particles, setParticles] = useState([]);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  const generateParticle = useCallback((type: Particle['type'] = 'normal'): Particle => {
+  const generateParticle = useCallback((type = 'normal') => {
     // Enhanced color palette with more vibrant options
     const colors = [
       '#F59E0B', '#FBBF24', '#FCD34D', // Warm yellows/ambers
@@ -62,7 +42,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
   useEffect(() => {
     if (!interactive) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };
 
@@ -73,7 +53,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
   // Generate initial particles
   useEffect(() => {
     const generateParticles = () => {
-      const newParticles: Particle[] = [];
+      const newParticles = [];
       const baseCount = Math.floor(30 * intensity);
       
       // Normal particles

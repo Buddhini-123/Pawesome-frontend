@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Pawsome Global Color Theme Variables */
+:root {
+  /* Primary Colors - CTAs, Branding, Highlights */
+  --pawsome-energetic-orange: #FF914D;
+  --pawsome-natural-sage: #9DB47C;
+  --pawsome-calm-blue: #6CA6CD;
+  --pawsome-warm-orange: #FFB657;
+  
+  /* Secondary Colors - Cards, Backgrounds, Hover states */
+  --pawsome-soft-yellow: #FFE066;
+  --pawsome-periwinkle: #D6CDEA;
+  --pawsome-warm-taupe: #A1866F;
+  --pawsome-mint: #1AB487;
+  --pawsome-crimson: #F64E4E;
+  
+  /* Background Colors - Text, Borders */
+  --pawsome-off-white: #F9FAFB;
+  --pawsome-light-gray: #E5E7EB;
+  --pawsome-charcoal-gray: #3C3D3C;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -9,6 +30,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--pawsome-off-white);
+  color: var(--pawsome-charcoal-gray);
 }
 
 code {
@@ -22,4 +45,73 @@ code {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Pawsome Brand Utility Classes */
+@layer utilities {
+  /* Primary CTA Buttons */
+  .btn-pawsome-primary {
+    @apply bg-energetic-orange hover:bg-warm-orange text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
+  }
+  
+  /* Secondary Buttons */
+  .btn-pawsome-secondary {
+    @apply bg-natural-sage hover:bg-periwinkle text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
+  }
+  
+  /* Accent Buttons */
+  .btn-pawsome-accent {
+    @apply bg-calm-blue hover:bg-soft-yellow hover:text-charcoal-gray text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+  }
+  
+  /* Success/Action Buttons */
+  .btn-pawsome-success {
+    @apply bg-mint hover:bg-natural-sage text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
+  }
+  
+  /* Warning/Alert Buttons */
+  .btn-pawsome-warning {
+    @apply bg-soft-yellow hover:bg-warm-orange text-charcoal-gray font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
+  }
+  
+  /* Error/Danger Buttons */
+  .btn-pawsome-error {
+    @apply bg-crimson hover:bg-warm-taupe text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
+  }
+  
+  /* Card Backgrounds */
+  .card-pawsome {
+    @apply bg-off-white border border-light-gray rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+  
+  /* Highlighted Cards */
+  .card-pawsome-highlight {
+    @apply bg-gradient-to-br from-soft-yellow to-periwinkle border border-warm-orange rounded-xl shadow-md;
+  }
+  
+  /* Text Color Utilities */
+  .text-pawsome-primary {
+    @apply text-energetic-orange;
+  }
+  
+  .text-pawsome-secondary {
+    @apply text-natural-sage;
+  }
+  
+  .text-pawsome-accent {
+    @apply text-calm-blue;
+  }
+  
+  /* Background Gradient Utilities */
+  .bg-pawsome-gradient {
+    @apply bg-gradient-to-r from-energetic-orange to-warm-orange;
+  }
+  
+  .bg-pawsome-gradient-secondary {
+    @apply bg-gradient-to-r from-natural-sage to-calm-blue;
+  }
+  
+  .bg-pawsome-gradient-soft {
+    @apply bg-gradient-to-br from-soft-yellow via-periwinkle to-off-white;
+  }
 }
