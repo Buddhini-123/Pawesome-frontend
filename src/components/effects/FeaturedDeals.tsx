@@ -3,23 +3,17 @@ const FeaturedDeals = () => {
     {
       id: 1,
       title: "THE BEST FOOD FOR YOUR DOG",
-      subtitle: "Premium dog food made with love",
-      buttonText: "SEE OFFER",
-      image: "/lovable-uploads/2a9d233f-95e9-4c04-b160-63e9bf8eea8b.png"
+      subtitle: "Premium dog food made with love"
     },
     {
       id: 2,
       title: "THE BEST FOOD FOR YOUR DOG",
-      subtitle: "Premium dog food made with love",
-      buttonText: "SEE OFFER",
-      image: "/lovable-uploads/2a9d233f-95e9-4c04-b160-63e9bf8eea8b.png"
+      subtitle: "Premium dog food made with love"
     },
     {
       id: 3,
       title: "THE BEST FOOD FOR YOUR DOG",
-      subtitle: "Premium dog food made with love",
-      buttonText: "SEE OFFER",
-      image: "/lovable-uploads/2a9d233f-95e9-4c04-b160-63e9bf8eea8b.png"
+      subtitle: "Premium dog food made with love"
     }
   ];
 
@@ -41,8 +35,8 @@ const FeaturedDeals = () => {
                 </p>
               </div>
 
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors w-fit">
-                {deal.buttonText}
+              <button className="bg-calmblue text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors w-fit">
+                See More
               </button>
             </div>
 
