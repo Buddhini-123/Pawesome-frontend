@@ -72,7 +72,7 @@ const ReccomendationsGrid = () => {
           <h2 className="text-2xl font-semibold text-gray-900 mb-6 mt-6 font-figtree">
             Featured Deals of the week
           </h2>
-          <a href="#" className="text-blue-600 underline font-medium hover:text-blue-800">
+          <a href="#" className="text-black underline font-figtree hover:text-blue-800">
             View all Deals
           </a>
         </div>
