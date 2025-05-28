@@ -21,7 +21,7 @@ import rodentImg from '../../carousels/images/rodent.png'
 import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel'
 import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion'
 import ProductRecommendations from './SubscriptionComponents/ProductRecommendations';
-import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid'
+import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid.tsx'
 
 const Subscriptions = () => {
   const [expandedFAQ, setExpandedFAQ] = useState(null)
@@ -106,9 +106,10 @@ const Subscriptions = () => {
         <SlideshowBanner slides={subscriptionSlides} autoPlay interval={6000} />
         <WhyPawsomeSection />
         <CategoryCarousel categories={petCategories} />
-        
+
         <TopBrandsCarousel />
-        {/* <ReccomendationsGrid /> */}
+
+        <ReccomendationsGrid />
         <FAQAccordion
           items={faqs}
           initialIndex={0}

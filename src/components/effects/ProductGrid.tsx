@@ -14,7 +14,7 @@ interface ProductGridProps {
 
 const ProductGrid = ({ products }: ProductGridProps) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
       {products.map((product) => (
         <div key={product.id} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="aspect-square bg-gray-50 rounded-2xl mb-3 flex items-center justify-center">
@@ -24,7 +24,7 @@ const ProductGrid = ({ products }: ProductGridProps) => {
               className="w-20 h-40 object-contain"
             />
           </div>
-          <h3 className="text-sm text-2xl text-naturalsage mb-1 text-center font-figtree">
+          <h3 className="text-sm text-2xl text-natural-sage mb-1 text-center font-figtree font-semibold">
             {product.name}
           </h3>
           <div className="flex justify-center mb-2">

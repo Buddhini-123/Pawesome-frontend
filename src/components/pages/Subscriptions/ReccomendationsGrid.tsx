@@ -49,10 +49,10 @@ const ReccomendationsGrid = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen py-8">
+      <div className="max-w-8xl mx-auto">
         {/* Top Recommendations Section */}
-        <div className="bg-warmorrange rounded-2xl p-6 mb-8">
+        <div className="bg-warm-orange rounded-2xl p-6 mb-8">
           <div className="flex items-center mb-4">
             <h2 className="text-white text-xl font-semibold font-figtree">Top Recommendations</h2>
             <span className="ml-2 text-white text-lg">🔥</span>
