@@ -17,9 +17,9 @@ const ProductPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-12 gap-6">
           {/* Left Column - Product Gallery */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-4">
             <ProductGallery 
               images={productImages}
               selectedImage={selectedImage}
@@ -28,7 +28,7 @@ const ProductPage = () => {
           </div>
 
           {/* Middle Column - Product Details */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-6">
             <ProductDetails quantity={quantity} onQuantityChange={setQuantity} />
             <div className="mt-6">
               {/* <ProductTabs /> */}
@@ -36,7 +36,7 @@ const ProductPage = () => {
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <ProductSidebar />
           </div>
         </div>

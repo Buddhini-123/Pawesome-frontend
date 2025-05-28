@@ -14,20 +14,25 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   return (
-    <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
-      <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-8 h-8 object-contain"
-        />
+    <div className="flex flex-col items-center text-center hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+      <div className="w-24 h-24 flex items-center justify-center mb-2">
+        <img src={product.image} alt={product.name}
+          className="object-contain w-full h-16" />
       </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-gray-900 text-xs truncate">{product.name}</h3>
+
+      <h3 className="font-medium text-natural-sage text-sm mb-1 truncate">
+        {product.name}
+      </h3>
+
+      <div className="mb-1">
         <StarRating rating={product.rating} size="sm" />
-        <p className="font-medium text-orange-600 text-xs mt-1">{product.price}</p>
       </div>
+
+      <p className="font-medium text-orange-600 text-sm">
+        Rs. {product.price}
+      </p>
     </div>
+
   );
 };
 export default ProductCard;
