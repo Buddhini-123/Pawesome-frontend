@@ -29,8 +29,6 @@ import Deals from './components/pages/Features/Deals.tsx';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards.tsx';
 import Login from './components/pages/Login/Login.tsx';
 
-import ReccomendationsGrid from './components/pages/Subscriptions/ReccomendationsGrid.tsx';
-
 const App: React.FC = () => {
 
   const location = useLocation();
@@ -61,8 +59,6 @@ const App: React.FC = () => {
           <Route path="/loyalty-cards" element={<LoyaltyCards />} />
           
           <Route path="*" element={<NotFound />} />
-
-          <Route path="/reccomendation" element={<ReccomendationsGrid />} />
 
         </Routes>
       </main>
