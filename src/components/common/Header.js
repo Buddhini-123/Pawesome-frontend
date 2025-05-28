@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart } from 'lucide-react';
+import cartIcon from './cart-icon.png'
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,7 +73,7 @@ const Header = () => {
               to="/cart" 
               className="flex items-center space-x-2 bg-amber-400 hover:bg-amber-500 transition-colors px-6 py-2 rounded-full text-gray-800"
             >
-              <ShoppingCart className="h-5 w-5" />
+              <img src={cartIcon} alt="Cart Icon" className="h-6 w-6" />
               <span className="font-medium">My Cart</span>
             </Link>
           </div>

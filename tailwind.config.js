@@ -40,6 +40,7 @@ module.exports = {
 				"off-white": "#F9FAFB",  // Text, borders
 				"light-gray": "#E5E7EB",  // Borders, muted text
 				"charcoal-gray": "#3C3D3C",  // Headings, body text
+				"cream-white": "#F9F7F3",  // Headings, body text
 
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
