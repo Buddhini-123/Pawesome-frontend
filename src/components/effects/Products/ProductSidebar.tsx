@@ -7,28 +7,28 @@ const ProductSidebar = () => {
       name: "Pedigree Dog Biscuit",
       price: "Rs. 2000.00",
       rating: 4.5,
-      image: "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png"
+      image: "/pedigree.png"
     },
     {
       id: 2,
       name: "Pedigree Dog Biscuit",
       price: "Rs. 2000.00",
       rating: 4.5,
-      image: "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png"
+      image: "/pedigree.png"
     },
     {
       id: 3,
       name: "Pedigree Dog Biscuit",
       price: "Rs. 2000.00",
       rating: 4.5,
-      image: "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png"
+      image: "/pedigree.png"
     },
     {
       id: 4,
       name: "Pedigree Dog Biscuit",
       price: "Rs. 2000.00",
       rating: 4.5,
-      image: "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png"
+      image: "/pedigree.png"
     }
   ];
 

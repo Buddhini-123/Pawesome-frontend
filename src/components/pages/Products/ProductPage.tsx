@@ -2,17 +2,16 @@ import { useState } from "react";
 import ProductGallery  from "../../effects/Products/ProductGallery.tsx";
 import ProductDetails from "../../effects/Products/ProductDetails.tsx";
 import ProductSidebar from "../../effects/Products/ProductSidebar.tsx";
-// import { ProductTabs } from "./ProductTabs";
 
 const ProductPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
   const productImages = [
-    "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png",
-    "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png",
-    "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png",
-    "/lovable-uploads/29c58067-632b-45b5-8762-bc1b33610457.png"
+    "/pedigree.png",
+    "/pedigree.png",
+    "/pedigree.png",
+    "/pedigree.png",
   ];
 
   return (
