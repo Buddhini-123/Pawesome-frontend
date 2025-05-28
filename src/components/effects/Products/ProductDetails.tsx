@@ -1,13 +1,13 @@
 import { Calendar } from "lucide-react";
-import { StarRating } from "./StarRating";
-import { QuantitySelector } from "./QuantitySelector";
+import StarRating from "../StarRating/StarRating.tsx";
+import { QuantitySelector } from "../../pages/Products/QuantitySelector.tsx";
 
 interface ProductDetailsProps {
   quantity: number;
   onQuantityChange: (quantity: number) => void;
 }
 
-export const ProductDetails = ({ quantity, onQuantityChange }: ProductDetailsProps) => {
+const ProductDetails = ({ quantity, onQuantityChange }: ProductDetailsProps) => {
   return (
     <div className="bg-white rounded-lg p-6 space-y-4">
       {/* Product Title */}
@@ -71,3 +71,4 @@ export const ProductDetails = ({ quantity, onQuantityChange }: ProductDetailsPro
     </div>
   );
 };
+export default ProductDetails;

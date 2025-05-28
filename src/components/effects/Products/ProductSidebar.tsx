@@ -1,6 +1,6 @@
-import { ProductCard } from "./ProductCard";
+import ProductCard from "./ProductCard.tsx";
 
-export const ProductSidebar = () => {
+const ProductSidebar = () => {
   const relatedProducts = [
     {
       id: 1,
@@ -43,3 +43,4 @@ export const ProductSidebar = () => {
     </div>
   );
 };
+export default ProductSidebar;

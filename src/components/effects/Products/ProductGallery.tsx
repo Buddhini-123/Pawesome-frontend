@@ -4,7 +4,7 @@ interface ProductGalleryProps {
   onImageSelect: (index: number) => void;
 }
 
-export const ProductGallery = ({ images, selectedImage, onImageSelect }: ProductGalleryProps) => {
+const ProductGallery = ({ images, selectedImage, onImageSelect }: ProductGalleryProps) => {
   return (
     <div className="space-y-4">
       {/* Main Image */}
@@ -39,3 +39,4 @@ export const ProductGallery = ({ images, selectedImage, onImageSelect }: Product
     </div>
   );
 };
+export default ProductGallery;

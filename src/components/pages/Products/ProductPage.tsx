@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ProductGallery } from "./ProductGallery";
-import { ProductDetails } from "./ProductDetails";
-import { ProductSidebar } from "./ProductSidebar";
+import ProductGallery  from "../../effects/Products/ProductGallery.tsx";
+import ProductDetails from "../../effects/Products/ProductDetails.tsx";
+import ProductSidebar from "../../effects/Products/ProductSidebar.tsx";
 // import { ProductTabs } from "./ProductTabs";
 
 const ProductPage = () => {

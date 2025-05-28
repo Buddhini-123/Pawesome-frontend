@@ -1,4 +1,4 @@
-import { StarRating } from "./StarRating";
+import StarRating from "../StarRating/StarRating.tsx";
 
 interface Product {
   id: number;
@@ -12,7 +12,7 @@ interface ProductCardProps {
   product: Product;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
       <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -30,3 +30,4 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     </div>
   );
 };
+export default ProductCard;
