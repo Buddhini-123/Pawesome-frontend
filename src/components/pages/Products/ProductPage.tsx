@@ -18,30 +18,40 @@ const ProductPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6">
         <div className="grid lg:grid-cols-12 gap-6">
-          {/* Left Column - Product Gallery */}
-          <div className="lg:col-span-4">
-            <ProductGallery 
-              images={productImages}
-              selectedImage={selectedImage}
-              onImageSelect={setSelectedImage}
-            />
-          </div>
+          {/* Left Column - Main Content (10/12 columns) */}
+          <div className="lg:col-span-10 space-y-6">
+            <div className="grid lg:grid-cols-12 gap-6">
+              {/* Product Gallery */}
+              <div className="lg:col-span-4">
+                <ProductGallery
+                  images={productImages}
+                  selectedImage={selectedImage}
+                  onImageSelect={setSelectedImage}
+                />
+              </div>
 
-          {/* Middle Column - Product Details */}
-          <div className="lg:col-span-6">
-            <ProductDetails quantity={quantity} onQuantityChange={setQuantity} />
-            <div className="mt-6">
-              <ProductTabs />
+              {/* Product Details */}
+              <div className="lg:col-span-8">
+                <ProductDetails
+                  quantity={quantity}
+                  onQuantityChange={setQuantity}
+                />
+              </div>
             </div>
+
+            {/* Product Tabs (below gallery/details) */}
+            <ProductTabs />
           </div>
 
-          {/* Right Column - Sidebar */}
+          {/* Right Column - Sidebar (2/12 columns) */}
           <div className="lg:col-span-2">
             <ProductSidebar />
           </div>
         </div>
       </div>
     </div>
+
+
   );
 };
 export default ProductPage;
