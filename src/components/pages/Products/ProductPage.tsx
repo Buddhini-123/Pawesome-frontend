@@ -2,7 +2,7 @@ import { useState } from "react";
 import ProductGallery  from "../../effects/Products/ProductGallery.tsx";
 import ProductDetails from "../../effects/Products/ProductDetails.tsx";
 import ProductSidebar from "../../effects/Products/ProductSidebar.tsx";
-
+import ProductTabs from "./ProductTabs.tsx"
 const ProductPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -31,7 +31,7 @@ const ProductPage = () => {
           <div className="lg:col-span-6">
             <ProductDetails quantity={quantity} onQuantityChange={setQuantity} />
             <div className="mt-6">
-              {/* <ProductTabs /> */}
+              <ProductTabs />
             </div>
           </div>
 
