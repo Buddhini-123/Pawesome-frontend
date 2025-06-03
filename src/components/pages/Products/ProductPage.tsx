@@ -22,7 +22,7 @@ const ProductPage = () => {
           <div className="lg:col-span-10 space-y-6">
             <div className="grid lg:grid-cols-12 gap-6">
               {/* Product Gallery */}
-              <div className="lg:col-span-4">
+              <div className="lg:col-span-5">
                 <ProductGallery
                   images={productImages}
                   selectedImage={selectedImage}
@@ -31,7 +31,7 @@ const ProductPage = () => {
               </div>
 
               {/* Product Details */}
-              <div className="lg:col-span-8">
+              <div className="lg:col-span-7">
                 <ProductDetails
                   quantity={quantity}
                   onQuantityChange={setQuantity}

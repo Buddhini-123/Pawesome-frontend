@@ -28,7 +28,7 @@ const Login = () => {
               className="h-16 w-auto object-contain"
             />
           </div>
-          <p className="text-calmblue text-base leading-relaxed font-figtree">
+          <p className="text-calm-blue text-base leading-relaxed font-figtree">
             Sign in to your Pawsome pet care account to order your pet food, manage your rewards, get advises and more !
           </p>
         </div>
@@ -36,7 +36,7 @@ const Login = () => {
         {/* New member link */}
         <div className="text-center mb-6">
           <span className="text-gray-700 text-base font-figtree">New Member? </span>
-          <Link to="/register" className="text-energeticorange font-medium text-base hover:underline">
+          <Link to="/register" className="text-energetic-orange font-medium text-base hover:underline">
             Create Account
           </Link>
         </div>
@@ -49,7 +49,7 @@ const Login = () => {
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 text-base font-figtree rounded-full bg-offwhite focus:outline-none focus:ring-2 focus:ring-calmblue focus:border-transparent"
+              className="w-full px-4 py-3 text-base font-figtree rounded-full bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
               required
               />
           </div>
@@ -60,17 +60,17 @@ const Login = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-full text-base font-figtree bg-offwhite focus:outline-none focus:ring-2 focus:ring-calmblue focus:border-transparent"
+              className="w-full px-4 py-3 rounded-full text-base font-figtree bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
               required
               />
           </div>
             
             <div className="flex items-center mt-4 px-8">
-                <Link to="/forgot-password" className="text-energeticorange text-base font-medium hover:underline whitespace-nowrap"
+                <Link to="/forgot-password" className="text-energetic-orange text-base font-medium hover:underline whitespace-nowrap"
                 >Forgot Password ?
                 </Link>
 
-                <button type="submit" className="bg-energeticorange hover:bg-orange-600 text-white text-base font-medium py-3 px-14 rounded-full transition-colors ml-4"
+                <button type="submit" className="bg-energetic-orange hover:bg-orange-600 text-white text-base font-medium py-3 px-14 rounded-full transition-colors ml-4"
                 >Sign In
                 </button>
             </div>
@@ -79,13 +79,13 @@ const Login = () => {
 
         {/* Terms and privacy */}
         <div className="text-center mt-7 space-y-4">
-          <p className="text-xs text-calmblue">
+          <p className="text-xs text-calm-blue">
             By signing in you confirm that you accept our{' '}
             <Link to="/terms" className="underline hover:text-blue-600">
               Account Terms and Conditions
             </Link>.
           </p>
-          <p className="text-xs text-calmblue">
+          <p className="text-xs text-calm-blue">
             You also acknowledge{' '}
             <Link to="/privacy" className="underline hover:text-blue-600">
               Pawsome's privacy policy

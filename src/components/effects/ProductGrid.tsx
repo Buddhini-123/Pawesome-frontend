@@ -32,7 +32,7 @@ const ProductGrid = ({ products }: ProductGridProps) => {
             <div className="flex justify-center mb-2">
               <StarRating rating={product.rating} size="sm" />
             </div>
-            <p className="text-energeticorange text-center text-base font-figtree">{product.price}</p>
+            <p className="text-energetic-orange text-center text-base font-figtree">{product.price}</p>
           </div>
         </Link>
       ))}

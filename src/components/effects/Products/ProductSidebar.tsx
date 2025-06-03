@@ -6,21 +6,21 @@ const ProductSidebar = () => {
     {
       id: 1,
       name: "Pedigree Dog Biscuit",
-      price: "Rs. 2000.00",
+      price: "2000.00",
       rating: 4.5,
       image: "/pedigree.png"
     },
     {
       id: 2,
       name: "Pedigree Dog Biscuit",
-      price: "Rs. 2000.00",
+      price: "2000.00",
       rating: 4.5,
       image: "/pedigree.png"
     },
     {
       id: 3,
       name: "Pedigree Dog Biscuit",
-      price: "Rs. 2000.00",
+      price: "2000.00",
       rating: 4.5,
       image: "/pedigree.png"
     }

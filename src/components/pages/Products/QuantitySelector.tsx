@@ -20,23 +20,19 @@ export const QuantitySelector = ({ quantity, onQuantityChange }: QuantitySelecto
   return (
     <div className="flex items-center space-x-2">
       <button
-        // variant="outline"
-        // size="sm"
         onClick={decreaseQuantity}
-        className="w-7 h-7 p-0 rounded border-gray-300"
+        className="w-7 h-7 flex items-center justify-center rounded bg-calm-blue text-white"
       >
         <Minus className="w-3 h-3" />
       </button>
       
-      <span className="w-8 text-center font-medium text-sm">
+      <span className="w-8 text-center font-medium text-energetic-orange text-sm">
         {quantity}
       </span>
       
       <button
-        // variant="outline"
-        // size="sm"
         onClick={increaseQuantity}
-        className="w-7 h-7 p-0 rounded border-gray-300"
+        className="w-7 h-7 flex items-center justify-center rounded bg-calm-blue text-white"
       >
         <Plus className="w-3 h-3" />
       </button>
