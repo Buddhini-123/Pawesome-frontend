@@ -26,6 +26,7 @@ import NotFound from './components/pages/NotFound.tsx';
 import Subscriptions from './components/pages/Features/Subscriptions.tsx';
 import Gifts from './components/pages/Features/Gifts.tsx';
 import Deals from './components/pages/Features/Deals.tsx';
+import DealDetail from './components/deals/DealDetail.tsx';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards.tsx';
 import Login from './components/pages/Login/Login.tsx';
 
@@ -56,6 +57,7 @@ const App: React.FC = () => {
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/gifts" element={<Gifts />} />
           <Route path="/deals" element={<Deals />} />
+          <Route path="/deals/:slug" element={<DealDetail />} />
           <Route path="/loyalty-cards" element={<LoyaltyCards />} />
           
           <Route path="*" element={<NotFound />} />
