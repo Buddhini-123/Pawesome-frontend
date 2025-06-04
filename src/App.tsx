@@ -25,6 +25,7 @@ import NotFound from './components/pages/NotFound.tsx';
 // New Feature Pages
 import Subscriptions from './components/pages/Features/Subscriptions.tsx';
 import Gifts from './components/pages/Features/Gifts.tsx';
+import GiftCustomizer from './components/pages/Features/GiftCustomizer.tsx';
 import Deals from './components/pages/Features/Deals.tsx';
 import DealDetail from './components/deals/DealDetail.tsx';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards.tsx';
@@ -57,6 +58,7 @@ const App: React.FC = () => {
           {/* New Feature Routes */}
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/gifts" element={<Gifts />} />
+          <Route path="/gifts/customize" element={<GiftCustomizer />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/deals/:slug" element={<DealDetail />} />
           <Route path="/loyalty-cards" element={<LoyaltyCards />} />
