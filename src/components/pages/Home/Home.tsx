@@ -33,7 +33,7 @@ const InteractiveCard = ({ button, index, inView }) => {
           rotationY: 0,
           duration: 1,
           delay: index * 0.2,
-          ease: "back.out(1.7)"
+          ease: "back.out(2.7)"
         }
       );
     }
@@ -529,7 +529,7 @@ const Home: React.FC = () => {
                       transition: { 
                         duration: 1.2, 
                         delay: index * 0.3,
-                        ease: "back.out(1.7)"
+                        ease: "backOut"
                       }
                     } : {}}
                   >

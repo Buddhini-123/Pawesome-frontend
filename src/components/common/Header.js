@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart } from 'lucide-react';
+import cartIcon from './cart-icon.png'
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,7 +57,7 @@ const Header = () => {
               <input
                 type="text"
                 placeholder="Search among more than 10,000 products"
-                className="custom-input w-full pl-4 pr-10 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-calmblue"
+                className="custom-input w-full pl-4 pr-10 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-calm-blue"
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
@@ -72,7 +73,7 @@ const Header = () => {
               to="/cart" 
               className="flex items-center space-x-2 bg-amber-400 hover:bg-amber-500 transition-colors px-6 py-2 rounded-full text-gray-800"
             >
-              <ShoppingCart className="h-5 w-5" />
+              <img src={cartIcon} alt="Cart Icon" className="h-6 w-6" />
               <span className="font-medium">My Cart</span>
             </Link>
           </div>
