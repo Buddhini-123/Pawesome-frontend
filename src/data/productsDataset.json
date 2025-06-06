@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2025-06-04T21:16:00.000Z",
+    "totalProducts": 132,
+    "totalCategories": 6,
+    "totalBrands": 4,
+    "currency": "LKR",
+    "country": "Sri Lanka",
+    "language": "en",
+    "description": "Comprehensive product dataset for Pawsome Pet Store"
+  },
+  "siteSettings": {
+    "storeName": "Pawsome Pet Store",
+    "storeDescription": "Premium pet care products for your beloved companions",
+    "defaultSEO": {
+      "titleSuffix": " | Pawsome - Premium Pet Care",
+      "metaDescription": "Shop premium pet care products at Pawsome. Quality food, toys, accessories for dogs, cats, and pets. Fast delivery across Sri Lanka.",
+      "keywords": ["pet store", "pet care", "dog products", "cat products", "sri lanka", "online pet store"]
+    },
+    "features": {
+      "freeShippingThreshold": 5000,
+      "returnPolicy": "30 days",
+      "paymentMethods": ["Credit Card", "Debit Card", "Bank Transfer", "Cash on Delivery"],
+      "deliveryAreas": ["Colombo", "Kandy", "Galle", "Jaffna", "Negombo"]
+    }
+  }
+}
