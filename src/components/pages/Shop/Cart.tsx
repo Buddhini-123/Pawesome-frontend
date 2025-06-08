@@ -104,7 +104,7 @@ const Cart: React.FC = () => {
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-800">{item.name}</h3>
                         <p className="text-sm text-gray-600">{item.brand}</p>
-                        <p className="text-lg font-bold text-green-600 mt-1">₹{item.price.toLocaleString()}</p>
+                        <p className="text-lg font-bold text-green-600 mt-1">Rs.{item.price.toLocaleString()}</p>
                       </div>
                       
                       <div className="flex items-center space-x-3">
@@ -127,7 +127,7 @@ const Cart: React.FC = () => {
                       
                       <div className="text-right">
                         <p className="font-bold text-gray-800">
-                          ₹{(item.price * item.quantity).toLocaleString()}
+                          Rs.{(item.price * item.quantity).toLocaleString()}
                         </p>
                         <button 
                           onClick={() => removeItem(item.id)}
@@ -149,7 +149,7 @@ const Cart: React.FC = () => {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-semibold">₹{getTotalPrice().toLocaleString()}</span>
+                    <span className="font-semibold">Rs.{getTotalPrice().toLocaleString()}</span>
                   </div>
                   
                   <div className="flex justify-between">
@@ -158,7 +158,7 @@ const Cart: React.FC = () => {
                       {getShippingCost() === 0 ? (
                         <span className="text-green-600">FREE</span>
                       ) : (
-                        `₹${getShippingCost()}`
+                        `Rs.${getShippingCost()}`
                       )}
                     </span>
                   </div>
@@ -166,7 +166,7 @@ const Cart: React.FC = () => {
                   {getTotalPrice() < 20000 && (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                       <p className="text-sm text-amber-700">
-                        Add ₹{(20000 - getTotalPrice()).toLocaleString()} more for FREE shipping!
+                        Add Rs.{(20000 - getTotalPrice()).toLocaleString()} more for FREE shipping!
                       </p>
                     </div>
                   )}
@@ -174,7 +174,7 @@ const Cart: React.FC = () => {
                   <div className="border-t pt-4">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total</span>
-                      <span>₹{getFinalTotal().toLocaleString()}</span>
+                      <span>Rs.{getFinalTotal().toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

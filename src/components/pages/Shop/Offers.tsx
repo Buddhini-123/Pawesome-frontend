@@ -30,8 +30,8 @@ const Offers: React.FC = () => {
               <h3 className="text-xl font-semibold mb-2">Premium Dog Food</h3>
               <p className="text-gray-600 mb-4">Stock up on your dog's favorite premium food</p>
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-green-600">₹1,999</span>
-                <span className="text-lg text-gray-500 line-through">₹3,999</span>
+                <span className="text-2xl font-bold text-green-600">Rs.1,999</span>
+                <span className="text-lg text-gray-500 line-through">Rs.3,999</span>
               </div>
               <button className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium py-2 rounded-lg transition-colors">
                 Add to Cart
@@ -47,8 +47,8 @@ const Offers: React.FC = () => {
               <h3 className="text-xl font-semibold mb-2">Cat Litter Bundle</h3>
               <p className="text-gray-600 mb-4">Premium clumping litter - 3 month supply</p>
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-green-600">₹2,099</span>
-                <span className="text-lg text-gray-500 line-through">₹2,999</span>
+                <span className="text-2xl font-bold text-green-600">Rs.2,099</span>
+                <span className="text-lg text-gray-500 line-through">Rs.2,999</span>
               </div>
               <button className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium py-2 rounded-lg transition-colors">
                 Add to Cart
@@ -64,8 +64,8 @@ const Offers: React.FC = () => {
               <h3 className="text-xl font-semibold mb-2">Bird Seed Mix</h3>
               <p className="text-gray-600 mb-4">Nutritious seed blend for all bird types</p>
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-green-600">₹899</span>
-                <span className="text-lg text-gray-500 line-through">₹1,199</span>
+                <span className="text-2xl font-bold text-green-600">Rs.899</span>
+                <span className="text-lg text-gray-500 line-through">Rs.1,199</span>
               </div>
               <button className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium py-2 rounded-lg transition-colors">
                 Add to Cart
@@ -81,7 +81,7 @@ const Offers: React.FC = () => {
               <h3 className="text-xl font-semibold mb-2">Pet Toys Combo</h3>
               <p className="text-gray-600 mb-4">Interactive toys for dogs and cats</p>
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-green-600">₹1,599</span>
+                <span className="text-2xl font-bold text-green-600">Rs.1,599</span>
                 <span className="text-sm text-gray-500">for 3 toys</span>
               </div>
               <button className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium py-2 rounded-lg transition-colors">
@@ -98,8 +98,8 @@ const Offers: React.FC = () => {
               <h3 className="text-xl font-semibold mb-2">Aquarium Starter Kit</h3>
               <p className="text-gray-600 mb-4">Complete setup for new fish owners</p>
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-green-600">₹4,499</span>
-                <span className="text-lg text-gray-500 line-through">₹7,499</span>
+                <span className="text-2xl font-bold text-green-600">Rs.4,499</span>
+                <span className="text-lg text-gray-500 line-through">Rs.7,499</span>
               </div>
               <button className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium py-2 rounded-lg transition-colors">
                 Add to Cart
@@ -115,8 +115,8 @@ const Offers: React.FC = () => {
               <h3 className="text-xl font-semibold mb-2">Small Animal Care Kit</h3>
               <p className="text-gray-600 mb-4">Essential supplies for rabbits & hamsters</p>
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-green-600">₹1,949</span>
-                <span className="text-lg text-gray-500 line-through">₹2,999</span>
+                <span className="text-2xl font-bold text-green-600">Rs.1,949</span>
+                <span className="text-lg text-gray-500 line-through">Rs.2,999</span>
               </div>
               <button className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium py-2 rounded-lg transition-colors">
                 Add to Cart

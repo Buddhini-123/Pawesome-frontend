@@ -82,7 +82,7 @@ const Account: React.FC = () => {
                   <div>
                     <p className="font-medium">Royal Canin Adult Dog Food</p>
                     <p className="text-sm text-gray-600">Quantity: 2</p>
-                    <p className="text-sm font-semibold text-green-600">₹4,998</p>
+                    <p className="text-sm font-semibold text-green-600">Rs.4,998</p>
                   </div>
                 </div>
               </div>
@@ -100,7 +100,7 @@ const Account: React.FC = () => {
                   <div>
                     <p className="font-medium">Cat Litter - Premium Clumping</p>
                     <p className="text-sm text-gray-600">Quantity: 1</p>
-                    <p className="text-sm font-semibold text-green-600">₹899</p>
+                    <p className="text-sm font-semibold text-green-600">Rs.899</p>
                   </div>
                 </div>
               </div>
@@ -116,7 +116,7 @@ const Account: React.FC = () => {
                 <img src="/api/placeholder/200/200" alt="Product" className="w-full h-40 object-cover rounded-lg mb-4" />
                 <h3 className="font-semibold text-gray-800 mb-2">Premium Bird Seed Mix</h3>
                 <p className="text-sm text-gray-600 mb-2">Vitakraft</p>
-                <p className="text-lg font-bold text-green-600 mb-3">₹599</p>
+                <p className="text-lg font-bold text-green-600 mb-3">Rs.599</p>
                 <button className="w-full bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium py-2 rounded-lg transition-colors">
                   Add to Cart
                 </button>
@@ -126,7 +126,7 @@ const Account: React.FC = () => {
                 <img src="/api/placeholder/200/200" alt="Product" className="w-full h-40 object-cover rounded-lg mb-4" />
                 <h3 className="font-semibold text-gray-800 mb-2">Interactive Cat Toy</h3>
                 <p className="text-sm text-gray-600 mb-2">Petstages</p>
-                <p className="text-lg font-bold text-green-600 mb-3">₹1,299</p>
+                <p className="text-lg font-bold text-green-600 mb-3">Rs.1,299</p>
                 <button className="w-full bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium py-2 rounded-lg transition-colors">
                   Add to Cart
                 </button>

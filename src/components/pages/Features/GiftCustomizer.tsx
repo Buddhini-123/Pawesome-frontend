@@ -291,7 +291,7 @@ const GiftCustomizer: React.FC = () => {
                       />
                       <h3 className="text-xl font-bold text-charcoal-gray mb-2">{product.name}</h3>
                       <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-                      <div className="text-2xl font-bold text-energetic-orange">₹{product.price}</div>
+                      <div className="text-2xl font-bold text-energetic-orange">Rs.{product.price}</div>
                     </div>
                     
                     <div className="text-center">
@@ -350,7 +350,7 @@ const GiftCustomizer: React.FC = () => {
                   ) : (
                     <>
                       <ShoppingCart className="h-5 w-5" />
-                      <span>Add to Cart - ₹{getTotalPrice()}</span>
+                      <span>Add to Cart - Rs.{getTotalPrice()}</span>
                     </>
                   )}
                 </button>
@@ -382,7 +382,7 @@ const GiftCustomizer: React.FC = () => {
                   return (
                     <div key={productId} className="flex justify-between items-center text-sm">
                       <span className="text-gray-600 truncate">{product.name}</span>
-                      <span className="font-semibold text-energetic-orange">₹{product.price}</span>
+                      <span className="font-semibold text-energetic-orange">Rs.{product.price}</span>
                     </div>
                   );
                 })}
@@ -395,7 +395,7 @@ const GiftCustomizer: React.FC = () => {
           <div className="border-t border-gray-200 pt-4">
             <div className="flex justify-between items-center text-lg font-bold">
               <span>Total:</span>
-              <span className="text-energetic-orange">₹{getTotalPrice()}</span>
+              <span className="text-energetic-orange">Rs.{getTotalPrice()}</span>
             </div>
             {getTotalPrice() >= 2000 && (
               <p className="text-green-600 text-sm mt-2">🚚 Free shipping included!</p>

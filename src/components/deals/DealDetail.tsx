@@ -222,7 +222,7 @@ const DealDetail: React.FC = () => {
                   <h4 className="font-semibold text-charcoal-gray mb-2">Premium Dog Food {product}</h4>
                   <p className="text-gray-600 text-sm mb-3">High-quality nutrition for your furry friend</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-energetic-orange">₹999</span>
+                    <span className="text-lg font-bold text-energetic-orange">Rs.999</span>
                     <button className="bg-energetic-orange text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors">
                       Add to Cart
                     </button>
