@@ -11,13 +11,13 @@ const Header = () => {
   };
 
   const categories = [
-    { name: 'Dogs', link: '/dogs' },
-    { name: 'Cats', link: '/cats' },
-    { name: 'Vet Diet', link: '/vet-diet' },
-    { name: 'Birds', link: '/birds' },
-    { name: 'Other Animals', link: '/other-animals' },
-    { name: '% Offers', link: '/offers' },
-    { name: 'Top Brands', link: '/brands' },
+    { name: 'Subscription', link: '/subscriptions' },
+    { name: 'Gift Box', link: '/gifts' },
+    { name: 'Daily Deals', link: '/deals' },
+    { name: 'Paw Rewards', link: '/loyalty-cards' },
+    // { name: 'Other Animals', link: '/other-animals' },
+    // { name: '% Offers', link: '/offers' },
+    // { name: 'Top Brands', link: '/brands' },
   ];
 
   return (
@@ -81,7 +81,7 @@ const Header = () => {
       </div>
 
       {/* Navigation menu */}
-      {/* <div className="w-full" style={{backgroundColor: '#6CA6CD'}}>
+      <div className="w-full" style={{backgroundColor: '#6CA6CD'}}>
         <div className="container mx-auto py-3">
           <nav className="inline-flex items-center justify-center flex-wrap w-full">
             {categories.map((category, index) => (
@@ -95,7 +95,7 @@ const Header = () => {
             ))}
           </nav>
         </div>
-      </div> */}
+      </div>
 
     </header>
   );

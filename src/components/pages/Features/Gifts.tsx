@@ -9,7 +9,7 @@ const Gifts: React.FC = () => {
   const stepsRef = useRef(null);
   const ctaRef = useRef(null);
   const newsletterRef = useRef(null);
-  
+
   const heroInView = useInView(heroRef, { once: true });
   const stepsInView = useInView(stepsRef, { once: true, threshold: 0.2 });
   const ctaInView = useInView(ctaRef, { once: true });
@@ -35,7 +35,7 @@ const Gifts: React.FC = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-center"
           >
-            <motion.h1 
+            <motion.h1
               className="text-5xl md:text-6xl lg:text-7xl font-bold text-energetic-orange mb-8"
               initial={{ scale: 0.9 }}
               animate={heroInView ? { scale: 1 } : {}}
@@ -43,7 +43,7 @@ const Gifts: React.FC = () => {
             >
               Customize Your Box !
             </motion.h1>
-            
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
@@ -54,7 +54,7 @@ const Gifts: React.FC = () => {
                 Not into our pre-set pet gift boxes? Create your own masterpiece!
               </p>
               <p className="text-lg md:text-xl text-charcoal-gray">
-                Mix and match toys, treats, grooming products, outfits, accessories, and a greeting card to build your very own 
+                Mix and match toys, treats, grooming products, outfits, accessories, and a greeting card to build your very own
                 <span className="font-bold text-energetic-orange"> Pawsome Customized Box!</span>
               </p>
             </motion.div>
@@ -80,8 +80,8 @@ const Gifts: React.FC = () => {
                   key={step.id}
                   initial={{ opacity: 0, x: -50 }}
                   animate={stepsInView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ 
-                    duration: 0.6, 
+                  transition={{
+                    duration: 0.6,
                     delay: index * 0.1,
                     ease: "easeOut"
                   }}
@@ -91,13 +91,13 @@ const Gifts: React.FC = () => {
                     <div className="absolute -left-3 -top-3 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-4 border-energetic-orange">
                       <span className="text-energetic-orange font-bold text-lg">{step.id}</span>
                     </div>
-                    
+
                     <div className="ml-8">
                       <h3 className="text-lg md:text-xl font-semibold text-white">
                         Step {step.id}: {step.title}
                       </h3>
                     </div>
-                    
+
                     <div className="absolute top-4 right-4 opacity-20">
                       <div className="text-white text-2xl">
                         {step.id <= 3 ? '🎾' : step.id <= 5 ? '🦴' : '🎁'}
@@ -120,11 +120,25 @@ const Gifts: React.FC = () => {
                 </div>
               </div>
             </motion.div>
+            <motion.div
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 20px 40px rgba(26, 180, 135, 0.3)"
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link
+                to="/gifts/customize"
+                className="inline-block bg-gradient-to-r from-mint to-emerald-500 text-white font-bold text-xl md:text-2xl px-12 py-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
+              >
+                Let's Start !
+              </Link>
+            </motion.div>
           </div>
         </div>
       </section>
       {/* CTA Section */}
-      <section ref={ctaRef} className="py-16 px-4">
+      {/* <section ref={ctaRef} className="py-16 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -132,7 +146,7 @@ const Gifts: React.FC = () => {
             transition={{ duration: 0.8 }}
           >
             <motion.div
-              whileHover={{ 
+              whileHover={{
                 scale: 1.05,
                 boxShadow: "0 20px 40px rgba(26, 180, 135, 0.3)"
               }}
@@ -147,7 +161,7 @@ const Gifts: React.FC = () => {
             </motion.div>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       {/* Pet Showcase Section */}
       <section className="py-12 px-4 bg-gradient-to-r from-natural-sage/20 to-calm-blue/20">
@@ -160,17 +174,17 @@ const Gifts: React.FC = () => {
             className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl"
           >
             <div className="flex justify-center items-center space-x-8 md:space-x-12">
-              {['🐕', '🐱', '🐦', '🐰', '🐹', '🐠', '🦎', '🐢'].map((pet, index) => (
+              {['🐕', '🐈', '🕊️', '🐇', '🐹', '🐢'].map((pet, index) => (
                 <motion.div
                   key={index}
                   initial={{ scale: 0, rotate: -180 }}
                   whileInView={{ scale: 1, rotate: 0 }}
-                  transition={{ 
+                  transition={{
                     duration: 0.5,
                     delay: index * 0.1,
                     ease: "backOut"
                   }}
-                  whileHover={{ 
+                  whileHover={{
                     scale: 1.3,
                     rotate: [0, -10, 10, 0],
                     transition: { duration: 0.3 }
@@ -186,7 +200,7 @@ const Gifts: React.FC = () => {
         </div>
       </section>
       {/* Newsletter Section */}
-      <section ref={newsletterRef} className="py-16 px-4 bg-gradient-to-r from-natural-sage to-calm-blue">
+      {/* <section ref={newsletterRef} className="py-16 px-4 bg-gradient-to-r from-natural-sage to-calm-blue">
         <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -226,7 +240,7 @@ const Gifts: React.FC = () => {
             </motion.div>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       {/* Footer Info Section */}
       {/* <section className="py-12 px-4 bg-white">

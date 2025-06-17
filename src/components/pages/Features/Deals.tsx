@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Percent } from 'lucide-react';
 import { Deal, DealsPageData, DealCardProps } from '../../../types/deals';
+import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid';
 
 // Inline DealCard component to avoid import issues
 const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) => {
@@ -295,6 +296,8 @@ const Deals: React.FC = () => {
           </p>
         </motion.div>
 
+        {/* <ReccomendationsGrid /> */}
+
         {/* Deal Sections */}
         <div className="space-y-16">
           {mockDealsData.sections.map((section, index) => (
@@ -319,6 +322,8 @@ const Deals: React.FC = () => {
                   </p>
                 )}
               </div>
+
+              {/* <ReccomendationsGrid /> */}
 
               {/* Deals Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
