@@ -229,7 +229,7 @@ const Gifts: React.FC = () => {
       </section>
 
       {/* Footer Info Section */}
-      <section className="py-12 px-4 bg-white">
+      {/* <section className="py-12 px-4 bg-white">
         <div className="container mx-auto max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <motion.div
@@ -248,7 +248,7 @@ const Gifts: React.FC = () => {
             </motion.div>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };

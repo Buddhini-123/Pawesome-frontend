@@ -271,7 +271,7 @@ const Home: React.FC = () => {
       petEmoji: '🐕'
     },
     {
-      title: 'Surprise Gift Boxes',
+      title: 'Gift Boxes',
       description: 'Curated monthly surprise boxes filled with premium toys, treats, and accessories that will make your pet\'s tail wag with joy.',
       icon: Gift,
       color: 'from-sky-400 via-sky-500 to-blue-600',
@@ -425,11 +425,11 @@ const Home: React.FC = () => {
                   textShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
                 }}
               >
-                Your trusted partner in pet care excellence. 
+                {/* Your trusted partner in pet care excellence.  */}
                 <span className="bg-gradient-to-r from-amber-600 to-sky-600 bg-clip-text text-transparent font-bold">
-                  {" "}Every tail deserves the best{" "}
+                  {" "}- Because your fur baby deserves the best -{" "}
                 </span>
-                – from premium nutrition to endless love and care.
+                {/* – from premium nutrition to endless love and care. */}
               </motion.p>
 
               {/* Floating Pet Companions */}
@@ -659,7 +659,7 @@ const Home: React.FC = () => {
                     className="text-5xl md:text-6xl font-bold text-white mb-8 relative z-10"
                     whileHover={{ scale: 1.05 }}
                   >
-                    Ready to Spoil Your Furry Family?
+                    Ready to Spoil Your Fur Babies?
                   </motion.h2>
                   <motion.p 
                     className="text-white/95 text-2xl mb-12 max-w-4xl mx-auto relative z-10 leading-relaxed"
