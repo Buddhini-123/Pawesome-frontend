@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Percent } from 'lucide-react';
 import { Deal, DealsPageData, DealCardProps } from '../../../types/deals';
-import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid';
-
+import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid.tsx';
 // Inline DealCard component to avoid import issues
 const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) => {
   const handleClick = () => {
@@ -349,6 +348,8 @@ const Deals: React.FC = () => {
           ))}
         </div>
 
+         <ReccomendationsGrid />
+
         {/* Newsletter Signup */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -373,6 +374,7 @@ const Deals: React.FC = () => {
             </button>
           </div>
         </motion.div>
+
       </div>
     </div>
   );
