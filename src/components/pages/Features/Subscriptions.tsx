@@ -100,21 +100,7 @@ const Subscriptions = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-12">
-        <SlideshowBanner slides={subscriptionSlides} autoPlay interval={6000} />
-        <WhyPawsomeSection />
-        <CategoryCarousel categories={petCategories} />
-
-        <TopBrandsCarousel />
-
-        <FAQAccordion
-          items={faqs}
-          initialIndex={0}
-          allowMultiple={false}
-        />
-        {/* <SlideshowBanner slides={slides} interval={6000} /> */}
-
-      </div>
+   
     </div>
   )
 }
