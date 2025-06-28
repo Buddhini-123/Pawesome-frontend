@@ -15,6 +15,11 @@ import {
   Minus,
   Calendar,
   Percent as PercentIcon,
+  Eye,
+  Check,
+  TruckIcon,
+  ShieldCheck,
+  Heart,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SlideshowBanner from '../../banners/subscriptionbanner/SlideshowBanner'
@@ -116,6 +121,8 @@ const Subscriptions = () => {
   const [showSidebar, setShowSidebar] = useState(true)
   const [selectedSubscription, setSelectedSubscription] = useState(null)
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [showProductModal, setShowProductModal] = useState(false)
   
   // Mock active subscriptions data with more details
   const [activeSubscriptions] = useState([
@@ -205,6 +212,11 @@ const Subscriptions = () => {
     const newQuantities = { ...productQuantities }
     delete newQuantities[productId]
     setProductQuantities(newQuantities)
+  }
+
+  const handleViewProductDetails = (product) => {
+    setSelectedProduct(product)
+    setShowProductModal(true)
   }
 
   return (
@@ -795,6 +807,7 @@ const Subscriptions = () => {
                           product={product} 
                           isSelected={selectedProducts.some(p => p.id === product.id)}
                           onToggle={handleProductToggle}
+                          onViewDetails={handleViewProductDetails}
                         />
                       ))}
                       {catProducts.map((product) => (
@@ -803,6 +816,7 @@ const Subscriptions = () => {
                           product={product} 
                           isSelected={selectedProducts.some(p => p.id === product.id)}
                           onToggle={handleProductToggle}
+                          onViewDetails={handleViewProductDetails}
                         />
                       ))}
                       {birdProducts.map((product) => (
@@ -811,6 +825,7 @@ const Subscriptions = () => {
                           product={product} 
                           isSelected={selectedProducts.some(p => p.id === product.id)}
                           onToggle={handleProductToggle}
+                          onViewDetails={handleViewProductDetails}
                         />
                       ))}
                       {otherAnimalsProducts.map((product) => (
@@ -819,6 +834,7 @@ const Subscriptions = () => {
                           product={product} 
                           isSelected={selectedProducts.some(p => p.id === product.id)}
                           onToggle={handleProductToggle}
+                          onViewDetails={handleViewProductDetails}
                         />
                       ))}
                     </>
@@ -830,6 +846,7 @@ const Subscriptions = () => {
                       product={product} 
                       isSelected={selectedProducts.some(p => p.id === product.id)}
                       onToggle={handleProductToggle}
+                      onViewDetails={handleViewProductDetails}
                     />
                   ))}
                   
@@ -839,6 +856,7 @@ const Subscriptions = () => {
                       product={product} 
                       isSelected={selectedProducts.some(p => p.id === product.id)}
                       onToggle={handleProductToggle}
+                      onViewDetails={handleViewProductDetails}
                     />
                   ))}
                   
@@ -848,6 +866,7 @@ const Subscriptions = () => {
                       product={product} 
                       isSelected={selectedProducts.some(p => p.id === product.id)}
                       onToggle={handleProductToggle}
+                      onViewDetails={handleViewProductDetails}
                     />
                   ))}
                   
@@ -857,6 +876,7 @@ const Subscriptions = () => {
                       product={product} 
                       isSelected={selectedProducts.some(p => p.id === product.id)}
                       onToggle={handleProductToggle}
+                      onViewDetails={handleViewProductDetails}
                     />
                   ))}
                 </div>
@@ -1148,20 +1168,266 @@ const Subscriptions = () => {
           <ChevronLeft className="h-6 w-6" />
         </motion.button>
       )}
+
+      {/* Product Details Modal */}
+      <AnimatePresence>
+        {showProductModal && selectedProduct && (
+          <>
+            {/* Modal Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              onClick={() => setShowProductModal(false)}
+            />
+
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-0 flex items-center justify-center p-4 z-50"
+            >
+              <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                {/* Modal Header */}
+                <div className="relative h-80 bg-gradient-to-br from-calm-blue via-energetic-orange to-warm-orange">
+                  <div className="absolute inset-0 bg-black/20" />
+                  <button
+                    onClick={() => setShowProductModal(false)}
+                    className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-colors z-10"
+                  >
+                    <X className="h-6 w-6 text-white" />
+                  </button>
+                  <div className="relative h-full flex items-center justify-center">
+                    <motion.img
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      src={selectedProduct.image}
+                      alt={selectedProduct.name}
+                      className="max-h-64 max-w-sm object-contain drop-shadow-2xl"
+                    />
+                  </div>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-8 overflow-y-auto max-h-[calc(90vh-320px)]">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Left Column - Product Info */}
+                    <div>
+                      <div className="mb-6">
+                        <h2 className="text-3xl font-bold text-charcoal-gray mb-2">
+                          {selectedProduct.name}
+                        </h2>
+                        <p className="text-lg text-gray-600 flex items-center gap-2">
+                          by <span className="font-semibold text-energetic-orange">{selectedProduct.brand}</span>
+                        </p>
+                      </div>
+
+                      {/* Rating and Reviews */}
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-5 w-5 ${
+                                i < Math.floor(selectedProduct.rating)
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'fill-gray-200 text-gray-200'
+                              }`}
+                            />
+                          ))}
+                          <span className="ml-2 font-semibold text-charcoal-gray">
+                            {selectedProduct.rating}
+                          </span>
+                        </div>
+                        <span className="text-gray-500">
+                          ({selectedProduct.reviews} reviews)
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          selectedProduct.inStock 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-red-100 text-red-700'
+                        }`}>
+                          {selectedProduct.inStock ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                      </div>
+
+                      {/* Description */}
+                      <div className="mb-6">
+                        <h3 className="font-semibold text-lg text-charcoal-gray mb-2">Description</h3>
+                        <p className="text-gray-600 leading-relaxed">
+                          {selectedProduct.description || `Premium ${selectedProduct.subcategory} for your beloved pet. This high-quality product from ${selectedProduct.brand} is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
+                        </p>
+                      </div>
+
+                      {/* Features */}
+                      <div className="mb-6">
+                        <h3 className="font-semibold text-lg text-charcoal-gray mb-3">Key Features</h3>
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-1">
+                              <Check className="h-5 w-5 text-green-500" />
+                            </div>
+                            <p className="text-gray-600">High-quality ingredients and materials</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="mt-1">
+                              <Check className="h-5 w-5 text-green-500" />
+                            </div>
+                            <p className="text-gray-600">Veterinarian recommended</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="mt-1">
+                              <Check className="h-5 w-5 text-green-500" />
+                            </div>
+                            <p className="text-gray-600">Suitable for all life stages</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="mt-1">
+                              <Check className="h-5 w-5 text-green-500" />
+                            </div>
+                            <p className="text-gray-600">100% satisfaction guarantee</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column - Pricing and Actions */}
+                    <div>
+                      {/* Pricing Card */}
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 mb-6">
+                        <h3 className="font-semibold text-lg text-charcoal-gray mb-4">Pricing Options</h3>
+                        
+                        {/* One-time Purchase */}
+                        <div className="mb-4 p-4 bg-white rounded-xl">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-700 font-medium">One-time Purchase</span>
+                            {selectedProduct.discount && (
+                              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                {selectedProduct.discount}% OFF
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-bold text-charcoal-gray">
+                              ₹{selectedProduct.price}
+                            </span>
+                            {selectedProduct.originalPrice && (
+                              <span className="text-lg text-gray-400 line-through">
+                                ₹{selectedProduct.originalPrice}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Subscription Option */}
+                        <div className="p-4 bg-gradient-to-r from-natural-sage/20 to-green-100 rounded-xl border-2 border-natural-sage">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-700 font-medium">Subscribe & Save</span>
+                            <span className="bg-natural-sage text-white text-xs px-2 py-1 rounded-full">
+                              Save 10%
+                            </span>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-bold text-natural-sage">
+                              ₹{Math.floor(selectedProduct.price * 0.9)}
+                            </span>
+                            <span className="text-sm text-gray-600">per delivery</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-2">
+                            + Free shipping on all subscription orders
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Benefits */}
+                      <div className="bg-blue-50 rounded-2xl p-6 mb-6">
+                        <h3 className="font-semibold text-lg text-charcoal-gray mb-3">Why Choose Subscription?</h3>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <PercentIcon className="h-5 w-5 text-energetic-orange" />
+                            <span className="text-gray-700">Save 10% on every order</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <TruckIcon className="h-5 w-5 text-energetic-orange" />
+                            <span className="text-gray-700">Free delivery on all orders</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Calendar className="h-5 w-5 text-energetic-orange" />
+                            <span className="text-gray-700">Flexible delivery schedule</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <ShieldCheck className="h-5 w-5 text-energetic-orange" />
+                            <span className="text-gray-700">Cancel or pause anytime</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => {
+                            handleProductToggle(selectedProduct);
+                            setShowProductModal(false);
+                          }}
+                          className={`w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all transform hover:scale-105 ${
+                            selectedProducts.some(p => p.id === selectedProduct.id)
+                              ? 'bg-gray-200 text-gray-600'
+                              : 'bg-gradient-to-r from-energetic-orange to-warm-orange text-white shadow-lg'
+                          }`}
+                          disabled={selectedProducts.some(p => p.id === selectedProduct.id)}
+                        >
+                          {selectedProducts.some(p => p.id === selectedProduct.id)
+                            ? 'Already Added to Subscription'
+                            : 'Add to Subscription'
+                          }
+                        </button>
+                        <button
+                          onClick={() => setShowProductModal(false)}
+                          className="w-full py-3 px-6 bg-white border-2 border-gray-300 rounded-2xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          Close
+                        </button>
+                      </div>
+
+                      {/* Trust Badges */}
+                      <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <ShieldCheck className="h-4 w-4" />
+                          <span>Secure</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Heart className="h-4 w-4" />
+                          <span>Pet Safe</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Award className="h-4 w-4" />
+                          <span>Quality Assured</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
 // Product Card Component for Modal
-const ProductCard = ({ product, isSelected, onToggle }) => {
+const ProductCard = ({ product, isSelected, onToggle, onViewDetails }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`relative bg-white rounded-lg border-2 transition-all cursor-pointer ${
+      className={`relative bg-white rounded-lg border-2 transition-all ${
         isSelected ? 'border-energetic-orange shadow-lg' : 'border-gray-200 hover:border-gray-300'
       }`}
-      onClick={() => onToggle(product)}
     >
       {/* Selection Indicator */}
       {isSelected && (
@@ -1171,7 +1437,10 @@ const ProductCard = ({ product, isSelected, onToggle }) => {
       )}
 
       {/* Product Image */}
-      <div className="aspect-square overflow-hidden rounded-t-lg bg-gray-50">
+      <div 
+        className="aspect-square overflow-hidden rounded-t-lg bg-gray-50 cursor-pointer"
+        onClick={() => onToggle(product)}
+      >
         <img
           src={product.image}
           alt={product.name}
@@ -1181,13 +1450,16 @@ const ProductCard = ({ product, isSelected, onToggle }) => {
 
       {/* Product Info */}
       <div className="p-4">
-        <h3 className="font-semibold text-charcoal-gray text-sm mb-1 line-clamp-2">
+        <h3 
+          className="font-semibold text-charcoal-gray text-sm mb-1 line-clamp-2 cursor-pointer hover:text-energetic-orange transition-colors"
+          onClick={() => onToggle(product)}
+        >
           {product.name}
         </h3>
         <p className="text-xs text-gray-500 mb-2">{product.brand}</p>
         
         {/* Price */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div>
             {product.originalPrice && (
               <span className="text-xs text-gray-400 line-through mr-2">
@@ -1206,9 +1478,36 @@ const ProductCard = ({ product, isSelected, onToggle }) => {
           </div>
         </div>
 
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(product);
+            }}
+            className="flex-1 bg-calm-blue hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+          >
+            <Eye className="h-3 w-3" />
+            View Details
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(product);
+            }}
+            className={`flex-1 text-xs font-medium py-2 px-3 rounded-lg transition-colors ${
+              isSelected 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-energetic-orange hover:bg-warm-orange text-white'
+            }`}
+          >
+            {isSelected ? 'Remove' : 'Add'}
+          </button>
+        </div>
+
         {/* Subscription Price */}
-        <div className="mt-2 pt-2 border-t border-gray-100">
-          <p className="text-xs text-natural-sage font-medium">
+        <div className="mt-3 pt-2 border-t border-gray-100">
+          <p className="text-xs text-natural-sage font-medium text-center">
             Subscription: ₹{Math.floor(product.price * 0.9)} (Save 10%)
           </p>
         </div>
