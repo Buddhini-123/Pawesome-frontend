@@ -1,7 +1,7 @@
 import React from 'react';
-import NewsletterSection from './NewsletterSection.tsx';
-import FooterColumns from './FooterColumns.tsx';
-import FooterExtras from './FooterExtras.jsx';
+import NewsletterSection from './NewsletterSection';
+import FooterColumns from './FooterColumns';
+import FooterExtras from './FooterExtras';
 
 const Footer: React.FC = () => {
   return (

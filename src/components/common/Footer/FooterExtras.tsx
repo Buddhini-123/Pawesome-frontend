@@ -1,20 +1,18 @@
-// components/FooterBottom.jsx
-import React from 'react'
+import React from 'react';
 import {
     Facebook,
     Instagram,
     Twitter,
     Youtube,
-    //   Pinterest,
-} from 'lucide-react'
-import visaImg from './images/visa.png'
-import mastercardImg from './images/mastercard.png'
-import dhlImg from './images/dhl.png'
-import sslImg from './images/ssl.webp'
-import googlePlayImg from './images/google-play.webp'
-import appStoreImg from './images/app-store.webp'
+} from 'lucide-react';
+import visaImg from './images/visa.png';
+import mastercardImg from './images/mastercard.png';
+import dhlImg from './images/dhl.png';
+import sslImg from './images/ssl.webp';
+import googlePlayImg from './images/google-play.webp';
+import appStoreImg from './images/app-store.webp';
 
-export default function FooterBottom() {
+const FooterExtras: React.FC = () => {
     return (
         <div className="bg-cream-white py-8">
             {/* Top row: social icons / app badges */}
@@ -47,14 +45,12 @@ export default function FooterBottom() {
             </div>
 
             {/* Bottom row: payment / delivery / secure */}
-            <div className="container mx-auto flex flex-row md:flex-row items-start md:items-center justify-between space-y-6 md:space-y-0"
-            //   style={{ flexDirection:'row' }}
-            >
+            <div className="container mx-auto flex flex-row md:flex-row items-start md:items-center justify-between space-y-6 md:space-y-0">
                 <div className="flex sm:flex-row items-start sm:items-center gap-6">
                     {/* Payment methods */}
                     <div className="flex items-center sm:flex-col">
                         <h3 className="text-charcoal-gray font-semibold">Payment methods</h3>
-                        <div className="flex items-center sm:flex-row self-start self-start mt-2">
+                        <div className="flex items-center sm:flex-row self-start mt-2">
                             <img src={visaImg} alt="Visa" className="h-6" />
                             <img src={mastercardImg} alt="Mastercard" className="h-6" />
                         </div>
@@ -62,19 +58,21 @@ export default function FooterBottom() {
                     {/* Delivery services */}
                     <div className="flex items-center sm:flex-col">
                         <h3 className="text-charcoal-gray font-semibold">Delivery services</h3>
-                        <div className="flex items-center sm:flex-row self-start self-start mt-2">
+                        <div className="flex items-center sm:flex-row self-start mt-2">
                             <img src={dhlImg} alt="DHL" className="h-6" />
                         </div>
                     </div>
                     {/* Secure payment */}
                     <div className="flex items-center sm:flex-col">
                         <h3 className="text-charcoal-gray font-semibold">Secure payment</h3>
-                        <div className="flex items-center sm:flex-row self-start self-start mt-2">
+                        <div className="flex items-center sm:flex-row self-start mt-2">
                             <img src={sslImg} alt="SSL Encryption" className="h-6" />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
+
+export default FooterExtras;

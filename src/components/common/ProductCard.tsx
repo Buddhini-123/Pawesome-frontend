@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plus, Star } from 'lucide-react';
-import { useCart } from '../ui/CartContext.tsx';
+import { useCart } from '../../hooks/useCart';
+import { Product } from '../../types';
 
 interface ProductCardProps {
   id: string;
@@ -32,14 +33,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const { addItem } = useCart();
 
   const handleAddToCart = () => {
-    addItem({
+    const product: Product = {
       id,
       name,
       price,
-      quantity: 1,
       image,
-      brand
-    });
+      brand,
+      category: category || '',
+      subcategory: '',
+      inStock: true,
+      rating: rating || 0,
+      reviews: 0
+    };
+    addItem(product);
   };
 
   return (

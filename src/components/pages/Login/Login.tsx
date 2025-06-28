@@ -1,22 +1,42 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth';
+import { AlertCircle } from 'lucide-react';
 
-const Login = () => {
+const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the page the user was trying to access
+  const from = location.state?.from?.pathname || '/';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login submitted:', { email, password });
+    setError('');
+    setIsLoading(true);
+    
+    try {
+      await login(email, password);
+      // Redirect to the page they were trying to access or home
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div
-        className="min-h-screen bg-cover bg-center flex items-center justify-center p-4 relative overflow-hidden"
-        style={{ backgroundImage: "url('/logo/login-back.jpg')" }}
-        >
-
+      className="min-h-screen bg-cover bg-center flex items-center justify-center p-4 relative overflow-hidden"
+      style={{ backgroundImage: "url('/logo/login-back.jpg')" }}
+    >
       {/* Main login card */}
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative z-14">
         {/* Logo and branding */}
@@ -33,6 +53,14 @@ const Login = () => {
           </p>
         </div>
 
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+
         {/* New member link */}
         <div className="text-center mb-6">
           <span className="text-gray-700 text-base font-figtree">New Member? </span>
@@ -45,37 +73,52 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
-                type="email"
+              type="email"
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 text-base font-figtree rounded-full bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
               required
-              />
+              disabled={isLoading}
+            />
           </div>
           
           <div>
             <input
-                type="password"
+              type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-full text-base font-figtree bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
               required
-              />
+              disabled={isLoading}
+            />
           </div>
             
-            <div className="flex items-center mt-4 px-8">
-                <Link to="/forgot-password" className="text-energetic-orange text-base font-medium hover:underline whitespace-nowrap"
-                >Forgot Password ?
-                </Link>
+          <div className="flex items-center mt-4 px-8">
+            <Link 
+              to="/forgot-password" 
+              className="text-energetic-orange text-base font-medium hover:underline whitespace-nowrap"
+            >
+              Forgot Password ?
+            </Link>
 
-                <button type="submit" className="bg-energetic-orange hover:bg-orange-600 text-white text-base font-medium py-3 px-14 rounded-full transition-colors ml-4"
-                >Sign In
-                </button>
-            </div>
-
+            <button 
+              type="submit" 
+              className="bg-energetic-orange hover:bg-orange-600 text-white text-base font-medium py-3 px-14 rounded-full transition-colors ml-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </div>
         </form>
+
+        {/* Demo credentials */}
+        <div className="mt-6 p-4 bg-amber-50 rounded-lg">
+          <p className="text-sm text-gray-700 font-medium mb-2">Demo Credentials:</p>
+          <p className="text-xs text-gray-600">Email: demo@pawsome.com</p>
+          <p className="text-xs text-gray-600">Password: demo123</p>
+        </div>
 
         {/* Terms and privacy */}
         <div className="text-center mt-7 space-y-4">

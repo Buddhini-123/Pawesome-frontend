@@ -1,5 +1,5 @@
 import React from 'react';
-import FooterColumn from './FooterColumn.tsx';
+import FooterColumn from './FooterColumn';
 
 const FooterColumns: React.FC = () => {
   const columns = [

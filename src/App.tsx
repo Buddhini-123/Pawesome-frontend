@@ -6,31 +6,35 @@ import './output.css';
 
 // Components
 import Header from './components/common/Header';
-import Footer from './components/common/Footer/Footer.tsx';
+import Footer from './components/common/Footer/Footer';
 
 // Pages
-import Home from './components/pages/Home/Home.tsx';
-import Dogs from './components/pages/Categories/Dogs.tsx';
-import Cats from './components/pages/Categories/Cats.tsx';
-import VetDiet from './components/pages/Categories/VetDiet.tsx';
-import Birds from './components/pages/Categories/Birds.tsx';
-import OtherAnimals from './components/pages/Categories/OtherAnimals.tsx';
-import Offers from './components/pages/Shop/Offers.tsx';
-import Brands from './components/pages/Shop/Brands.tsx';
-import Cart from './components/pages/Shop/Cart.tsx';
-import Account from './components/pages/Account/Account.tsx';
-import Contact from './components/pages/Account/Contact.tsx';
-import NotFound from './components/pages/NotFound.tsx';
+import Home from './components/pages/Home/Home';
+import Dogs from './components/pages/Categories/Dogs';
+import Cats from './components/pages/Categories/Cats';
+import VetDiet from './components/pages/Categories/VetDiet';
+import Birds from './components/pages/Categories/Birds';
+import OtherAnimals from './components/pages/Categories/OtherAnimals';
+import Offers from './components/pages/Shop/Offers';
+import Brands from './components/pages/Shop/Brands';
+import Cart from './components/pages/Shop/Cart';
+import Checkout from './components/pages/Shop/Checkout';
+import OrderConfirmation from './components/pages/Shop/OrderConfirmation';
+import Account from './components/pages/Account/Account';
+import Contact from './components/pages/Account/Contact';
+import NotFound from './components/pages/NotFound';
 
 // New Feature Pages
-import Subscriptions from './components/pages/Features/Subscriptions.tsx';
-import Gifts from './components/pages/Features/Gifts.tsx';
-import GiftCustomizer from './components/pages/Features/GiftCustomizer.tsx';
-import Deals from './components/pages/Features/Deals.tsx';
-import DealDetail from './components/deals/DealDetail.tsx';
-import LoyaltyCards from './components/pages/Features/LoyaltyCards.tsx';
-import Login from './components/pages/Login/Login.tsx';
-import ProductPage from './components/pages/Products/ProductPage.tsx';
+import Subscriptions from './components/pages/Features/Subscriptions';
+import Gifts from './components/pages/Features/Gifts';
+import GiftCustomizer from './components/pages/Features/GiftCustomizer';
+import Deals from './components/pages/Features/Deals';
+import DealDetail from './components/deals/DealDetail';
+import LoyaltyCards from './components/pages/Features/LoyaltyCards';
+import Login from './components/pages/Login/Login';
+import Register from './components/pages/Login/Register';
+import ProductPage from './components/pages/Products/ProductPage';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 const App: React.FC = () => {
 
@@ -51,9 +55,24 @@ const App: React.FC = () => {
           <Route path="/offers" element={<Offers />} />
           <Route path="/brands" element={<Brands />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/account" element={<Account />} />
+          <Route path="/checkout" element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          } />
+          <Route path="/order-confirmation/:orderId" element={
+            <ProtectedRoute>
+              <OrderConfirmation />
+            </ProtectedRoute>
+          } />
+          <Route path="/account" element={
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
+          } />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           
           {/* New Feature Routes */}
           <Route path="/subscriptions" element={<Subscriptions />} />
