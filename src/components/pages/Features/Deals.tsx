@@ -1,14 +1,99 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Percent } from 'lucide-react';
 import { Deal, DealsPageData, DealCardProps } from '../../../types/deals';
-
+import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid.tsx';
+import SlideshowBanner from '../../banners/subscriptionbanner/SlideshowBanner';
+import WhyPawsomeSection from '../../banners/whypawsome/WhyPawsomeSection';
+import CategoryCarousel from '../../carousels/CategoryCarousel';
+import dogImg from '../../carousels/images/dog.png';
+import catImg from '../../carousels/images/cat.png';
+import birdImg from '../../carousels/images/bird.png';
+import rodentImg from '../../carousels/images/rodent.png';
+import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel';
+import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion';
 // Inline DealCard component to avoid import issues
 const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) => {
   const handleClick = () => {
     onClick(deal);
   };
+
+  const [expandedFAQ, setExpandedFAQ] = useState(null)
+
+  const subscriptionSlides = [
+    {
+      image:
+        'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg',
+      title: 'Banner 1',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 1 CTA clicked'),
+    },
+    {
+      image: 'https://petpoints.co.uk/assets/purepet.jpg',
+      title: 'Banner 2',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 2 CTA clicked'),
+    },
+    {
+      image:
+        'https://cdnpublic.budgetpetproducts.com.au/contents/2025/05/21/24044014-2d7d-4f5a-938c-ed2fb11588a3.jpg',
+      title: 'Banner 3',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 3 CTA clicked'),
+    },
+    // ...other slides
+  ]
+
+  const faqs = [
+    {
+      question: 'Want to know who we are?',
+      answer: 'Discover our story, mission, and love for pets.',
+    },
+    {
+      question: 'What brands does Pawsome offer?',
+      answer:
+        'We offer premium brands like Pedigree, Royal Canin, Whiskas, and many more.',
+    },
+    // ...more FAQ items
+  ]
+
+  const petCategories = [
+    {
+      bgClass: 'bg-soft-yellow',
+      image: dogImg,
+      alt: 'Dog',
+      route: '/dogs',
+    },
+    {
+      bgClass: 'bg-calm-blue',
+      image: catImg,
+      alt: 'Cat',
+      route: '/cats',
+    },
+    {
+      bgClass: 'bg-soft-yellow',
+      image: birdImg,
+      alt: 'Bird',
+      route: '/birds',
+    },
+    {
+      bgClass: 'bg-energetic-orange',
+      image: rodentImg,
+      alt: 'Small Pet',
+      route: '/other-animals',
+    },
+    // ...more categories
+  ]
+
+  const slides = [
+    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
+    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
+    // add more banners as needed
+  ]
 
   return (
     <motion.div
@@ -94,6 +179,83 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
 };
 
 const Deals: React.FC = () => {
+
+  const [expandedFAQ, setExpandedFAQ] = useState(null)
+
+  const subscriptionSlides = [
+    {
+      image:
+        'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg',
+      title: 'Banner 1',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 1 CTA clicked'),
+    },
+    {
+      image: 'https://petpoints.co.uk/assets/purepet.jpg',
+      title: 'Banner 2',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 2 CTA clicked'),
+    },
+    {
+      image:
+        'https://cdnpublic.budgetpetproducts.com.au/contents/2025/05/21/24044014-2d7d-4f5a-938c-ed2fb11588a3.jpg',
+      title: 'Banner 3',
+      subtitle: 'Up to 50% off on all subscriptions',
+      cta: 'Subscribe Now',
+      onClick: () => console.log('Slide 3 CTA clicked'),
+    },
+    // ...other slides
+  ]
+
+  const faqs = [
+    {
+      question: 'Want to know who we are?',
+      answer: 'Discover our story, mission, and love for pets.',
+    },
+    {
+      question: 'What brands does Pawsome offer?',
+      answer:
+        'We offer premium brands like Pedigree, Royal Canin, Whiskas, and many more.',
+    },
+    // ...more FAQ items
+  ]
+
+  const petCategories = [
+    {
+      bgClass: 'bg-soft-yellow',
+      image: dogImg,
+      alt: 'Dog',
+      route: '/dogs',
+    },
+    {
+      bgClass: 'bg-calm-blue',
+      image: catImg,
+      alt: 'Cat',
+      route: '/cats',
+    },
+    {
+      bgClass: 'bg-soft-yellow',
+      image: birdImg,
+      alt: 'Bird',
+      route: '/birds',
+    },
+    {
+      bgClass: 'bg-energetic-orange',
+      image: rodentImg,
+      alt: 'Small Pet',
+      route: '/other-animals',
+    },
+    // ...more categories
+  ]
+
+  const slides = [
+    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
+    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
+    // add more banners as needed
+  ]
+
   const navigate = useNavigate();
 
   const handleDealClick = (deal: Deal) => {
@@ -280,6 +442,7 @@ const Deals: React.FC = () => {
     <div className="min-h-screen bg-off-white">
       <div className="container mx-auto px-4 py-12">
         {/* Page Header */}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -294,6 +457,11 @@ const Deals: React.FC = () => {
             Incredible discounts and offers on premium pet products. Limited time only!
           </p>
         </motion.div>
+
+        <SlideshowBanner slides={subscriptionSlides} autoPlay interval={6000} />
+        
+        <WhyPawsomeSection />
+        {/* <ReccomendationsGrid /> */}
 
         {/* Deal Sections */}
         <div className="space-y-16">
@@ -313,11 +481,11 @@ const Deals: React.FC = () => {
                 <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mb-2">
                   {section.title}
                 </h2>
-                {section.subtitle && (
+                {/* {section.subtitle && (
                   <p className="text-lg text-gray-600 max-w-2xl">
                     {section.subtitle}
                   </p>
-                )}
+                )} */}
               </div>
 
               {/* Deals Grid */}
@@ -344,30 +512,11 @@ const Deals: React.FC = () => {
           ))}
         </div>
 
-        {/* Newsletter Signup */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="mt-20 bg-gradient-to-r from-energetic-orange to-calm-blue rounded-2xl p-8 md:p-12 text-center"
-        >
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Never Miss a Deal!
-          </h2>
-          <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
-            Subscribe to our newsletter and be the first to know about exclusive offers, flash sales, and special promotions.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-white/50 focus:outline-none"
-            />
-            <button className="bg-white text-energetic-orange px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-              Subscribe
-            </button>
-          </div>
-        </motion.div>
+        <CategoryCarousel categories={petCategories} />
+
+        <ReccomendationsGrid />
+
+        <TopBrandsCarousel />
       </div>
     </div>
   );

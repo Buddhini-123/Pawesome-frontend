@@ -18,13 +18,13 @@ const FooterColumns: React.FC = () => {
   ];
 
   return (
-    <section className="mt-9 ml-20 max-w-full w-[574px] mb-10">
-      <div className="flex gap-5 max-md:flex-col">
+    <section className="mt-9 ml-20 max-w-full w-[574px] mb-10 items-center">
+      <div className="flex gap-5 max-md:flex-col items-center">
         {columns.map((column, index) => (
           <div
             key={index}
             className={`${index === 0 ? 'w-[27%]' : index === 1 ? 'w-[38%]' : 'w-[36%]'
-              } max-md:ml-0 max-md:w-full`}
+              } max-md:ml-0 max-md:w-full items-center`}
           >
             <FooterColumn title={column.title} items={column.items} />
           </div>

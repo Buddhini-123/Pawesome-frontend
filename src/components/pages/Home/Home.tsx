@@ -266,15 +266,17 @@ const Home: React.FC = () => {
       title: 'Pet Subscriptions',
       description: 'Never run out of your pet\'s favorites with smart, personalized deliveries tailored to your pet\'s unique needs and preferences.',
       icon: Calendar,
-      color: 'from-amber-400 via-amber-500 to-yellow-600',
+      // color: 'from-amber-400 via-amber-500 to-yellow-600',
+      color: 'from-amber-300 via-amber-300 to-amber-300',
       link: '/subscriptions',
       petEmoji: '🐕'
     },
     {
-      title: 'Surprise Gift Boxes',
+      title: 'Gift Boxes',
       description: 'Curated monthly surprise boxes filled with premium toys, treats, and accessories that will make your pet\'s tail wag with joy.',
       icon: Gift,
-      color: 'from-sky-400 via-sky-500 to-blue-600',
+      // color: 'from-sky-400 via-sky-500 to-blue-600',
+      color: 'from-sky-400 via-sky-500 to-blue-400',
       link: '/gifts',
       petEmoji: '🐱'
     },
@@ -290,7 +292,7 @@ const Home: React.FC = () => {
       title: 'Paw Rewards',
       description: 'Earn points with every purchase, unlock exclusive benefits, and get VIP access to new products before anyone else.',
       icon: CreditCard,
-      color: 'from-purple-400 via-purple-500 to-indigo-600',
+      color: 'from-purple-400 via-purple-500 to-indigo-400',
       link: '/loyalty-cards',
       petEmoji: '🐰'
     }
@@ -331,8 +333,8 @@ const Home: React.FC = () => {
       
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-sky-50 to-amber-50 relative overflow-hidden">
         {/* Enhanced Particle Effects */}
-        <EnhancedParticleSystem intensity={1.5} mouseInteractive={true} />
-        <MouseTrailEffect />
+        {/* <EnhancedParticleSystem intensity={1.5} mouseInteractive={true} /> */}
+        {/* <MouseTrailEffect /> */}
         
         {/* Advanced 3D Background */}
         <div className="fixed inset-0 -z-10 opacity-90">
@@ -363,7 +365,7 @@ const Home: React.FC = () => {
           {/* Enhanced Hero Section */}
           <motion.section 
             ref={heroRef}
-            className="min-h-screen flex items-center justify-center px-4 relative z-30"
+            className="items-center justify-center px-4 relative z-30 mt-10"
           >
             <div className="text-center max-w-7xl mx-auto">
               {/* Enhanced Pet Paws with Advanced Effects */}
@@ -425,15 +427,15 @@ const Home: React.FC = () => {
                   textShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
                 }}
               >
-                Your trusted partner in pet care excellence. 
+                {/* Your trusted partner in pet care excellence.  */}
                 <span className="bg-gradient-to-r from-amber-600 to-sky-600 bg-clip-text text-transparent font-bold">
-                  {" "}Every tail deserves the best{" "}
+                  {" "}- Because your fur baby deserves the best -{" "}
                 </span>
-                – from premium nutrition to endless love and care.
+                {/* – from premium nutrition to endless love and care. */}
               </motion.p>
 
               {/* Floating Pet Companions */}
-              <motion.div
+              {/* <motion.div
                 className="absolute bottom-16 left-1/2 transform -translate-x-1/2 pointer-events-none"
                 animate={{ 
                   y: [0, 25, 0],
@@ -442,14 +444,14 @@ const Home: React.FC = () => {
                 transition={{ duration: 4, repeat: Infinity }}
               >
                 <div className="text-6xl">🐕‍🦺</div>
-              </motion.div>
+              </motion.div> */}
             </div>
           </motion.section>
 
           {/* Enhanced Main Service Cards */}
-          <section ref={cardsRef} className="py-24 px-4 relative bg-white/95 backdrop-blur-lg z-30">
+          <section ref={cardsRef} className="py-10 px-4 relative bg-white/95 backdrop-blur-lg z-30">
             <div className="container mx-auto max-w-7xl">
-              <motion.div
+              {/* <motion.div
                 className="text-center mb-20"
                 initial={{ opacity: 0, y: 50 }}
                 animate={cardsInView ? { opacity: 1, y: 0 } : {}}
@@ -462,7 +464,7 @@ const Home: React.FC = () => {
                   Discover tailored solutions for every pet's unique needs and personality. 
                   Experience the joy of premium pet care made simple.
                 </p>
-              </motion.div>
+              </motion.div> */}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {mainButtons.map((button, index) => (
@@ -628,7 +630,7 @@ const Home: React.FC = () => {
                 transition={{ duration: 1.5, ease: "easeOut" }}
                 viewport={{ once: true }}
               >
-                <div className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 rounded-3xl p-16 shadow-3xl relative overflow-hidden">
+                <div className="bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 rounded-3xl p-16 shadow-3xl relative overflow-hidden">
                   {/* Enhanced Pet elements decoration with 3D effect */}
                   {[
                     { emoji: '🐕', position: 'top-8 left-8', delay: 0 },
@@ -639,11 +641,11 @@ const Home: React.FC = () => {
                     <motion.div 
                       key={index}
                       className={`absolute ${pet.position} text-6xl opacity-15 pointer-events-none`}
-                      animate={{
-                        rotate: [0, 360],
-                        scale: [1, 1.3, 1],
-                        y: [0, -20, 0],
-                      }}
+                      // animate={{
+                      //   rotate: [0, 360],
+                      //   scale: [1, 1.3, 1],
+                      //   y: [0, -20, 0],
+                      // }}
                       transition={{
                         duration: 10,
                         repeat: Infinity,
@@ -659,7 +661,7 @@ const Home: React.FC = () => {
                     className="text-5xl md:text-6xl font-bold text-white mb-8 relative z-10"
                     whileHover={{ scale: 1.05 }}
                   >
-                    Ready to Spoil Your Furry Family?
+                    Ready to Spoil Your Fur Babies?
                   </motion.h2>
                   <motion.p 
                     className="text-white/95 text-2xl mb-12 max-w-4xl mx-auto relative z-10 leading-relaxed"

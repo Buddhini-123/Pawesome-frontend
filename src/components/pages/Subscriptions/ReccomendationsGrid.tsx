@@ -49,26 +49,23 @@ const ReccomendationsGrid = () => {
   }));
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen">
       <div className="max-w-8xl mx-auto">
         {/* Top Recommendations Section */}
-        <div className="bg-warm-orange rounded-2xl p-6 mb-8">
-          <div className="flex items-center mb-4">
-            <h2 className="text-white text-xl font-semibold font-figtree">Top Recommendations</h2>
-            <span className="ml-2 text-white text-lg">🔥</span>
-          </div>
+        <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mt-20">
+            Trending Hot Picks For Your Pet!
+          </h2>
+        <div className="mt-10 bg-gradient-to-r from-energetic-orange to-calm-blue rounded-2xl p-8 md:p-12 text-center mb-10">
           <ProductGrid products={topRecommendations} />
         </div>
 
         {/* Regular Products Section */}
-        <div className="flex items-center mb-4">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 font-figtree">
-            Products your furry friend will love
+          <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mb-4">
+            Products Your Furry Friend Will Love
           </h2>
-        </div>
         <ProductGrid products={regularProducts} />
          {/* Featured Deals Section */}
-        <div className="flex justify-between items-center mb-4">
+        {/* <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6 mt-6 font-figtree">
             Featured Deals of the week
           </h2>
@@ -76,7 +73,7 @@ const ReccomendationsGrid = () => {
             View all Deals
           </a>
         </div>
-        <FeaturedDeals />
+        <FeaturedDeals /> */}
       </div>
     </div>
   );

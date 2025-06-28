@@ -11,13 +11,13 @@ const Header = () => {
   };
 
   const categories = [
-    { name: 'Dogs', link: '/dogs' },
-    { name: 'Cats', link: '/cats' },
-    { name: 'Vet Diet', link: '/vet-diet' },
-    { name: 'Birds', link: '/birds' },
-    { name: 'Other Animals', link: '/other-animals' },
-    { name: '% Offers', link: '/offers' },
-    { name: 'Top Brands', link: '/brands' },
+    { name: 'Subscription', link: '/subscriptions' },
+    { name: 'Gift Box', link: '/gifts' },
+    { name: 'Daily Deals', link: '/deals' },
+    { name: 'Paw Rewards', link: '/loyalty-cards' },
+    // { name: 'Other Animals', link: '/other-animals' },
+    // { name: '% Offers', link: '/offers' },
+    // { name: 'Top Brands', link: '/brands' },
   ];
 
   return (
