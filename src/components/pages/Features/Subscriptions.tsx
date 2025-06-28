@@ -114,8 +114,10 @@ const Subscriptions = () => {
   const [deliveryFrequency, setDeliveryFrequency] = useState('monthly')
   const [productQuantities, setProductQuantities] = useState({})
   const [showSidebar, setShowSidebar] = useState(true)
+  const [selectedSubscription, setSelectedSubscription] = useState(null)
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   
-  // Mock active subscriptions data
+  // Mock active subscriptions data with more details
   const [activeSubscriptions] = useState([
     {
       id: 1,
@@ -123,7 +125,16 @@ const Subscriptions = () => {
       products: 3,
       frequency: 'Monthly',
       nextDelivery: '2024-01-15',
-      total: 2500
+      total: 2500,
+      startDate: '2023-10-15',
+      status: 'Active',
+      items: [
+        { name: 'Royal Canin Adult Dog Food', quantity: 2, price: 900 },
+        { name: 'Pedigree Dental Sticks', quantity: 1, price: 400 },
+        { name: 'Dog Chew Toys Set', quantity: 1, price: 300 }
+      ],
+      deliveryAddress: '123 Main Street, Mumbai, Maharashtra 400001',
+      savedAmount: 250
     },
     {
       id: 2,
@@ -131,7 +142,15 @@ const Subscriptions = () => {
       products: 2,
       frequency: 'Weekly',
       nextDelivery: '2024-01-08',
-      total: 1200
+      total: 1200,
+      startDate: '2023-11-01',
+      status: 'Active',
+      items: [
+        { name: 'Whiskas Cat Food - Tuna', quantity: 4, price: 200 },
+        { name: 'Cat Litter Premium', quantity: 1, price: 400 }
+      ],
+      deliveryAddress: '123 Main Street, Mumbai, Maharashtra 400001',
+      savedAmount: 120
     }
   ])
 
@@ -170,6 +189,24 @@ const Subscriptions = () => {
     setIsModalOpen(true)
   }
 
+  const handleSubscriptionClick = (subscription) => {
+    setSelectedSubscription(subscription)
+    setShowSubscriptionModal(true)
+  }
+
+  const handleManageSubscription = (e, subscription) => {
+    e.stopPropagation() // Prevent card click
+    setSelectedSubscription(subscription)
+    setShowSubscriptionModal(true)
+  }
+
+  const handleRemoveProduct = (productId) => {
+    setConfirmedProducts(prev => prev.filter(p => p.id !== productId))
+    const newQuantities = { ...productQuantities }
+    delete newQuantities[productId]
+    setProductQuantities(newQuantities)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12">
@@ -187,260 +224,471 @@ const Subscriptions = () => {
         </div>
 
         {/* How to Subscribe Section */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
-            <h2 className="text-3xl font-bold text-charcoal-gray mb-8 text-center">
-              How to Add a Subscription
-            </h2>
-            
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-energetic-orange rounded-full flex items-center justify-center text-white font-bold">
-                  1
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-charcoal-gray mb-2">
-                    Choose Your Products
-                  </h3>
-                  <p className="text-gray-600">
-                    Browse our extensive catalog of pet products and select the items your furry friend needs regularly. From food and treats to toys and grooming supplies, we have everything covered.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-calm-blue rounded-full flex items-center justify-center text-white font-bold">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-charcoal-gray mb-2">
-                    Set Your Delivery Schedule
-                  </h3>
-                  <p className="text-gray-600">
-                    Choose how often you want your products delivered - weekly, bi-weekly, monthly, or create a custom schedule that works for you. We'll make sure your pet never runs out of their favorites.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-natural-sage rounded-full flex items-center justify-center text-white font-bold">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-charcoal-gray mb-2">
-                    Enjoy Exclusive Benefits
-                  </h3>
-                  <p className="text-gray-600">
-                    Save 10% on all subscription orders, get free shipping on orders over ₹2,000, and enjoy priority customer support. Plus, you can modify or cancel your subscription anytime.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-warm-orange rounded-full flex items-center justify-center text-white font-bold">
-                  4
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-charcoal-gray mb-2">
-                    Relax and Let Us Handle the Rest
-                  </h3>
-                  <p className="text-gray-600">
-                    We'll automatically deliver your pet's essentials right to your doorstep. Track your deliveries, manage your subscriptions, and earn rewards through your account dashboard.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Benefits Section */}
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="bg-soft-yellow rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <PercentIcon className="h-8 w-8 text-energetic-orange" />
-                </div>
-                <h4 className="font-semibold text-charcoal-gray mb-2">Save 10%</h4>
-                <p className="text-sm text-gray-600">On every subscription order</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-periwinkle rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <Package className="h-8 w-8 text-calm-blue" />
-                </div>
-                <h4 className="font-semibold text-charcoal-gray mb-2">Free Shipping</h4>
-                <p className="text-sm text-gray-600">On orders above ₹2,000</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-mint/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <HeadphonesIcon className="h-8 w-8 text-mint" />
-                </div>
-                <h4 className="font-semibold text-charcoal-gray mb-2">Priority Support</h4>
-                <p className="text-sm text-gray-600">24/7 dedicated assistance</p>
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="mt-12 text-center">
-              <button
-                onClick={handleOpenModal}
-                className="bg-energetic-orange hover:bg-warm-orange text-white font-bold text-lg px-12 py-4 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Browse Products & Start Subscription
-              </button>
-              <p className="mt-4 text-sm text-gray-600">
-                No commitment required • Cancel anytime • Modify as needed
+        <div className="max-w-6xl mx-auto mb-16">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-white to-amber-50 rounded-3xl shadow-2xl overflow-hidden"
+          >
+            {/* Section Header */}
+            <div className="bg-gradient-to-r from-energetic-orange to-warm-orange p-8 text-center">
+              <h2 className="text-4xl font-bold text-white mb-2">
+                How to Start Your Subscription
+              </h2>
+              <p className="text-white/90 text-lg">
+                Four simple steps to never run out of pet essentials
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* Selected Products Section */}
-        {confirmedProducts.length > 0 && (
-          <div className="max-w-6xl mx-auto mt-16">
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-charcoal-gray mb-6">
-                Your Subscription Details
-              </h2>
-
-              {/* Subscription Period and Frequency */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6 bg-gray-50 rounded-xl">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Calendar className="inline h-4 w-4 mr-1" />
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-energetic-orange focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Calendar className="inline h-4 w-4 mr-1" />
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate || new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-energetic-orange focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Package className="inline h-4 w-4 mr-1" />
-                    Delivery Frequency
-                  </label>
-                  <select
-                    value={deliveryFrequency}
-                    onChange={(e) => setDeliveryFrequency(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-energetic-orange focus:border-transparent"
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                </div>
-              </div>
-
-              <h3 className="text-xl font-semibold text-charcoal-gray mb-4">
-                Selected Products ({confirmedProducts.length})
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-                {confirmedProducts.map((product) => (
-                  <div key={product.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-32 object-cover rounded-lg mb-3"
-                    />
-                    <h4 className="font-semibold text-sm text-charcoal-gray mb-1 line-clamp-2">
-                      {product.name}
-                    </h4>
-                    <p className="text-xs text-gray-500 mb-2">{product.brand}</p>
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-bold text-energetic-orange">
-                        ₹{Math.floor(product.price * 0.9)}
-                      </span>
-                      <span className="text-xs text-gray-400 line-through">
-                        ₹{product.price}
-                      </span>
-                    </div>
-                    
-                    {/* Quantity Selector */}
-                    <div className="flex items-center justify-between bg-white rounded-lg p-2 border border-gray-200">
-                      <span className="text-xs text-gray-600">Qty:</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleQuantityChange(product.id, -1)}
-                          className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </button>
-                        <span className="text-sm font-medium w-8 text-center">
-                          {productQuantities[product.id] || 1}
-                        </span>
-                        <button
-                          onClick={() => handleQuantityChange(product.id, 1)}
-                          className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t pt-6">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <p className="text-gray-600">
-                      {deliveryFrequency.charAt(0).toUpperCase() + deliveryFrequency.slice(1)} Subscription Total:
-                    </p>
-                    <p className="text-2xl font-bold text-charcoal-gray">
-                      ₹{confirmedProducts.reduce((total, product) => {
-                        const qty = productQuantities[product.id] || 1
-                        return total + Math.floor(product.price * 0.9 * qty)
-                      }, 0)}
-                    </p>
-                    <p className="text-sm text-natural-sage">
-                      You save ₹{confirmedProducts.reduce((total, product) => {
-                        const qty = productQuantities[product.id] || 1
-                        return total + Math.floor(product.price * 0.1 * qty)
-                      }, 0)} every {deliveryFrequency === 'daily' ? 'day' : deliveryFrequency === 'weekly' ? 'week' : 'month'}!
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleOpenModal}
-                    className="bg-calm-blue hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-full transition-colors"
-                  >
-                    Modify Selection
-                  </button>
-                </div>
-                
-                <button 
-                  disabled={!startDate || !endDate}
-                  className={`w-full font-bold text-lg py-4 rounded-full transition-all duration-300 shadow-lg ${
-                    startDate && endDate
-                      ? 'bg-natural-sage hover:bg-green-600 text-white transform hover:scale-105'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+            
+            {/* Steps Grid */}
+            <div className="p-8 md:p-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                {/* Step 1 */}
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-energetic-orange"
                 >
-                  {startDate && endDate 
-                    ? 'Proceed to Checkout' 
-                    : 'Please select subscription dates'
-                  }
-                </button>
+                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-energetic-orange rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    1
+                  </div>
+                  <div className="ml-4">
+                    <div className="flex items-center mb-3">
+                      <ShoppingCart className="h-6 w-6 text-energetic-orange mr-2" />
+                      <h3 className="font-bold text-xl text-charcoal-gray">
+                        Choose Your Products
+                      </h3>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed">
+                      Browse our extensive catalog of premium pet products. Select food, treats, toys, and grooming essentials your pet loves.
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Step 2 */}
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-calm-blue"
+                >
+                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-calm-blue rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    2
+                  </div>
+                  <div className="ml-4">
+                    <div className="flex items-center mb-3">
+                      <Calendar className="h-6 w-6 text-calm-blue mr-2" />
+                      <h3 className="font-bold text-xl text-charcoal-gray">
+                        Set Your Schedule
+                      </h3>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed">
+                      Choose delivery frequency - daily, weekly, or monthly. Set start and end dates that work for your lifestyle.
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Step 3 */}
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-natural-sage"
+                >
+                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-natural-sage rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    3
+                  </div>
+                  <div className="ml-4">
+                    <div className="flex items-center mb-3">
+                      <Award className="h-6 w-6 text-natural-sage mr-2" />
+                      <h3 className="font-bold text-xl text-charcoal-gray">
+                        Unlock Benefits
+                      </h3>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed">
+                      Enjoy 10% off every order, free shipping on orders over ₹2,000, and exclusive member perks.
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Step 4 */}
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-warm-orange"
+                >
+                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-warm-orange rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    4
+                  </div>
+                  <div className="ml-4">
+                    <div className="flex items-center mb-3">
+                      <Package className="h-6 w-6 text-warm-orange mr-2" />
+                      <h3 className="font-bold text-xl text-charcoal-gray">
+                        Sit Back & Relax
+                      </h3>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed">
+                      We'll handle the rest! Track deliveries, manage subscriptions, and earn rewards automatically.
+                    </p>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Benefits Cards */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 mb-8">
+                <h3 className="text-2xl font-bold text-center text-charcoal-gray mb-8">
+                  Subscription Benefits
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <motion.div 
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
+                  >
+                    <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                      <PercentIcon className="h-10 w-10 text-white" />
+                    </div>
+                    <h4 className="font-bold text-lg text-charcoal-gray mb-2">Save 10%</h4>
+                    <p className="text-gray-600">On every subscription order</p>
+                    <p className="text-2xl font-bold text-energetic-orange mt-2">₹250+</p>
+                    <p className="text-xs text-gray-500">Average monthly savings</p>
+                  </motion.div>
+                  
+                  <motion.div 
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
+                  >
+                    <div className="bg-gradient-to-br from-sky-400 to-blue-500 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                      <Package className="h-10 w-10 text-white" />
+                    </div>
+                    <h4 className="font-bold text-lg text-charcoal-gray mb-2">Free Shipping</h4>
+                    <p className="text-gray-600">On orders above ₹2,000</p>
+                    <p className="text-2xl font-bold text-calm-blue mt-2">Always</p>
+                    <p className="text-xs text-gray-500">No delivery charges</p>
+                  </motion.div>
+                  
+                  <motion.div 
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
+                  >
+                    <div className="bg-gradient-to-br from-emerald-400 to-green-500 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                      <HeadphonesIcon className="h-10 w-10 text-white" />
+                    </div>
+                    <h4 className="font-bold text-lg text-charcoal-gray mb-2">Priority Support</h4>
+                    <p className="text-gray-600">24/7 dedicated assistance</p>
+                    <p className="text-2xl font-bold text-natural-sage mt-2">24/7</p>
+                    <p className="text-xs text-gray-500">Always here to help</p>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* CTA Section */}
+              <div className="text-center">
+                <motion.button
+                  onClick={handleOpenModal}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-gradient-to-r from-energetic-orange to-warm-orange hover:from-warm-orange hover:to-energetic-orange text-white font-bold text-xl px-16 py-5 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
+                >
+                  Browse Products & Start Subscription
+                </motion.button>
+                <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
+                    <span>No commitment</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
+                    <span>Cancel anytime</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
+                    <span>Modify as needed</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
+        </div>
+
+        {/* Selected Products Section - Enhanced Design */}
+        {confirmedProducts.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="max-w-7xl mx-auto mt-16"
+          >
+            {/* Main Container with Gradient Border */}
+            <div className="relative bg-gradient-to-br from-white to-orange-50 rounded-3xl shadow-2xl overflow-hidden">
+              {/* Decorative Background Pattern */}
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-energetic-orange to-warm-orange rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-calm-blue to-sky-300 rounded-full blur-3xl" />
+              </div>
+
+              {/* Header Section */}
+              <div className="relative bg-gradient-to-r from-energetic-orange to-warm-orange p-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-3xl font-bold text-white mb-2 flex items-center">
+                      <Package className="mr-3 h-8 w-8" />
+                      Your Subscription Plan
+                    </h2>
+                    <p className="text-white/90">Customize your delivery preferences and manage products</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white/80 text-sm">Total Products</p>
+                    <p className="text-3xl font-bold text-white">{confirmedProducts.length}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative p-8">
+                {/* Subscription Settings Section */}
+                <motion.div 
+                  className="mb-10"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <h3 className="text-xl font-bold text-charcoal-gray mb-6 flex items-center">
+                    <Calendar className="mr-2 h-6 w-6 text-energetic-orange" />
+                    Delivery Preferences
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Start Date Card */}
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-white rounded-2xl p-6 shadow-lg border-2 border-transparent hover:border-energetic-orange transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="text-sm font-semibold text-gray-700">Start Date</label>
+                        <Calendar className="h-5 w-5 text-energetic-orange" />
+                      </div>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-energetic-orange focus:border-transparent transition-all"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">When should we start delivering?</p>
+                    </motion.div>
+                    
+                    {/* End Date Card */}
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-white rounded-2xl p-6 shadow-lg border-2 border-transparent hover:border-calm-blue transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="text-sm font-semibold text-gray-700">End Date</label>
+                        <Calendar className="h-5 w-5 text-calm-blue" />
+                      </div>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        min={startDate || new Date().toISOString().split('T')[0]}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-calm-blue focus:border-transparent transition-all"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">Optional end date for subscription</p>
+                    </motion.div>
+                    
+                    {/* Frequency Card */}
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-white rounded-2xl p-6 shadow-lg border-2 border-transparent hover:border-natural-sage transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="text-sm font-semibold text-gray-700">Frequency</label>
+                        <Package className="h-5 w-5 text-natural-sage" />
+                      </div>
+                      <select
+                        value={deliveryFrequency}
+                        onChange={(e) => setDeliveryFrequency(e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-natural-sage focus:border-transparent transition-all appearance-none bg-white"
+                      >
+                        <option value="daily">Daily Delivery</option>
+                        <option value="weekly">Weekly Delivery</option>
+                        <option value="monthly">Monthly Delivery</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-2">How often should we deliver?</p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+
+                {/* Selected Products Section */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <h3 className="text-xl font-bold text-charcoal-gray mb-6 flex items-center">
+                    <ShoppingCart className="mr-2 h-6 w-6 text-energetic-orange" />
+                    Selected Products
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
+                    {confirmedProducts.map((product, index) => (
+                      <motion.div 
+                        key={product.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                        whileHover={{ y: -5 }}
+                        className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-transparent hover:border-energetic-orange transition-all"
+                      >
+                        <div className="relative">
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-40 object-cover"
+                          />
+                          <div className="absolute top-2 right-2 bg-energetic-orange text-white text-xs px-2 py-1 rounded-full">
+                            Save 10%
+                          </div>
+                          {/* Remove Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveProduct(product.id);
+                            }}
+                            className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-all transform hover:scale-110"
+                            title="Remove product"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="p-4">
+                          <h4 className="font-bold text-charcoal-gray mb-1 line-clamp-2">
+                            {product.name}
+                          </h4>
+                          <p className="text-sm text-gray-500 mb-3">{product.brand}</p>
+                          
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <span className="text-lg font-bold text-energetic-orange">
+                                ₹{Math.floor(product.price * 0.9)}
+                              </span>
+                              <span className="text-sm text-gray-400 line-through ml-2">
+                                ₹{product.price}
+                              </span>
+                            </div>
+                            <div className="text-xs text-green-600 font-medium">
+                              -10%
+                            </div>
+                          </div>
+                          
+                          {/* Enhanced Quantity Selector */}
+                          <div className="bg-gray-50 rounded-xl p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-700">Quantity</span>
+                              <div className="flex items-center gap-3 bg-white rounded-lg px-3 py-1 shadow-sm">
+                                <button
+                                  onClick={() => handleQuantityChange(product.id, -1)}
+                                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-energetic-orange hover:text-white flex items-center justify-center transition-all"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </button>
+                                <span className="text-base font-bold w-8 text-center">
+                                  {productQuantities[product.id] || 1}
+                                </span>
+                                <button
+                                  onClick={() => handleQuantityChange(product.id, 1)}
+                                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-energetic-orange hover:text-white flex items-center justify-center transition-all"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Summary and Actions Section */}
+                <motion.div 
+                  className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    {/* Pricing Summary */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-700 mb-4">Order Summary</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Products Total</span>
+                          <span className="font-medium">
+                            ₹{confirmedProducts.reduce((total, product) => {
+                              const qty = productQuantities[product.id] || 1
+                              return total + (product.price * qty)
+                            }, 0)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-green-600">
+                          <span>Subscription Discount (10%)</span>
+                          <span className="font-medium">
+                            -₹{confirmedProducts.reduce((total, product) => {
+                              const qty = productQuantities[product.id] || 1
+                              return total + Math.floor(product.price * 0.1 * qty)
+                            }, 0)}
+                          </span>
+                        </div>
+                        <div className="pt-3 border-t-2 border-amber-200">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-lg font-semibold text-gray-700">
+                                {deliveryFrequency.charAt(0).toUpperCase() + deliveryFrequency.slice(1)} Total
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Delivered {deliveryFrequency === 'daily' ? 'every day' : deliveryFrequency === 'weekly' ? 'every week' : 'every month'}
+                              </p>
+                            </div>
+                            <p className="text-3xl font-bold text-energetic-orange">
+                              ₹{confirmedProducts.reduce((total, product) => {
+                                const qty = productQuantities[product.id] || 1
+                                return total + Math.floor(product.price * 0.9 * qty)
+                              }, 0)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-4">
+                      <button 
+                        disabled={!startDate || !endDate}
+                        className={`w-full font-bold text-lg py-4 rounded-2xl transition-all duration-300 shadow-lg ${
+                          startDate && endDate
+                            ? 'bg-gradient-to-r from-natural-sage to-green-600 hover:from-green-600 hover:to-natural-sage text-white transform hover:scale-105'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        {startDate && endDate 
+                          ? 'Proceed to Checkout' 
+                          : 'Please select subscription dates'
+                        }
+                      </button>
+                      
+                      <button
+                        onClick={handleOpenModal}
+                        className="w-full bg-white hover:bg-gray-50 text-calm-blue font-medium py-3 rounded-2xl border-2 border-calm-blue transition-all"
+                      >
+                        Modify Product Selection
+                      </button>
+                      
+                      <p className="text-center text-sm text-gray-600">
+                        <Plus className="inline h-4 w-4 rotate-45 text-green-500 mr-1" />
+                        Free cancellation • Flexible scheduling • No hidden fees
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
         )}
       </div>
 
@@ -539,45 +787,78 @@ const Subscriptions = () => {
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {/* Filter products based on selected category */}
-                  {(selectedCategory === 'all' || selectedCategory === 'dogs') &&
-                    dogProducts.map((product) => (
-                      <ProductCard 
-                        key={product.id} 
-                        product={product} 
-                        isSelected={selectedProducts.some(p => p.id === product.id)}
-                        onToggle={handleProductToggle}
-                      />
-                    ))}
+                  {selectedCategory === 'all' && (
+                    <>
+                      {dogProducts.map((product) => (
+                        <ProductCard 
+                          key={product.id} 
+                          product={product} 
+                          isSelected={selectedProducts.some(p => p.id === product.id)}
+                          onToggle={handleProductToggle}
+                        />
+                      ))}
+                      {catProducts.map((product) => (
+                        <ProductCard 
+                          key={product.id} 
+                          product={product} 
+                          isSelected={selectedProducts.some(p => p.id === product.id)}
+                          onToggle={handleProductToggle}
+                        />
+                      ))}
+                      {birdProducts.map((product) => (
+                        <ProductCard 
+                          key={product.id} 
+                          product={product} 
+                          isSelected={selectedProducts.some(p => p.id === product.id)}
+                          onToggle={handleProductToggle}
+                        />
+                      ))}
+                      {otherAnimalsProducts.map((product) => (
+                        <ProductCard 
+                          key={product.id} 
+                          product={product} 
+                          isSelected={selectedProducts.some(p => p.id === product.id)}
+                          onToggle={handleProductToggle}
+                        />
+                      ))}
+                    </>
+                  )}
                   
-                  {(selectedCategory === 'all' || selectedCategory === 'cats') &&
-                    catProducts.map((product) => (
-                      <ProductCard 
-                        key={product.id} 
-                        product={product} 
-                        isSelected={selectedProducts.some(p => p.id === product.id)}
-                        onToggle={handleProductToggle}
-                      />
-                    ))}
+                  {selectedCategory === 'dogs' && dogProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      isSelected={selectedProducts.some(p => p.id === product.id)}
+                      onToggle={handleProductToggle}
+                    />
+                  ))}
                   
-                  {(selectedCategory === 'all' || selectedCategory === 'birds') &&
-                    birdProducts.map((product) => (
-                      <ProductCard 
-                        key={product.id} 
-                        product={product} 
-                        isSelected={selectedProducts.some(p => p.id === product.id)}
-                        onToggle={handleProductToggle}
-                      />
-                    ))}
+                  {selectedCategory === 'cats' && catProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      isSelected={selectedProducts.some(p => p.id === product.id)}
+                      onToggle={handleProductToggle}
+                    />
+                  ))}
                   
-                  {(selectedCategory === 'all' || selectedCategory === 'other') &&
-                    otherAnimalsProducts.map((product) => (
-                      <ProductCard 
-                        key={product.id} 
-                        product={product} 
-                        isSelected={selectedProducts.some(p => p.id === product.id)}
-                        onToggle={handleProductToggle}
-                      />
-                    ))}
+                  {selectedCategory === 'birds' && birdProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      isSelected={selectedProducts.some(p => p.id === product.id)}
+                      onToggle={handleProductToggle}
+                    />
+                  ))}
+                  
+                  {selectedCategory === 'other' && otherAnimalsProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      isSelected={selectedProducts.some(p => p.id === product.id)}
+                      onToggle={handleProductToggle}
+                    />
+                  ))}
                 </div>
               </div>
 
@@ -627,6 +908,138 @@ const Subscriptions = () => {
         )}
       </AnimatePresence>
 
+      {/* Subscription Details Modal */}
+      <AnimatePresence>
+        {showSubscriptionModal && selectedSubscription && (
+          <>
+            {/* Modal Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              onClick={() => setShowSubscriptionModal(false)}
+            />
+
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-0 flex items-center justify-center p-4 z-50"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+                {/* Modal Header */}
+                <div className="bg-gradient-to-r from-calm-blue to-energetic-orange text-white p-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-2xl font-bold">{selectedSubscription.name}</h2>
+                      <p className="text-white/90 mt-1">Subscription ID: #{selectedSubscription.id}</p>
+                    </div>
+                    <button
+                      onClick={() => setShowSubscriptionModal(false)}
+                      className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                  {/* Subscription Status */}
+                  <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Status</p>
+                        <p className="font-semibold text-green-700">{selectedSubscription.status}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Since</p>
+                        <p className="font-medium">{new Date(selectedSubscription.startDate).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Delivery Information */}
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-lg text-charcoal-gray mb-3">Delivery Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-600 mb-1">Frequency</p>
+                        <p className="font-medium">{selectedSubscription.frequency}</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-600 mb-1">Next Delivery</p>
+                        <p className="font-medium text-natural-sage">
+                          {new Date(selectedSubscription.nextDelivery).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                        <p className="text-sm text-gray-600 mb-1">Delivery Address</p>
+                        <p className="font-medium">{selectedSubscription.deliveryAddress}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Products in Subscription */}
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-lg text-charcoal-gray mb-3">Products ({selectedSubscription.items.length})</h3>
+                    <div className="space-y-3">
+                      {selectedSubscription.items.map((item, index) => (
+                        <div key={index} className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-charcoal-gray">{item.name}</p>
+                            <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                          </div>
+                          <p className="font-semibold text-energetic-orange">₹{item.price * item.quantity}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pricing Summary */}
+                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subtotal</span>
+                        <span>₹{selectedSubscription.total + selectedSubscription.savedAmount}</span>
+                      </div>
+                      <div className="flex justify-between text-green-600">
+                        <span>Subscription Discount (10%)</span>
+                        <span>-₹{selectedSubscription.savedAmount}</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-amber-300">
+                        <span className="font-semibold">Total per {selectedSubscription.frequency}</span>
+                        <span className="font-bold text-lg text-energetic-orange">₹{selectedSubscription.total}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                  <div className="flex gap-3 justify-end">
+                    <button
+                      onClick={() => setShowSubscriptionModal(false)}
+                      className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-full transition-colors"
+                    >
+                      Close
+                    </button>
+                    <button className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-full transition-colors">
+                      Cancel Subscription
+                    </button>
+                    <button className="px-6 py-2 bg-calm-blue hover:bg-blue-700 text-white font-medium rounded-full transition-colors">
+                      Edit Subscription
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Floating Sidebar for Active Subscriptions */}
       <AnimatePresence>
         {showSidebar && (
@@ -662,6 +1075,7 @@ const Subscriptions = () => {
                       key={subscription.id}
                       whileHover={{ scale: 1.02 }}
                       className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-energetic-orange transition-colors cursor-pointer"
+                      onClick={() => handleSubscriptionClick(subscription)}
                     >
                       <h4 className="font-semibold text-charcoal-gray mb-2">
                         {subscription.name}
@@ -688,7 +1102,10 @@ const Subscriptions = () => {
                           </span>
                         </div>
                       </div>
-                      <button className="w-full mt-3 text-sm text-calm-blue hover:text-blue-700 font-medium">
+                      <button 
+                        onClick={(e) => handleManageSubscription(e, subscription)}
+                        className="w-full mt-3 text-sm text-calm-blue hover:text-blue-700 font-medium transition-colors"
+                      >
                         Manage Subscription →
                       </button>
                     </motion.div>
