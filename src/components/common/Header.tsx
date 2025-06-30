@@ -40,7 +40,7 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <header className="w-full">
+    <header className="w-full sticky top-0 z-50">
       {/* Top notification bar */}
       <div className="w-full bg-amber-400 py-2 px-4">
         <div className="container mx-auto flex justify-between items-center">
@@ -96,7 +96,8 @@ const Header: React.FC = () => {
       </div>
 
       {/* Main header with logo, search and cart */}
-      <div className="container mx-auto py-4 px-4">
+      <div className="bg-white">
+        <div className="container mx-auto py-4 px-4">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
@@ -141,6 +142,7 @@ const Header: React.FC = () => {
             </Link>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Navigation menu */}

@@ -52,15 +52,21 @@ class OrdersService {
     }));
 
     // Create order data
-    const orderData: Omit<Order, 'id' | 'userId' | 'createdAt' | 'updatedAt'> = {
+    const orderData: Omit<Order, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'userEmail'> = {
       items: orderItems,
       shippingAddress: checkoutData.shippingAddress,
-      paymentMethod: checkoutData.paymentMethod,
+      paymentMethod: typeof checkoutData.paymentMethod === 'string' 
+        ? checkoutData.paymentMethod as 'card' | 'upi' | 'cod'
+        : checkoutData.paymentMethod.type as 'card' | 'upi' | 'cod',
+      paymentStatus: 'pending',
+      orderStatus: 'pending',
+      status: 'pending',
       subtotal,
+      shippingCost: shipping,
       shipping,
       tax,
-      total,
-      status: 'pending'
+      totalAmount: total,
+      total
     };
 
     // Create order in database

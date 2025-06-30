@@ -1,4 +1,4 @@
-import StarRating from "../StarRating/StarRating.tsx";
+import StarRating from "../StarRating/StarRating";
 
 interface Product {
   id: number;

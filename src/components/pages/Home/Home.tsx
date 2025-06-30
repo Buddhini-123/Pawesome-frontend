@@ -3,18 +3,35 @@ import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import { Link } from 'react-router-dom';
-import { Calendar, Gift, Percent, CreditCard, ArrowRight } from 'lucide-react';
+import { Calendar, Gift, Percent, CreditCard, ArrowRight, LucideIcon } from 'lucide-react';
 import gsap from 'gsap';
 
 // Enhanced Effects
-import EnhancedParticleSystem from '../../effects/EnhancedParticleSystem.tsx';
-import MouseTrailEffect from '../../effects/MouseTrailEffect.tsx';
-import Loading3D from '../../effects/Loading3D.tsx';
-import Advanced3DBackground from '../../effects/Advanced3DBackground.tsx';
+import EnhancedParticleSystem from '../../effects/EnhancedParticleSystem';
+import MouseTrailEffect from '../../effects/MouseTrailEffect';
+import Loading3D from '../../effects/Loading3D';
+import Advanced3DBackground from '../../effects/Advanced3DBackground';
+
+// Type definition for button prop
+interface ButtonType {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  color: string;
+  link: string;
+  petEmoji: string;
+}
+
+// Props interface for InteractiveCard
+interface InteractiveCardProps {
+  button: ButtonType;
+  index: number;
+  inView: boolean;
+}
 
 // Enhanced Interactive Card Component
-const InteractiveCard = ({ button, index, inView }) => {
-  const cardRef = useRef();
+const InteractiveCard: React.FC<InteractiveCardProps> = ({ button, index, inView }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
   const IconComponent = button.icon;
   
   useEffect(() => {
@@ -257,8 +274,8 @@ const Home: React.FC = () => {
   
   // In View Detection
   const heroInView = useInView(heroRef, { once: true });
-  const cardsInView = useInView(cardsRef, { once: true, threshold: 0.1 });
-  const featuresInView = useInView(featuresRef, { once: true, threshold: 0.1 });
+  const cardsInView = useInView(cardsRef, { once: true });
+  const featuresInView = useInView(featuresRef, { once: true });
 
   // Pet-themed main service buttons
   const mainButtons = [

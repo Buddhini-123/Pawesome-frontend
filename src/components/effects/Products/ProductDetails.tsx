@@ -1,19 +1,48 @@
 import { Calendar } from "lucide-react";
-import StarRating from "../StarRating/StarRating.tsx";
-import { QuantitySelector } from "../../pages/Products/QuantitySelector.tsx";
+import StarRating from "../StarRating/StarRating";
+import { QuantitySelector } from "../../pages/Products/QuantitySelector";
+import { useCart } from "../../../hooks/useCart";
+import { Product } from "../../../types";
 
 interface ProductDetailsProps {
   quantity: number;
   onQuantityChange: (quantity: number) => void;
+  product?: Product;
 }
 
-const ProductDetails = ({ quantity, onQuantityChange }: ProductDetailsProps) => {
+const ProductDetails = ({ quantity, onQuantityChange, product }: ProductDetailsProps) => {
+  const { addItem } = useCart();
+  
+  // Default product data for demo purposes
+  const defaultProduct: Product = {
+    id: '1',
+    name: 'Rocco Naturals Natural Ox Ear Snacks for Dogs',
+    brand: 'Rocco Naturals',
+    price: 2000,
+    image: '/pedigree.png',
+    rating: 4.7,
+    reviews: 150,
+    category: 'Dogs',
+    subcategory: 'Treats',
+    inStock: true,
+    description: 'Natural ox ear snacks for dogs'
+  };
+  
+  const currentProduct = product || defaultProduct;
+  
+  const handleAddToCart = () => {
+    addItem(currentProduct, quantity);
+    
+    // Optional: Show success message or notification
+    alert(`Added ${quantity} ${currentProduct.name} to cart!`);
+  };
+  
   return (
     <div className="bg-white rounded-lg p-6 space-y-4">
       {/* Product Title */}
       <div>
         <h1 className="text-2xl font-figtree font-bold text-gray-900 mb-1">
-          Rocco Naturals Natural Ox Ear Snacks for Dogs
+          {currentProduct.name}
         </h1>
       </div>
 
@@ -21,8 +50,8 @@ const ProductDetails = ({ quantity, onQuantityChange }: ProductDetailsProps) => 
       <div className="flex items-center justify-between">
         <p className="text-gray-500 text-sm">1 Pcs</p>
         <div className="flex items-center space-x-2">
-          <StarRating rating={4.7} size="sm" />
-          <span className="text-orange-500 font-figtree text-sm">4.7</span>
+          <StarRating rating={currentProduct.rating} size="sm" />
+          <span className="text-orange-500 font-figtree text-sm">{currentProduct.rating}</span>
         </div>
       </div>
       
@@ -63,11 +92,14 @@ const ProductDetails = ({ quantity, onQuantityChange }: ProductDetailsProps) => 
       {/* Price and Add to Cart */}
       <div className="pt-4 border-t">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-2xl font-bold text-energetic-orange">Rs. 2000</span>
+          <span className="text-2xl font-bold text-energetic-orange">Rs. {currentProduct.price}</span>
           <QuantitySelector quantity={quantity} onQuantityChange={onQuantityChange} />
         </div>
         
-        <button className="w-full bg-energetic-orange hover:bg-orange-600 text-white font-medium py-2 rounded">
+        <button 
+          onClick={handleAddToCart}
+          className="w-full bg-energetic-orange hover:bg-orange-600 text-white font-medium py-2 rounded"
+        >
           Add to Cart
         </button>
       </div>

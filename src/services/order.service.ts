@@ -1,4 +1,4 @@
-import { Order, OrderStatus } from '../types';
+import { Order, OrderStatus, Address } from '../types';
 import { api } from './api';
 import { mockDb } from './mockDb';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,13 +9,8 @@ interface CreateOrderData {
     quantity: number;
     price: number;
   }>;
-  shippingAddress: {
-    fullName: string;
-    phone: string;
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
+  shippingAddress: Omit<Address, 'id' | 'type' | 'isDefault' | 'country' | 'street'> & {
+    country?: string;
   };
   paymentMethod: 'card' | 'upi' | 'cod';
   subtotal: number;
@@ -51,15 +46,23 @@ class OrderService {
           ...item,
           productName: `Product ${item.productId}` // In real app, would fetch product details
         })),
-        shippingAddress: orderData.shippingAddress,
+        shippingAddress: {
+          id: uuidv4(),
+          type: 'home' as const,
+          ...orderData.shippingAddress,
+          country: orderData.shippingAddress.country || 'India'
+        },
         paymentMethod: orderData.paymentMethod,
         paymentStatus: orderData.paymentMethod === 'cod' ? 'pending' : 'completed',
         orderStatus: 'confirmed' as OrderStatus,
+        status: 'confirmed' as OrderStatus,
         subtotal: orderData.subtotal,
         shippingCost: orderData.shippingCost,
+        shipping: orderData.shippingCost,
         totalAmount: orderData.totalAmount,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        total: orderData.totalAmount,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockDb.createOrder(newOrder);
@@ -103,7 +106,7 @@ class OrderService {
         throw new Error('User not authenticated');
       }
 
-      const orders = mockDb.getUserOrders(currentUser.id);
+      const orders = await mockDb.getUserOrders(currentUser.id);
       const order = orders.find(o => o.id === orderId);
       
       if (!order) {

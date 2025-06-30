@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Filter, X } from 'lucide-react';
-import ProductCard from '../../common/ProductCard.tsx';
-import FilterSidebar from '../../common/FilterSidebar.tsx';
-import { birdProducts, getBirdFilters } from '../../../data/mockProducts.ts';
+import ProductCard from '../../common/ProductCard';
+import FilterSidebar from '../../common/FilterSidebar';
+import { birdProducts, getBirdFilters } from '../../../data/mockProducts';
 
 const Birds: React.FC = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);

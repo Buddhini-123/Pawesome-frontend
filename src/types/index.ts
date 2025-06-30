@@ -42,7 +42,10 @@ export interface User {
 export interface Address {
   id: string;
   type: 'home' | 'work' | 'other';
-  street: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  street?: string;
   city: string;
   state: string;
   pincode: string;
@@ -81,11 +84,15 @@ export interface Order {
   paymentMethod: 'card' | 'upi' | 'cod';
   paymentStatus: 'pending' | 'completed' | 'failed';
   orderStatus: OrderStatus;
+  status: OrderStatus; // Alias for orderStatus for backward compatibility
   subtotal: number;
   shippingCost: number;
+  shipping?: number; // Alias for shippingCost
+  tax?: number;
   totalAmount: number;
-  createdAt: string;
-  updatedAt: string;
+  total: number; // Alias for totalAmount for backward compatibility
+  createdAt: Date;
+  updatedAt: Date;
   trackingNumber?: string;
 }
 
@@ -95,6 +102,7 @@ export interface OrderItem {
   productImage?: string;
   price: number;
   quantity: number;
+  total?: number;
 }
 
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -203,7 +211,7 @@ export interface CheckoutForm {
   shippingAddress: Address;
   billingAddress?: Address;
   sameAsShipping: boolean;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | 'card' | 'upi' | 'cod';
   couponCode?: string;
 }
 

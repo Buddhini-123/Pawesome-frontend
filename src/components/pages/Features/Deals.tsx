@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Percent } from 'lucide-react';
 import { Deal, DealsPageData, DealCardProps } from '../../../types/deals';
-import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid.tsx';
+import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid';
 import SlideshowBanner from '../../banners/subscriptionbanner/SlideshowBanner';
 import WhyPawsomeSection from '../../banners/whypawsome/WhyPawsomeSection';
 import CategoryCarousel from '../../carousels/CategoryCarousel';
@@ -512,7 +512,7 @@ const Deals: React.FC = () => {
           ))}
         </div>
 
-        <CategoryCarousel categories={petCategories} />
+        <CategoryCarousel />
 
         <ReccomendationsGrid />
 

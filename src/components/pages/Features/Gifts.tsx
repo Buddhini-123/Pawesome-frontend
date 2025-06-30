@@ -11,7 +11,7 @@ const Gifts: React.FC = () => {
   const newsletterRef = useRef(null);
 
   const heroInView = useInView(heroRef, { once: true });
-  const stepsInView = useInView(stepsRef, { once: true, threshold: 0.2 });
+  const stepsInView = useInView(stepsRef, { once: true });
   const ctaInView = useInView(ctaRef, { once: true });
   const newsletterInView = useInView(newsletterRef, { once: true });
 

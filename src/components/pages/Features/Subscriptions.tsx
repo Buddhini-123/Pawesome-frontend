@@ -1,4 +1,4 @@
-// src/pages/Subscriptions.jsx
+// src/pages/Subscriptions.tsx
 import React, { useState } from 'react'
 import {
   ChevronLeft,
@@ -31,10 +31,30 @@ import birdImg from '../../carousels/images/bird.png'
 import rodentImg from '../../carousels/images/rodent.png'
 import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel'
 import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion'
-import { dogProducts, catProducts, birdProducts, otherAnimalsProducts } from '../../../data/mockProducts.ts'
+import { dogProducts, catProducts, birdProducts, otherAnimalsProducts, Product } from '../../../data/mockProducts'
+
+interface SubscriptionItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface Subscription {
+  id: number;
+  name: string;
+  products: number;
+  frequency: string;
+  nextDelivery: string;
+  total: number;
+  startDate: string;
+  status: string;
+  items: SubscriptionItem[];
+  deliveryAddress: string;
+  savedAmount: number;
+}
 
 const Subscriptions = () => {
-  const [expandedFAQ, setExpandedFAQ] = useState(null)
+  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
 
   const subscriptionSlides = [
     {
@@ -112,20 +132,20 @@ const Subscriptions = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedProducts, setSelectedProducts] = useState([])
-  const [confirmedProducts, setConfirmedProducts] = useState([])
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
+  const [confirmedProducts, setConfirmedProducts] = useState<Product[]>([])
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [deliveryFrequency, setDeliveryFrequency] = useState('monthly')
-  const [productQuantities, setProductQuantities] = useState({})
+  const [productQuantities, setProductQuantities] = useState<Record<string, number>>({})
   const [showSidebar, setShowSidebar] = useState(true)
-  const [selectedSubscription, setSelectedSubscription] = useState(null)
+  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null)
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showProductModal, setShowProductModal] = useState(false)
   
   // Mock active subscriptions data with more details
-  const [activeSubscriptions] = useState([
+  const [activeSubscriptions] = useState<Subscription[]>([
     {
       id: 1,
       name: 'Premium Dog Food Bundle',
@@ -161,7 +181,7 @@ const Subscriptions = () => {
     }
   ])
 
-  const handleProductToggle = (product) => {
+  const handleProductToggle = (product: Product) => {
     setSelectedProducts(prev => {
       const isSelected = prev.some(p => p.id === product.id)
       if (isSelected) {
@@ -178,7 +198,7 @@ const Subscriptions = () => {
     })
   }
 
-  const handleQuantityChange = (productId, change) => {
+  const handleQuantityChange = (productId: string, change: number) => {
     setProductQuantities(prev => {
       const currentQty = prev[productId] || 1
       const newQty = Math.max(1, currentQty + change)
@@ -196,25 +216,25 @@ const Subscriptions = () => {
     setIsModalOpen(true)
   }
 
-  const handleSubscriptionClick = (subscription) => {
+  const handleSubscriptionClick = (subscription: Subscription) => {
     setSelectedSubscription(subscription)
     setShowSubscriptionModal(true)
   }
 
-  const handleManageSubscription = (e, subscription) => {
+  const handleManageSubscription = (e: React.MouseEvent, subscription: Subscription) => {
     e.stopPropagation() // Prevent card click
     setSelectedSubscription(subscription)
     setShowSubscriptionModal(true)
   }
 
-  const handleRemoveProduct = (productId) => {
+  const handleRemoveProduct = (productId: string) => {
     setConfirmedProducts(prev => prev.filter(p => p.id !== productId))
     const newQuantities = { ...productQuantities }
     delete newQuantities[productId]
     setProductQuantities(newQuantities)
   }
 
-  const handleViewProductDetails = (product) => {
+  const handleViewProductDetails = (product: Product) => {
     setSelectedProduct(product)
     setShowProductModal(true)
   }
@@ -1420,7 +1440,14 @@ const Subscriptions = () => {
 }
 
 // Product Card Component for Modal
-const ProductCard = ({ product, isSelected, onToggle, onViewDetails }) => {
+interface ProductCardProps {
+  product: Product;
+  isSelected: boolean;
+  onToggle: (product: Product) => void;
+  onViewDetails: (product: Product) => void;
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle, onViewDetails }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}

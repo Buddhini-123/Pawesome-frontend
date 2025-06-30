@@ -1,8 +1,8 @@
 import { useState } from "react";
-import ProductGallery  from "../../effects/Products/ProductGallery.tsx";
-import ProductDetails from "../../effects/Products/ProductDetails.tsx";
-import ProductSidebar from "../../effects/Products/ProductSidebar.tsx";
-import ProductTabs from "./ProductTabs.tsx"
+import ProductGallery  from "../../effects/Products/ProductGallery";
+import ProductDetails from "../../effects/Products/ProductDetails";
+import ProductSidebar from "../../effects/Products/ProductSidebar";
+import ProductTabs from "./ProductTabs"
 const ProductPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);

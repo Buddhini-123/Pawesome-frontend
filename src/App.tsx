@@ -44,7 +44,7 @@ const App: React.FC = () => {
   return (
     <div className="App">
       {!hideLayout && <Header />}
-      <main>
+      <main className="relative">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dogs" element={<Dogs />} />

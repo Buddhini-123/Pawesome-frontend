@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
-import { useCart } from '../../ui/CartContext.tsx';
+import { useCart } from '../../ui/CartContext';
 import { useNavigate } from 'react-router-dom';
 
 interface Product {

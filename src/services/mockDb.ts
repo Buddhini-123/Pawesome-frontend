@@ -83,6 +83,9 @@ class MockDatabase {
           {
             id: 'addr-1',
             type: 'home',
+            fullName: 'Demo User',
+            phone: '+91 9876543210',
+            address: '123 Main Street',
             street: '123 Main Street',
             city: 'Mumbai',
             state: 'Maharashtra',
@@ -171,8 +174,33 @@ class MockDatabase {
   }
 
   // Order methods
-  async createOrder(order: Order): Promise<Order> {
+  async createOrder(userId: string, orderData: Omit<Order, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'userEmail'>): Promise<Order>;
+  async createOrder(order: Order): Promise<Order>;
+  async createOrder(userIdOrOrder: string | Order, orderData?: Omit<Order, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'userEmail'>): Promise<Order> {
     await this.simulateDelay();
+    
+    let order: Order;
+    
+    if (typeof userIdOrOrder === 'string') {
+      // New signature from orders.service.ts
+      const userId = userIdOrOrder;
+      const user = await this.findUserById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
+      order = {
+        ...orderData!,
+        id: uuidv4(),
+        userId,
+        userEmail: user.email,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    } else {
+      // Legacy signature from order.service.ts
+      order = userIdOrOrder;
+    }
     
     const userOrders = this.orders.get(order.userId) || [];
     userOrders.push(order);

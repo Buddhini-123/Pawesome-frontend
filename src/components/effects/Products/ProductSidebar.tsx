@@ -1,4 +1,4 @@
-import ProductCard from "./ProductCard.tsx";
+import ProductCard from "./ProductCard";
 import { Link } from 'react-router-dom';
 
 const ProductSidebar = () => {

@@ -1,5 +1,5 @@
-import FeaturedDeals from '../../effects/FeaturedDeals.tsx';
-import ProductGrid from '../../effects/ProductGrid.tsx';
+import FeaturedDeals from '../../effects/FeaturedDeals';
+import ProductGrid from '../../effects/ProductGrid';
 
 const ReccomendationsGrid = () => {
   const topRecommendations = [

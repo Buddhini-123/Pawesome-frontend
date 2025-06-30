@@ -35,7 +35,7 @@ const EnhancedParticleSystem: React.FC<EnhancedParticleSystemProps> = ({
   ], []);
 
   // Safe particle generation
-  const generateParticle = useCallback((type: Particle['type'] = 'sparkle'): Particle => {
+  const generateParticle = useCallback((type: Particle['type'] = 'sparkle'): Particle | null => {
     if (!window || !window.innerWidth || !window.innerHeight) {
       return null;
     }
