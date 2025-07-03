@@ -34,7 +34,7 @@ const GiftCustomizer: React.FC = () => {
   const steps: Step[] = [
     {
       id: 1,
-      title: "Choose a Theme Card",
+      title: "Choose a Theme",
       shortTitle: "Theme Card",
       minSelection: 1,
       maxSelection: 1,
@@ -363,7 +363,7 @@ const GiftCustomizer: React.FC = () => {
 
       {/* Summary Sidebar (Fixed) */}
       <div className="fixed top-1/2 right-4 transform -translate-y-1/2 bg-white rounded-2xl p-6 shadow-xl border border-gray-200 w-80 hidden xl:block z-50">
-        <h3 className="text-xl font-bold text-charcoal-gray mb-4">Your Custom Box</h3>
+        <h3 className="text-xl font-bold text-charcoal-gray mb-4">My Gift Box</h3>
         
         <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
           {Object.entries(selections).map(([stepId, productIds]) => {

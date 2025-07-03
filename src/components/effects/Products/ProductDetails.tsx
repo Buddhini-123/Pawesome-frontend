@@ -34,6 +34,7 @@ const ProductDetails = ({ quantity, onQuantityChange }: ProductDetailsProps) => 
           Delivery Period
         </h3>
         <select className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-orange-400">
+          <option>One Time Purchase</option>
           <option>Every Week</option>
           <option>Every 2 Weeks</option>
           <option>Every Month</option>

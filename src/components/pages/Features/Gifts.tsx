@@ -16,7 +16,7 @@ const Gifts: React.FC = () => {
   const newsletterInView = useInView(newsletterRef, { once: true });
 
   const steps = [
-    { id: 1, title: "Choose a Theme Card", color: "from-energetic-orange to-warm-orange" },
+    { id: 1, title: "Choose a Theme", color: "from-energetic-orange to-warm-orange" },
     { id: 2, title: "Select Your Main Theme Pet Toy", color: "from-calm-blue to-sky-400" },
     { id: 3, title: "Select Your Complementary Pet Toys", color: "from-natural-sage to-emerald-400" },
     { id: 4, title: "Select Your Pet Treats", color: "from-warm-orange to-amber-400" },

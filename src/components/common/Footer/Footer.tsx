@@ -7,7 +7,9 @@ const Footer: React.FC = () => {
   return (
     <footer className="overflow-hidden bg-white">
       <NewsletterSection />
-      <FooterColumns />
+      <div style={{ justifyContent:'center', alignSelf:'center', alignItems:'center', alignContent:'center', justifyItems:'center' }}>
+        <FooterColumns />
+      </div>
       {/* <img
         src="https://cdn.builder.io/api/v1/image/assets/TEMP/dce8dd2c0c7636a6f2abca161a001791c5a6d996?placeholderIfAbsent=true"
         alt="Footer decoration"

@@ -674,7 +674,7 @@ const Subscriptions = () => {
                         disabled={!startDate || !endDate}
                         className={`w-full font-bold text-lg py-4 rounded-2xl transition-all duration-300 shadow-lg ${
                           startDate && endDate
-                            ? 'bg-gradient-to-r from-natural-sage to-green-600 hover:from-green-600 hover:to-natural-sage text-white transform hover:scale-105'
+                            ? 'bg-gradient-to-r from-green-600 to-green-600 hover:from-green-600 hover:to-green-600 text-white transform hover:scale-105'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
