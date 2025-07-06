@@ -53,7 +53,7 @@ const FooterColumns: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {columns.map((column, index) => (
           <div key={index} className="space-y-4">
-            <h3 className="font-fredoka font-bold text-xl text-charcoal mb-4">
+            <h3 className="font-fredoka font-bold text-xl text-white mb-4">
               {column.title}
             </h3>
             <ul className="space-y-2">
@@ -61,7 +61,7 @@ const FooterColumns: React.FC = () => {
                 <li key={itemIndex}>
                   <a 
                     href="#" 
-                    className="text-medium-gray hover:text-primary-blue transition-colors duration-200 flex items-center group"
+                    className="text-white/80 hover:text-white transition-colors duration-200 flex items-center group"
                   >
                     {item.icon && <span className="inline mr-2">{item.icon}</span>}
                     <span className="group-hover:translate-x-1 transition-transform duration-200">

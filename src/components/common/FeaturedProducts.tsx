@@ -9,7 +9,7 @@ const FeaturedProducts: React.FC = () => {
   const featuredProducts = products.slice(0, 8);
 
   return (
-    <section className="py-20 bg-warm-white">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <motion.div
@@ -19,15 +19,15 @@ const FeaturedProducts: React.FC = () => {
           className="text-center mb-12"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Sparkles className="w-8 h-8 text-sunny-yellow" />
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal">
+            <Sparkles className="w-8 h-8 text-accent" />
+            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-text-dark">
               Featured Products
             </h2>
-            <Sparkles className="w-8 h-8 text-sunny-yellow" />
+            <Sparkles className="w-8 h-8 text-accent" />
           </div>
-          <p className="text-xl text-medium-gray font-nunito max-w-2xl mx-auto">
+          <p className="text-xl text-text-gray font-nunito max-w-2xl mx-auto">
             Handpicked favorites that your pets will absolutely love! 
-            <span className="text-vibrant-orange font-semibold"> Updated daily.</span>
+            <span className="text-primary font-semibold"> Updated daily.</span>
           </p>
         </motion.div>
 
@@ -56,7 +56,7 @@ const FeaturedProducts: React.FC = () => {
         >
           <a
             href="/shop"
-            className="inline-flex items-center gap-3 bg-primary-blue hover:bg-vibrant-orange text-white px-8 py-4 rounded-full font-fredoka font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group"
+            className="inline-flex items-center gap-3 bg-secondary hover:bg-orange-dark text-white px-8 py-4 rounded-full font-fredoka font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group"
           >
             <TrendingUp className="w-5 h-5" />
             View All Products
@@ -67,8 +67,8 @@ const FeaturedProducts: React.FC = () => {
         </motion.div>
 
         {/* Decorative Elements */}
-        <div className="absolute -z-10 top-20 left-10 w-32 h-32 bg-primary-blue/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute -z-10 bottom-20 right-10 w-40 h-40 bg-vibrant-orange/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute -z-10 top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute -z-10 bottom-20 right-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
       </div>
     </section>
   );

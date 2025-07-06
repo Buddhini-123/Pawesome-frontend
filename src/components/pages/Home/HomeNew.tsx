@@ -59,7 +59,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, col
           </div>
 
           {/* Pet Badge */}
-          <div className="absolute -top-2 -right-2 bg-sunny-yellow text-charcoal px-4 py-2 rounded-full font-fredoka font-semibold text-sm transform rotate-12 shadow-lg">
+          <div className="absolute -top-2 -right-2 bg-accent text-text-dark px-4 py-2 rounded-full font-fredoka font-semibold text-sm transform rotate-12 shadow-lg">
             NEW!
           </div>
         </div>
@@ -74,28 +74,28 @@ const Home: React.FC = () => {
       title: 'Pet Subscriptions',
       description: 'Never run out of essentials with automated deliveries tailored to your pet.',
       icon: <Calendar className="w-10 h-10 text-white" />,
-      color: 'bg-vibrant-orange',
+      color: 'bg-primary',
       link: '/subscriptions',
     },
     {
       title: 'Gift Boxes',
       description: 'Monthly surprise boxes filled with toys, treats, and accessories.',
       icon: <Gift className="w-10 h-10 text-white" />,
-      color: 'bg-primary-blue',
+      color: 'bg-light-blue',
       link: '/gifts',
     },
     {
       title: 'Daily Deals',
       description: 'Exclusive discounts on top-rated products every single day.',
       icon: <Percent className="w-10 h-10 text-white" />,
-      color: 'bg-mint-green',
+      color: 'bg-secondary',
       link: '/deals',
     },
     {
       title: 'Paw Rewards',
       description: 'Earn points, unlock benefits, and get VIP access to new products.',
       icon: <Trophy className="w-10 h-10 text-white" />,
-      color: 'bg-lavender',
+      color: 'bg-primary',
       link: '/loyalty-cards',
     },
   ];
@@ -108,14 +108,14 @@ const Home: React.FC = () => {
   ];
 
   const categories = [
-    { name: 'Dogs', icon: <span className="text-5xl">🐕</span>, count: '500+ Products', color: 'bg-vibrant-orange' },
-    { name: 'Cats', icon: <span className="text-5xl">🐱</span>, count: '450+ Products', color: 'bg-primary-blue' },
-    { name: 'Birds', icon: <span className="text-5xl">🦜</span>, count: '200+ Products', color: 'bg-mint-green' },
-    { name: 'Small Pets', icon: <span className="text-5xl">🐹</span>, count: '300+ Products', color: 'bg-lavender' },
+    { name: 'Dogs', icon: <span className="text-5xl">🐕</span>, count: '500+ Products', color: 'bg-primary' },
+    { name: 'Cats', icon: <span className="text-5xl">🐱</span>, count: '450+ Products', color: 'bg-secondary' },
+    { name: 'Birds', icon: <span className="text-5xl">🦜</span>, count: '200+ Products', color: 'bg-light-blue' },
+    { name: 'Small Pets', icon: <span className="text-5xl">🐹</span>, count: '300+ Products', color: 'bg-secondary' },
   ];
 
   return (
-    <div className="min-h-screen bg-warm-white">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <HeroSection />
 
@@ -132,11 +132,11 @@ const Home: React.FC = () => {
                 transition={{ delay: index * 0.1 }}
                 className="text-center"
               >
-                <div className="w-16 h-16 bg-primary-blue/10 rounded-full flex items-center justify-center mx-auto mb-3 text-primary-blue">
+                <div className="w-16 h-16 bg-blue-light rounded-full flex items-center justify-center mx-auto mb-3 text-text-dark">
                   {feature.icon}
                 </div>
-                <h3 className="font-fredoka font-semibold text-charcoal mb-1">{feature.title}</h3>
-                <p className="text-medium-gray text-sm">{feature.description}</p>
+                <h3 className="font-fredoka font-semibold text-text-dark mb-1">{feature.title}</h3>
+                <p className="text-text-gray text-sm">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -144,7 +144,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 bg-soft-gray">
+      <section className="py-20 bg-bg-light">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -152,10 +152,10 @@ const Home: React.FC = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-4">
-              What Makes Us <span className="text-primary-blue">Special</span> 🌟
+            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-text-dark mb-4">
+              What Makes Us <span className="text-secondary">Special</span> 🌟
             </h2>
-            <p className="text-xl text-medium-gray font-nunito max-w-2xl mx-auto">
+            <p className="text-xl text-text-gray font-nunito max-w-2xl mx-auto">
               Discover our unique services designed to make pet parenting easier and more fun!
             </p>
           </motion.div>
@@ -169,7 +169,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Shop by Pet Category */}
-      <section className="py-20 bg-warm-white">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -177,10 +177,10 @@ const Home: React.FC = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-4">
-              Shop by Your <span className="text-vibrant-orange">Pet Type</span> 🐾
+            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-text-dark mb-4">
+              Shop by Your <span className="text-secondary">Pet Type</span> 🐾
             </h2>
-            <p className="text-xl text-medium-gray font-nunito">
+            <p className="text-xl text-text-gray font-nunito">
               Find everything your pet needs in one place
             </p>
           </motion.div>
@@ -210,12 +210,12 @@ const Home: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary-blue relative overflow-hidden">
+      <section className="py-20 bg-primary relative overflow-hidden">
         <div className="absolute inset-0">
           {[...Array(10)].map((_, i) => (
             <span
               key={i}
-              className="absolute text-white/10"
+              className="absolute text-text-dark/10"
               style={{
                 fontSize: `${Math.random() * 60 + 40}px`,
                 top: `${Math.random() * 100}%`,
@@ -232,16 +232,16 @@ const Home: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-white mb-6">
+            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-text-dark mb-6">
               Ready to Spoil Your Pet? 🎁
             </h2>
-            <p className="text-xl text-white/90 font-nunito mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-text-dark/80 font-nunito mb-8 max-w-2xl mx-auto">
               Join thousands of pet parents who trust Pawsome for all their pet needs.
               Start shopping today and see the difference!
             </p>
             <Link
               to="/shop"
-              className="inline-flex items-center gap-3 bg-white text-primary-blue px-8 py-4 rounded-full font-fredoka font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center gap-3 bg-secondary hover:bg-orange-dark text-white px-8 py-4 rounded-full font-fredoka font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               Start Shopping
               <ArrowRight className="w-5 h-5" />

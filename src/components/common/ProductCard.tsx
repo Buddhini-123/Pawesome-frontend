@@ -69,7 +69,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     >
       <div className="relative overflow-hidden">
         {/* Image Container */}
-        <div className="relative h-56 bg-soft-gray">
+        <div className="relative h-56 bg-bg-light">
           <img 
             src={image} 
             alt={name}
@@ -82,7 +82,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         
         {/* Badges */}
         {discount && (
-          <div className="pet-badge absolute top-3 left-3 bg-crimson text-white px-3 py-1.5 rounded-full text-sm font-fredoka font-bold shadow-lg transform -rotate-12">
+          <div className="pet-badge absolute top-3 left-3 bg-secondary text-white px-3 py-1.5 rounded-full text-sm font-fredoka font-bold shadow-lg transform -rotate-12">
             -{discount}% OFF!
           </div>
         )}
@@ -93,8 +93,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
           whileTap={{ scale: 0.9 }}
           className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
             isLiked 
-              ? 'bg-soft-pink text-white' 
-              : 'bg-white/90 backdrop-blur-sm text-medium-gray hover:text-soft-pink'
+              ? 'bg-secondary text-white' 
+              : 'bg-white/90 backdrop-blur-sm text-text-gray hover:text-secondary'
           }`}
         >
           <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
@@ -102,14 +102,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
         
         {/* Pet Category Indicator */}
         <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5">
-          <span className="text-primary-blue">🐾</span>
-          <span className="text-xs font-nunito font-semibold text-charcoal capitalize">{category}</span>
+          <span className="text-text-dark">🐾</span>
+          <span className="text-xs font-nunito font-semibold text-text-dark capitalize">{category}</span>
         </div>
         
         {!inStock && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
             <div className="bg-white rounded-2xl px-6 py-3">
-              <span className="text-charcoal font-fredoka font-bold">Out of Stock 😔</span>
+              <span className="text-text-dark font-fredoka font-bold">Out of Stock 😔</span>
             </div>
           </div>
         )}
@@ -117,10 +117,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
       
       <div className="p-5">
         {/* Brand */}
-        <p className="text-sm text-primary-blue font-nunito font-semibold mb-1">{brand}</p>
+        <p className="text-sm text-primary font-nunito font-semibold mb-1">{brand}</p>
         
         {/* Product Name */}
-        <h3 className="font-fredoka font-bold text-charcoal text-lg mb-3 line-clamp-2 leading-tight">
+        <h3 className="font-fredoka font-bold text-text-dark text-lg mb-3 line-clamp-2 leading-tight">
           {name}
         </h3>
         
@@ -130,20 +130,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {[...Array(5)].map((_, i) => (
               <Star 
                 key={i} 
-                className={`h-4 w-4 ${i < Math.floor(rating) ? 'fill-sunny-yellow text-sunny-yellow' : 'text-light-gray'}`}
+                className={`h-4 w-4 ${i < Math.floor(rating) ? 'fill-accent text-accent' : 'text-gray'}`}
               />
             ))}
           </div>
-          <span className="text-sm text-medium-gray font-nunito">({reviews} reviews)</span>
+          <span className="text-sm text-text-gray font-nunito">({reviews} reviews)</span>
         </div>
         
         {/* Price */}
         <div className="flex items-end gap-2 mb-4">
-          <span className="text-2xl font-fredoka font-bold text-vibrant-orange">
+          <span className="text-2xl font-fredoka font-bold text-text-dark">
             ₹{price.toLocaleString()}
           </span>
           {originalPrice && (
-            <span className="text-sm text-medium-gray line-through font-nunito mb-1">
+            <span className="text-sm text-text-gray line-through font-nunito mb-1">
               ₹{originalPrice.toLocaleString()}
             </span>
           )}
@@ -157,9 +157,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
           className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-full font-fredoka font-semibold transition-all duration-300 ${
             inStock 
               ? isAdded
-                ? 'bg-mint-green text-white'
-                : 'bg-vibrant-orange text-white hover:bg-sunny-yellow hover:shadow-lg hover:scale-105 btn-bounce transition-colors'
-              : 'bg-light-gray text-medium-gray cursor-not-allowed'
+                ? 'bg-accent text-text-dark'
+                : 'bg-secondary text-white hover:bg-orange-dark hover:shadow-lg hover:scale-105 btn-bounce'
+              : 'bg-light-gray text-text-gray cursor-not-allowed'
           }`}
         >
           {isAdded ? (
@@ -183,11 +183,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
         
         {/* Quick Actions */}
         <div className="flex items-center justify-center gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button className="text-sm text-medium-gray hover:text-primary-blue transition-colors font-nunito">
+          <button className="text-sm text-text-gray hover:text-primary transition-colors font-nunito">
             Quick View
           </button>
-          <span className="text-light-gray">•</span>
-          <button className="text-sm text-medium-gray hover:text-primary-blue transition-colors font-nunito">
+          <span className="text-text-gray/30">•</span>
+          <button className="text-sm text-text-gray hover:text-primary transition-colors font-nunito">
             Compare
           </button>
         </div>

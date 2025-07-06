@@ -61,14 +61,14 @@ const Header: React.FC = () => {
   return (
     <header className={`w-full sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
       {/* Top notification bar */}
-      <div className="w-full bg-vibrant-orange py-2 px-4">
+      <div className="w-full bg-primary py-2 px-4">
         <div className="container mx-auto flex justify-between items-center">
           <div className="text-sm font-fredoka font-medium text-white flex items-center">
             <span className="mr-2 animate-bounce-slow">🐾</span>
             FREE SHIPPING on orders above ₹20,000 🚚
           </div>
           <div className="flex space-x-4 text-sm">
-            <Link to="/contact" className="text-white hover:text-warm-white transition-colors font-nunito">
+            <Link to="/contact" className="text-white hover:text-white/80 transition-colors font-nunito">
               📞 Contact Us
             </Link>
             <div className="flex items-center">
@@ -77,7 +77,7 @@ const Header: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="text-white hover:text-warm-white transition-colors flex items-center font-nunito"
+                    className="text-white hover:text-white/80 transition-colors flex items-center font-nunito"
                   >
                     <User className="h-4 w-4 mr-1" />
                     {user?.name || 'My Account'}
@@ -86,21 +86,21 @@ const Header: React.FC = () => {
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl py-2 z-50 border border-light-gray">
                       <Link
                         to="/account"
-                        className="block px-4 py-3 text-sm text-charcoal hover:bg-primary-blue/10 transition-colors rounded-xl mx-2"
+                        className="block px-4 py-3 text-sm text-text-dark hover:bg-light-blue transition-colors rounded-xl mx-2"
                         onClick={() => setShowUserMenu(false)}
                       >
                         👤 My Account
                       </Link>
                       <Link
                         to="/orders"
-                        className="block px-4 py-3 text-sm text-charcoal hover:bg-primary-blue/10 transition-colors rounded-xl mx-2"
+                        className="block px-4 py-3 text-sm text-text-dark hover:bg-light-blue transition-colors rounded-xl mx-2"
                         onClick={() => setShowUserMenu(false)}
                       >
                         📦 My Orders
                       </Link>
                       <Link
                         to="/wishlist"
-                        className="block px-4 py-3 text-sm text-charcoal hover:bg-primary-blue/10 transition-colors rounded-xl mx-2"
+                        className="block px-4 py-3 text-sm text-text-dark hover:bg-light-blue transition-colors rounded-xl mx-2"
                         onClick={() => setShowUserMenu(false)}
                       >
                         ❤️ Wishlist
@@ -108,7 +108,7 @@ const Header: React.FC = () => {
                       <hr className="my-2 mx-4 border-light-gray" />
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-left px-4 py-3 text-sm text-charcoal hover:bg-crimson/10 transition-colors rounded-xl mx-2"
+                        className="block w-full text-left px-4 py-3 text-sm text-text-dark hover:bg-secondary/10 transition-colors rounded-xl mx-2"
                       >
                         <LogOut className="h-4 w-4 inline mr-2" />
                         Logout
@@ -117,7 +117,7 @@ const Header: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <Link to="/login" className="text-white hover:text-warm-white transition-colors flex items-center font-nunito">
+                <Link to="/login" className="text-white hover:text-white/80 transition-colors flex items-center font-nunito">
                   <User className="h-4 w-4 mr-1" />
                   Sign In
                 </Link>
@@ -128,7 +128,7 @@ const Header: React.FC = () => {
       </div>
 
       {/* Main header with logo, search and cart */}
-      <div className="bg-warm-white border-b border-light-gray">
+      <div className="bg-white border-b border-light-gray">
         <div className="container mx-auto py-4 px-4">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex items-center">
@@ -147,7 +147,7 @@ const Header: React.FC = () => {
               <input
                 type="text"
                 placeholder="🔍 Search treats, toys, food and more..."
-                className="w-full pl-6 pr-12 py-3 rounded-full bg-soft-gray border-2 border-transparent focus:outline-none focus:border-primary-blue focus:bg-white transition-all duration-300 font-nunito shadow-sm"
+                className="w-full pl-6 pr-12 py-3 rounded-full bg-white border-2 border-light-gray focus:outline-none focus:border-primary focus:bg-white transition-all duration-300 font-nunito"
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
@@ -155,7 +155,7 @@ const Header: React.FC = () => {
                 type="submit"
                 className="absolute inset-y-0 right-0 pr-4 flex items-center"
               >
-                <div className="bg-primary-blue text-white p-2 rounded-full hover:bg-vibrant-orange transition-colors duration-300">
+                <div className="bg-primary text-white p-2 rounded-full hover:bg-teal transition-colors duration-300">
                   <Search className="h-5 w-5" />
                 </div>
               </button>
@@ -166,10 +166,10 @@ const Header: React.FC = () => {
             {/* Wishlist */}
             <Link 
               to="/wishlist" 
-              className="relative p-3 rounded-full bg-soft-pink/20 hover:bg-soft-pink/30 transition-all duration-300 group"
+              className="relative p-3 rounded-full bg-orange-light hover:bg-secondary/10 transition-all duration-300 group"
             >
-              <Heart className="h-6 w-6 text-soft-pink group-hover:scale-110 transition-transform duration-300" />
-              <span className="absolute -top-1 -right-1 bg-crimson text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+              <Heart className="h-6 w-6 text-secondary group-hover:scale-110 transition-transform duration-300" />
+              <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                 3
               </span>
             </Link>
@@ -177,12 +177,12 @@ const Header: React.FC = () => {
             {/* Cart */}
             <Link 
               to="/cart" 
-              className="flex items-center space-x-2 bg-vibrant-orange hover:bg-sunny-yellow transition-all duration-300 px-6 py-3 rounded-full text-white relative shadow-lg hover:shadow-xl transform hover:scale-105 btn-bounce"
+              className="flex items-center space-x-2 bg-secondary hover:bg-orange-dark text-white transition-all duration-300 px-6 py-3 rounded-full relative shadow-lg hover:shadow-xl transform hover:scale-105 btn-bounce"
             >
               <ShoppingCart className="h-6 w-6" />
               <span className="font-fredoka font-semibold">My Cart</span>
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-primary-blue text-white text-xs rounded-full h-7 w-7 flex items-center justify-center font-bold animate-pulse">
+                <span className="absolute -top-2 -right-2 bg-accent text-navy text-xs rounded-full h-7 w-7 flex items-center justify-center font-bold animate-pulse">
                   {totalItems}
                 </span>
               )}
@@ -193,7 +193,7 @@ const Header: React.FC = () => {
       </div>
 
       {/* Navigation menu */}
-      <div className="w-full bg-primary-blue">
+      <div className="w-full bg-bg-light">
         <div className="container mx-auto">
           <nav className="flex flex-wrap items-center justify-center py-1">
             {/* Main Categories */}
@@ -202,21 +202,21 @@ const Header: React.FC = () => {
                 <Link
                   key={index}
                   to={category.link}
-                  className="group px-6 py-3 text-white font-fredoka font-medium whitespace-nowrap hover:bg-white/20 transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2 paw-hover"
+                  className="group px-6 py-3 text-text-dark font-fredoka font-medium whitespace-nowrap hover:bg-primary hover:text-white transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2"
                 >
                   {category.name}
                 </Link>
               ))}
               
               {/* Divider */}
-              <span className="text-white/50 mx-4 hidden lg:inline">|</span>
+              <span className="text-neutral/30 mx-4 hidden lg:inline">|</span>
               
               {/* Pet Categories */}
               {petCategories.map((pet, index) => (
                 <Link
                   key={index}
                   to={pet.link}
-                  className="group px-4 py-3 text-white font-nunito whitespace-nowrap hover:bg-white/20 transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2 pet-icon-bounce"
+                  className="group px-4 py-3 text-text-dark font-nunito whitespace-nowrap hover:bg-light-blue hover:text-white transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2 pet-icon-bounce"
                 >
                   <span className="pet-icon-bounce text-xl">{pet.icon}</span>
                   <span className="hidden md:inline">{pet.name}</span>

@@ -22,14 +22,14 @@ const HeroSection: React.FC = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden bg-primary-blue">
+    <section className="relative overflow-hidden bg-primary">
       {/* Animated Background Pattern */}
       <div className="absolute inset-0">
         {/* Floating Paws */}
         {[...Array(15)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute text-white/10"
+            className="absolute text-white/20"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -53,7 +53,7 @@ const HeroSection: React.FC = () => {
 
         {/* Animated Shapes */}
         <motion.div
-          className="absolute top-20 left-10 w-64 h-64 bg-sunny-yellow/20 rounded-full blur-3xl"
+          className="absolute top-20 left-10 w-64 h-64 bg-accent/20 rounded-full blur-3xl"
           animate={{
             x: [0, 50, 0],
             y: [0, -30, 0],
@@ -66,7 +66,7 @@ const HeroSection: React.FC = () => {
           }}
         />
         <motion.div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-primary-blue/20 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
           animate={{
             x: [0, -30, 0],
             y: [0, 50, 0],
@@ -120,17 +120,17 @@ const HeroSection: React.FC = () => {
               transition={{ delay: 0.3 }}
             >
               Everything Your
-              <span className="block text-sunny-yellow drop-shadow-lg">
+              <span className="block text-white drop-shadow-lg">
                 Pet Needs
               </span>
               Delivered With 
               <span className="text-warm-white"> Love </span>
-              <Heart className="inline-block w-12 h-12 text-soft-pink animate-pulse ml-2" />
+              <Heart className="inline-block w-12 h-12 text-secondary animate-pulse ml-2" />
             </motion.h1>
 
             {/* Subtitle */}
             <motion.p 
-              className="text-xl text-white/90 mb-8 font-nunito leading-relaxed"
+              className="text-xl text-white/80 mb-8 font-nunito leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
@@ -151,7 +151,7 @@ const HeroSection: React.FC = () => {
             >
               <Link
                 to="/shop"
-                className="group inline-flex items-center gap-3 bg-white text-primary-blue px-8 py-4 rounded-full font-fredoka font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                className="group inline-flex items-center gap-3 bg-secondary hover:bg-orange-dark text-white px-8 py-4 rounded-full font-fredoka font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
                 Shop Now
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
@@ -159,7 +159,7 @@ const HeroSection: React.FC = () => {
               
               <Link
                 to="/subscriptions"
-                className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md text-white border-2 border-white/50 px-8 py-4 rounded-full font-fredoka font-semibold text-lg hover:bg-white/30 transition-all duration-300"
+                className="inline-flex items-center gap-3 bg-white text-primary border-2 border-primary px-8 py-4 rounded-full font-fredoka font-semibold text-lg hover:bg-blue-light hover:text-primary hover:border-light-blue transition-all duration-300"
               >
                 <span className="text-xl">🐾</span>
                 Start Subscription
@@ -184,16 +184,16 @@ const HeroSection: React.FC = () => {
                     />
                   ))}
                 </div>
-                <span className="text-white/90 font-nunito">
+                <span className="text-white/80 font-nunito">
                   <strong>50,000+</strong> Happy Pets
                 </span>
               </div>
               
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-sunny-yellow text-sunny-yellow" />
+                  <Star key={i} className="w-5 h-5 fill-accent text-accent" />
                 ))}
-                <span className="text-white/90 font-nunito ml-2">
+                <span className="text-white/80 font-nunito ml-2">
                   <strong>4.9</strong> Rating
                 </span>
               </div>
@@ -256,12 +256,12 @@ const HeroSection: React.FC = () => {
                 }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-soft-pink/20 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center">
                     <span className="text-2xl">🦴</span>
                   </div>
                   <div>
-                    <p className="font-fredoka font-semibold text-charcoal">Premium Treats</p>
-                    <p className="text-sm text-medium-gray">Starting ₹299</p>
+                    <p className="font-fredoka font-semibold text-white">Premium Treats</p>
+                    <p className="text-sm text-slate">Starting ₹299</p>
                   </div>
                 </div>
               </motion.div>
@@ -280,12 +280,12 @@ const HeroSection: React.FC = () => {
                 }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-primary-blue/20 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
                     <span className="text-2xl">🎾</span>
                   </div>
                   <div>
-                    <p className="font-fredoka font-semibold text-charcoal">Fun Toys</p>
-                    <p className="text-sm text-medium-gray">50% Off Today!</p>
+                    <p className="font-fredoka font-semibold text-white">Fun Toys</p>
+                    <p className="text-sm text-slate">50% Off Today!</p>
                   </div>
                 </div>
               </motion.div>
@@ -302,7 +302,7 @@ const HeroSection: React.FC = () => {
           viewBox="0 0 1440 320"
         >
           <path
-            fill="#FFFAF0"
+            fill="transparent"
             fillOpacity="1"
             d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
           />

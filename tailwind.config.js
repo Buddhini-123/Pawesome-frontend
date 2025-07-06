@@ -23,22 +23,40 @@ module.exports = {
 				'pacifico': ['Pacifico', 'cursive']
 			},
 			colors: {
-				// New Vibrant Pet-Friendly Palette
+				// Revised UI Theme Color Palette
 				// Primary Colors
-				"primary-blue": "#2196F3",      // Bright, trustworthy blue
-				"vibrant-orange": "#FF6B35",    // Playful orange for CTAs
-				"sunny-yellow": "#FFD93D",      // Happy yellow for highlights
+				"primary": "#0077B6",           // Professional Dark Blue
+				"secondary": "#FF6B35",         // Bright Orange (accent)
+				"accent": "#FFB700",            // Yellow/Gold (highlights)
 				
-				// Secondary Colors
-				"soft-pink": "#FFB6C1",         // Gentle pink for accents
-				"mint-green": "#4ECDC4",        // Fresh mint for success states
-				"lavender": "#B19CD9",          // Soft purple for special features
+				// Supporting Colors
+				"navy": "#2C3E50",              // Dark Navy (footer)
+				"light-blue": "#4A90E2",        // Lighter Blue (hover states)
+				"orange": "#FF6B35",            // Same as secondary
+				"orange-dark": "#E55A2B",       // Darker Orange (hover)
+				"blue-light": "#E8F4F8",        // Very Light Blue (backgrounds)
+				"gray-light": "#F5F5F5",        // Light Gray (sections)
+				"yellow": "#FFB700",            // Same as accent
+				
+				// Background Colors
+				"bg-white": "#FFFFFF",          // Pure White
+				"bg-light": "#F5F5F5",          // Light Gray Background
+				"bg-blue-light": "#E8F4F8",     // Light Blue Background
+				"bg-orange-light": "#FFF3E0",   // Light Orange Background
+				
+				// Text Colors
+				"text-dark": "#333333",         // Dark Text
+				"text-gray": "#666666",         // Medium Gray Text
+				"text-light": "#FFFFFF",        // White Text
+				"text-primary": "#333333",      // Same as dark
+				"text-secondary": "#666666",    // Same as gray
 				
 				// Neutrals
-				"warm-white": "#FFFAF0",        // Creamy white backgrounds
-				"soft-gray": "#F5F5F5",         // Light gray for sections
-				"charcoal": "#2C3E50",          // Dark text
-				"medium-gray": "#7F8C8D",       // Secondary text
+				"white": "#FFFFFF",             // Pure white
+				"light-gray": "#F5F5F5",        // Light gray
+				"gray": "#999999",              // Medium gray
+				"dark-gray": "#666666",         // Dark gray
+				"black": "#333333",             // Almost black
 				
 				// Legacy colors (keeping for backward compatibility)
 				"energetic-orange": "#FF914D",
