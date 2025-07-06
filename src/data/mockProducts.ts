@@ -514,3 +514,11 @@ export const getOtherAnimalsFilters = () => [
     ]
   }
 ];
+
+// Aggregate all products
+export const products: Product[] = [
+  ...dogProducts,
+  ...catProducts,
+  ...birdProducts,
+  ...otherAnimalsProducts
+];

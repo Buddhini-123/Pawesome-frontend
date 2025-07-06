@@ -9,7 +9,7 @@ import Header from './components/common/Header';
 import Footer from './components/common/Footer/Footer';
 
 // Pages
-import Home from './components/pages/Home/Home';
+import Home from './components/pages/Home/HomeNew';
 import Dogs from './components/pages/Categories/Dogs';
 import Cats from './components/pages/Categories/Cats';
 import VetDiet from './components/pages/Categories/VetDiet';
