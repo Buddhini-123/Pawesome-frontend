@@ -30,6 +30,7 @@ const Footer: React.FC = () => {
 
       <div className="relative z-10">
         <NewsletterSection />
+        
         <FooterColumns />
         <FooterExtras />
       </div>

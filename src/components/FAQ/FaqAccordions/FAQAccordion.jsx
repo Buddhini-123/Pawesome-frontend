@@ -38,8 +38,8 @@ export default function FAQAccordion({
   )
 
   return (
-    <div className="bg-calm-blue rounded-2xl p-6 md:p-8">
-      <h2 className="text-white text-2xl font-semibold mb-6">
+    <div className="bg-primary-blue rounded-2xl p-6 md:p-8">
+      <h2 className="text-white text-2xl font-fredoka font-semibold mb-6">
         Things You want to know about
       </h2>
       <div className="divide-y divide-white divide-opacity-50">
@@ -53,7 +53,7 @@ export default function FAQAccordion({
                 aria-controls={`faq-panel-${idx}`}
                 className="w-full flex justify-between items-center py-4 focus:outline-none"
               >
-                <span className="text-white text-base md:text-lg text-left">
+                <span className="text-white text-base md:text-lg text-left font-fredoka">
                   {faq.question}
                 </span>
                 {isOpen ? (

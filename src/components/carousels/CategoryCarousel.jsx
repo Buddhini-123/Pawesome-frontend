@@ -11,9 +11,9 @@ import rodent from './images/rodent.png'
  * A fixed four-category carousel with exact layout and correct background colors.
  */
 const categories = [
-  { bgClass: 'bg-soft-yellow', image: dog, alt: 'Dog', route: '/dogs', top: '7px' },
-  { bgClass: 'bg-periwinkle', image: cat, alt: 'Cat', route: '/cats', top: '-68px' },
-  { bgClass: 'bg-calm-blue', image: bird, alt: 'Bird', route: '/birds', top: '-10px' },
+  { bgClass: 'bg-sunny-yellow', image: dog, alt: 'Dog', route: '/dogs', top: '7px' },
+  { bgClass: 'bg-lavender', image: cat, alt: 'Cat', route: '/cats', top: '-68px' },
+  { bgClass: 'bg-primary-blue', image: bird, alt: 'Bird', route: '/birds', top: '-10px' },
   { bgClass: 'bg-light-gray', image: rodent, alt: 'Small Pet', route: '/other-animals', top: '-55px' },
 
 ];
@@ -33,13 +33,13 @@ const CategoryCarousel = () => {
         onClick={() => scroll(-300)}
         className="absolute left-0 top-1/2 -translate-y-1/2 bg-white bg-opacity-75 hover:bg-opacity-100 p-2 rounded-full shadow z-10"
         >
-        <ChevronLeft className="w-6 h-6 text-gray-700" />
+        <ChevronLeft className="w-6 h-6 text-charcoal" />
       </button> */}
 
       {/* Carousel track */}
       {/* <h2 className=''>Buy for your pet</h2> */}
       <div style={{ paddingLeft:30 }}>
-        <h1 className='text-2xl font-bold mb-4' style={{ textAlign: 'left' }}>Buy for your pet</h1>
+        <h1 className='text-2xl font-fredoka font-bold mb-4' style={{ textAlign: 'left' }}>Buy for your pet</h1>
       </div>
       <div
         ref={carouselRef}
@@ -65,7 +65,7 @@ const CategoryCarousel = () => {
             />
           </div>
            <div>
-            <h3 className="text-center text-lg font-semibold text-gray-800 mt-4">
+            <h3 className="text-center text-lg font-fredoka font-semibold text-charcoal mt-4">
               {cat.alt}
             </h3>
             </div>
@@ -78,7 +78,7 @@ const CategoryCarousel = () => {
         onClick={() => scroll(300)}
         className="absolute right-0 top-1/2 -translate-y-1/2 bg-white bg-opacity-75 hover:bg-opacity-100 p-2 rounded-full shadow z-10"
       >
-        <ChevronRight className="w-6 h-6 text-gray-700" />
+        <ChevronRight className="w-6 h-6 text-charcoal" />
       </button> */}
     </div>
   );

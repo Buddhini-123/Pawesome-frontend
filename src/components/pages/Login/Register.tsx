@@ -81,8 +81,8 @@ const Register: React.FC = () => {
               className="h-16 w-auto object-contain"
             />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
-          <p className="text-calm-blue text-base leading-relaxed font-figtree">
+          <h2 className="text-2xl font-fredoka font-bold text-charcoal mb-2">Create Account</h2>
+          <p className="text-primary-blue text-base leading-relaxed font-fredoka">
             Join Pawsome to give your pets the best care they deserve!
           </p>
         </div>
@@ -97,8 +97,8 @@ const Register: React.FC = () => {
 
         {/* Existing member link */}
         <div className="text-center mb-6">
-          <span className="text-gray-700 text-base font-figtree">Already a member? </span>
-          <Link to="/login" className="text-energetic-orange font-medium text-base hover:underline">
+          <span className="text-medium-gray text-base font-fredoka">Already a member? </span>
+          <Link to="/login" className="text-vibrant-orange font-fredoka font-medium text-base hover:underline">
             Sign In
           </Link>
         </div>
@@ -112,7 +112,7 @@ const Register: React.FC = () => {
               placeholder="Full Name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-3 text-base font-figtree rounded-full bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
+              className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
               required
               disabled={isLoading}
             />
@@ -125,7 +125,7 @@ const Register: React.FC = () => {
               placeholder="Email Address"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 text-base font-figtree rounded-full bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
+              className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
               required
               disabled={isLoading}
             />
@@ -138,7 +138,7 @@ const Register: React.FC = () => {
               placeholder="Password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-full text-base font-figtree bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
+              className="w-full px-4 py-3 rounded-full text-base font-fredoka bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
               required
               disabled={isLoading}
             />
@@ -146,17 +146,17 @@ const Register: React.FC = () => {
 
           {/* Password requirements */}
           {formData.password && (
-            <div className="px-4 py-2 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-600 mb-2">Password requirements:</p>
+            <div className="px-4 py-2 bg-soft-gray rounded-lg">
+              <p className="text-xs text-medium-gray mb-2">Password requirements:</p>
               <div className="space-y-1">
                 {passwordRequirements.map((req, index) => (
                   <div key={index} className="flex items-center text-xs">
                     {req.met ? (
-                      <Check className="h-3 w-3 text-green-500 mr-2" />
+                      <Check className="h-3 w-3 text-mint-green mr-2" />
                     ) : (
-                      <div className="h-3 w-3 rounded-full border border-gray-400 mr-2" />
+                      <div className="h-3 w-3 rounded-full border border-medium-gray mr-2" />
                     )}
-                    <span className={req.met ? 'text-green-700' : 'text-gray-600'}>
+                    <span className={req.met ? 'text-mint-green' : 'text-medium-gray'}>
                       {req.text}
                     </span>
                   </div>
@@ -172,7 +172,7 @@ const Register: React.FC = () => {
               placeholder="Confirm Password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-full text-base font-figtree bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
+              className="w-full px-4 py-3 rounded-full text-base font-fredoka bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
               required
               disabled={isLoading}
             />
@@ -180,7 +180,7 @@ const Register: React.FC = () => {
             
           <button 
             type="submit" 
-            className="w-full bg-energetic-orange hover:bg-orange-600 text-white text-base font-medium py-3 px-14 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-vibrant-orange hover:bg-sunny-yellow hover:text-charcoal text-white text-base font-fredoka font-medium py-3 px-14 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}
@@ -189,13 +189,13 @@ const Register: React.FC = () => {
 
         {/* Terms and privacy */}
         <div className="text-center mt-7 space-y-4">
-          <p className="text-xs text-calm-blue">
+          <p className="text-xs text-primary-blue">
             By creating an account you confirm that you accept our{' '}
             <Link to="/terms" className="underline hover:text-blue-600">
               Terms and Conditions
             </Link>.
           </p>
-          <p className="text-xs text-calm-blue">
+          <p className="text-xs text-primary-blue">
             You also acknowledge{' '}
             <Link to="/privacy" className="underline hover:text-blue-600">
               Pawsome's privacy policy

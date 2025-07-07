@@ -11,8 +11,8 @@ const ProductTabs = () => {
           onClick={() => setActiveTab("description")}
           className={`rounded py-2 text-sm border transition-colors duration-200 ${
             activeTab === "description"
-              ? "bg-energetic-orange text-white"
-              : "text-black text-bold border-energetic-orange"
+              ? "bg-vibrant-orange text-white"
+              : "text-black text-bold border-vibrant-orange"
           }`}
         >
           Description
@@ -21,8 +21,8 @@ const ProductTabs = () => {
           onClick={() => setActiveTab("review")}
           className={`rounded py-2 px-4 text-sm border transition-colors duration-200 ${
             activeTab === "review"
-              ? "bg-energetic-orange text-bold text-white"
-              : "text-black border-energetic-orange"
+              ? "bg-vibrant-orange text-bold text-white"
+              : "text-black border-vibrant-orange"
           }`}
         >
           Review
@@ -33,7 +33,7 @@ const ProductTabs = () => {
       {/* Tabs Content */}
       {activeTab === "description" && (
         <div className="mt-4 space-y-3">
-          <p className="text-gray-700 text-sm">
+          <p className="text-charcoal text-sm">
             Pawsome Premium Chicken & Rice Dog Food is specially formulated to provide balanced nutrition 
             for adult dogs of all breeds. Made with high-quality chicken as the first ingredient and wholesome 
             rice for easy digestion, this formula supports strong muscles, healthy skin, and a shiny coat. 
@@ -50,7 +50,7 @@ const ProductTabs = () => {
       )}
 
       {activeTab === "review" && (
-        <div className="mt-4 text-center text-gray-500 py-4">
+        <div className="mt-4 text-center text-charcoal py-4">
           <p className="text-sm">Customer reviews will be displayed here.</p>
           <p className="mt-1 text-xs">Be the first to review this product!</p>
         </div>

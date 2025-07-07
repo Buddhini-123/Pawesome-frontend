@@ -19,7 +19,7 @@ const StarRating = ({ rating, size = "md" }: StarRatingProps) => {
           key={star}
           className={`${sizeClasses[size]} ${
             star <= rating
-              ? "fill-orange-400 text-orange-400"
+              ? "fill-vibrant-orange text-vibrant-orange"
               : "text-gray-300"
           }`}
         />

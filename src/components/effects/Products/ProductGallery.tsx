@@ -24,7 +24,7 @@ const ProductGallery = ({ images, selectedImage, onImageSelect }: ProductGallery
             onClick={() => onImageSelect(index)}
             className={`bg-white border rounded-lg p-2 transition-all ${
               selectedImage === index
-                ? "border-orange-400"
+                ? "border-vibrant-orange"
                 : "border-gray-200 hover:border-gray-300"
             }`}
           >

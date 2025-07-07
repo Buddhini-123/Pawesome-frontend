@@ -38,11 +38,11 @@ const Cats: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-soft-gray">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Cats</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-3xl font-fredoka font-bold text-charcoal mb-4">Cats</h1>
+          <p className="text-lg text-medium-gray">
             Premium products for your feline friends
           </p>
         </div>
@@ -51,11 +51,11 @@ const Cats: React.FC = () => {
           {catCategories.map((category, index) => (
             <div key={index} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <div className="text-3xl mb-4">{category.emoji}</div>
-              <h3 className="text-xl font-semibold mb-2">{category.title}</h3>
-              <p className="text-gray-600 mb-4">{category.description}</p>
+              <h3 className="text-xl font-fredoka font-semibold mb-2">{category.title}</h3>
+              <p className="text-medium-gray mb-4">{category.description}</p>
               <button 
                 onClick={() => handleCategoryClick(category.category)}
-                className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors"
+                className="bg-primary-blue hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-fredoka transition-colors"
               >
                 Shop Now
               </button>

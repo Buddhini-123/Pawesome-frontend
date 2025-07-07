@@ -35,8 +35,8 @@ const TopBrandsCarousel = () => {
   };
 
   return (
-    <section className="bg-natural-sage rounded-2xl p-6 md:p-8">
-      <h2 className="text-lg md:text-xl font-semibold text-white mb-6" style={{ textAlign: 'left' }}>
+    <section className="bg-mint-green rounded-2xl p-6 md:p-8">
+      <h2 className="text-lg md:text-xl font-fredoka font-semibold text-white mb-6" style={{ textAlign: 'left' }}>
         Top Brands we collaborate with:
       </h2>
       <div className="relative">
@@ -45,7 +45,7 @@ const TopBrandsCarousel = () => {
           onClick={() => scroll(-200)}
           className="absolute left-0 top-1/2 -translate-y-1/2 bg-white bg-opacity-90 hover:bg-opacity-100 p-2 rounded-full shadow z-10"
         >
-          <ChevronLeft className="w-5 h-5 text-gray-700" />
+          <ChevronLeft className="w-5 h-5 text-charcoal" />
         </button>
 
         {/* Logo Track */}
@@ -76,7 +76,7 @@ const TopBrandsCarousel = () => {
           onClick={() => scroll(200)}
           className="absolute right-0 top-1/2 -translate-y-1/2 bg-white bg-opacity-90 hover:bg-opacity-100 p-2 rounded-full shadow z-10"
         >
-          <ChevronRight className="w-5 h-5 text-gray-700" />
+          <ChevronRight className="w-5 h-5 text-charcoal" />
         </button>
       </div>
     </section>

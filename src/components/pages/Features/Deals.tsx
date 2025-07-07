@@ -63,25 +63,25 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
 
   const petCategories = [
     {
-      bgClass: 'bg-soft-yellow',
+      bgClass: 'bg-sunny-yellow',
       image: dogImg,
       alt: 'Dog',
       route: '/dogs',
     },
     {
-      bgClass: 'bg-calm-blue',
+      bgClass: 'bg-primary-blue',
       image: catImg,
       alt: 'Cat',
       route: '/cats',
     },
     {
-      bgClass: 'bg-soft-yellow',
+      bgClass: 'bg-sunny-yellow',
       image: birdImg,
       alt: 'Bird',
       route: '/birds',
     },
     {
-      bgClass: 'bg-energetic-orange',
+      bgClass: 'bg-vibrant-orange',
       image: rodentImg,
       alt: 'Small Pet',
       route: '/other-animals',
@@ -101,7 +101,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.02 }}
-      className={`relative bg-gradient-to-r from-energetic-orange to-calm-blue rounded-2xl overflow-hidden h-64 cursor-pointer group ${className}`}
+      className={`relative bg-gradient-to-r from-vibrant-orange to-primary-blue rounded-2xl overflow-hidden h-64 cursor-pointer group ${className}`}
       onClick={handleClick}
     >
       {/* Paw Icon */}
@@ -142,17 +142,17 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-energetic-orange via-energetic-orange/90 to-transparent z-5"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-vibrant-orange via-vibrant-orange/90 to-transparent z-5"></div>
 
       {/* Content */}
       <div className="relative z-10 p-6 h-full flex flex-col justify-between">
         <div className="max-w-[60%]">
-          <h3 className="text-white font-bold text-lg leading-tight mb-2">{deal.title}</h3>
+          <h3 className="text-white font-fredoka font-bold text-lg leading-tight mb-2">{deal.title}</h3>
           <p className="text-white text-sm opacity-90 mb-3">{deal.subtitle}</p>
         </div>
 
         <div className="max-w-[60%]">
-          <button className="bg-calm-blue text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors group-hover:scale-105 transform duration-200">
+          <button className="bg-primary-blue text-white px-4 py-2 rounded-full text-sm font-fredoka font-medium hover:bg-blue-700 transition-colors group-hover:scale-105 transform duration-200">
             See More
           </button>
         </div>
@@ -224,25 +224,25 @@ const Deals: React.FC = () => {
 
   const petCategories = [
     {
-      bgClass: 'bg-soft-yellow',
+      bgClass: 'bg-sunny-yellow',
       image: dogImg,
       alt: 'Dog',
       route: '/dogs',
     },
     {
-      bgClass: 'bg-calm-blue',
+      bgClass: 'bg-primary-blue',
       image: catImg,
       alt: 'Cat',
       route: '/cats',
     },
     {
-      bgClass: 'bg-soft-yellow',
+      bgClass: 'bg-sunny-yellow',
       image: birdImg,
       alt: 'Bird',
       route: '/birds',
     },
     {
-      bgClass: 'bg-energetic-orange',
+      bgClass: 'bg-vibrant-orange',
       image: rodentImg,
       alt: 'Small Pet',
       route: '/other-animals',
@@ -450,10 +450,10 @@ const Deals: React.FC = () => {
           className="text-center mb-16"
         >
           <div className="flex justify-center items-center mb-6">
-            <Percent className="text-energetic-orange mr-3 h-12 w-12" />
-            <h1 className="text-4xl md:text-5xl font-bold text-charcoal-gray">Pawsome Deals</h1>
+            <Percent className="text-vibrant-orange mr-3 h-12 w-12" />
+            <h1 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal">Pawsome Deals</h1>
           </div>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-medium-gray max-w-2xl mx-auto">
             Incredible discounts and offers on premium pet products. Limited time only!
           </p>
         </motion.div>
@@ -478,11 +478,11 @@ const Deals: React.FC = () => {
             >
               {/* Section Header */}
               <div className="mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mb-2">
+                <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal mb-2">
                   {section.title}
                 </h2>
                 {/* {section.subtitle && (
-                  <p className="text-lg text-gray-600 max-w-2xl">
+                  <p className="text-lg text-medium-gray max-w-2xl">
                     {section.subtitle}
                   </p>
                 )} */}

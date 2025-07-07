@@ -82,8 +82,8 @@ const Contact: React.FC = () => {
       title: 'Call Us',
       primary: '+91 12345 67890',
       secondary: 'Mon-Sat, 9AM-7PM',
-      color: 'from-blue-400 to-blue-600',
-      shadowColor: 'shadow-blue-500/30',
+      color: 'from-primary-blue to-primary-blue',
+      shadowColor: 'shadow-primary-blue/30',
       bgPattern: 'bg-gradient-to-br'
     },
     {
@@ -91,8 +91,8 @@ const Contact: React.FC = () => {
       title: 'Email Us',
       primary: 'support@pawsome.com',
       secondary: '24 hour response time',
-      color: 'from-green-400 to-emerald-600',
-      shadowColor: 'shadow-green-500/30',
+      color: 'from-emerald-green to-emerald-green',
+      shadowColor: 'shadow-emerald-green/30',
       bgPattern: 'bg-gradient-to-tr'
     },
     {
@@ -100,8 +100,8 @@ const Contact: React.FC = () => {
       title: 'Live Chat',
       primary: 'Chat with us',
       secondary: 'Available 9AM-7PM',
-      color: 'from-purple-400 to-purple-600',
-      shadowColor: 'shadow-purple-500/30',
+      color: 'from-vibrant-orange to-vibrant-orange',
+      shadowColor: 'shadow-vibrant-orange/30',
       bgPattern: 'bg-gradient-to-bl'
     },
     {
@@ -109,17 +109,17 @@ const Contact: React.FC = () => {
       title: '24/7 Support',
       primary: '+91 98765 43210',
       secondary: 'Emergency pet care line',
-      color: 'from-red-400 to-pink-600',
-      shadowColor: 'shadow-red-500/30',
+      color: 'from-coral-red to-coral-red',
+      shadowColor: 'shadow-coral-red/30',
       bgPattern: 'bg-gradient-to-tl'
     }
   ];
 
   const stats = [
-    { icon: Users, value: '50,000+', label: 'Happy Customers', color: 'text-blue-600' },
-    { icon: Package, value: '100,000+', label: 'Orders Delivered', color: 'text-green-600' },
-    { icon: Star, value: '4.9/5', label: 'Average Rating', color: 'text-yellow-600' },
-    { icon: Heart, value: '24/7', label: 'Pet Care Support', color: 'text-red-600' }
+    { icon: Users, value: '50,000+', label: 'Happy Customers', color: 'text-primary-blue' },
+    { icon: Package, value: '100,000+', label: 'Orders Delivered', color: 'text-emerald-green' },
+    { icon: Star, value: '4.9/5', label: 'Average Rating', color: 'text-sunny-yellow' },
+    { icon: Heart, value: '24/7', label: 'Pet Care Support', color: 'text-coral-red' }
   ];
 
   const features = [
@@ -139,16 +139,16 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-sky-50 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-sunny-yellow/10 via-white to-primary-blue/10 overflow-hidden">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-amber-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-10 w-64 h-64 bg-sunny-yellow rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-vibrant-orange rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-coral-red/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
       {/* Parallax Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 py-32">
+      <div className="relative overflow-hidden bg-gradient-to-r from-sunny-yellow via-vibrant-orange to-coral-red py-32">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-black opacity-10"></div>
           <motion.div 
@@ -263,15 +263,15 @@ const Contact: React.FC = () => {
                   <method.icon className="h-10 w-10 text-white" />
                 </motion.div>
                 
-                <h3 className="text-xl font-bold text-gray-800 mb-3">{method.title}</h3>
-                <p className="text-gray-900 font-semibold text-lg">{method.primary}</p>
-                <p className="text-sm text-gray-500 mt-1">{method.secondary}</p>
+                <h3 className="text-xl font-bold text-charcoal mb-3">{method.title}</h3>
+                <p className="text-charcoal font-semibold text-lg">{method.primary}</p>
+                <p className="text-sm text-charcoal/50 mt-1">{method.secondary}</p>
                 
                 <motion.div 
                   className="absolute top-4 right-4"
                   animate={{ opacity: activeMethod === index ? 1 : 0 }}
                 >
-                  <Sparkles className="w-6 h-6 text-amber-400" />
+                  <Sparkles className="w-6 h-6 text-sunny-yellow" />
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -291,19 +291,19 @@ const Contact: React.FC = () => {
           >
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-10 border border-white/50">
               <div className="flex items-center mb-8">
-                <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl p-4 mr-4">
+                <div className="bg-gradient-to-r from-sunny-yellow to-vibrant-orange rounded-2xl p-4 mr-4">
                   <Send className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-4xl font-bold text-gray-800">Send us a Message</h2>
-                  <p className="text-gray-600 mt-1">We typically respond within 2 hours</p>
+                  <h2 className="text-4xl font-bold text-charcoal">Send us a Message</h2>
+                  <p className="text-charcoal/60 mt-1">We typically respond within 2 hours</p>
                 </div>
               </div>
               
               <AnimatePresence>
                 {submitStatus === 'success' && (
                   <motion.div 
-                    className="mb-8 p-6 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-2xl flex items-center shadow-xl"
+                    className="mb-8 p-6 bg-gradient-to-r from-emerald-green to-emerald-green text-white rounded-2xl flex items-center shadow-xl"
                     initial={{ opacity: 0, scale: 0.8, y: -20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8, y: -20 }}
@@ -323,8 +323,8 @@ const Contact: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <motion.div whileFocus={{ scale: 1.02 }}>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
-                      <Smile className="w-4 h-4 mr-2 text-amber-500" />
+                    <label className="block text-sm font-bold text-charcoal mb-3 flex items-center">
+                      <Smile className="w-4 h-4 mr-2 text-sunny-yellow" />
                       Full Name *
                     </label>
                     <input
@@ -332,15 +332,15 @@ const Contact: React.FC = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full border-2 border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all duration-300 bg-gray-50/50"
+                      className="w-full border-2 border-soft-gray rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-vibrant-orange/20 focus:border-vibrant-orange transition-all duration-300 bg-soft-gray/50"
                       placeholder="John Doe"
                       required
                     />
                   </motion.div>
                   
                   <motion.div whileFocus={{ scale: 1.02 }}>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
-                      <Mail className="w-4 h-4 mr-2 text-amber-500" />
+                    <label className="block text-sm font-bold text-charcoal mb-3 flex items-center">
+                      <Mail className="w-4 h-4 mr-2 text-sunny-yellow" />
                       Email Address *
                     </label>
                     <input
@@ -348,7 +348,7 @@ const Contact: React.FC = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full border-2 border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all duration-300 bg-gray-50/50"
+                      className="w-full border-2 border-soft-gray rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-vibrant-orange/20 focus:border-vibrant-orange transition-all duration-300 bg-soft-gray/50"
                       placeholder="john@example.com"
                       required
                     />
@@ -357,8 +357,8 @@ const Contact: React.FC = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <motion.div whileFocus={{ scale: 1.02 }}>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
-                      <Phone className="w-4 h-4 mr-2 text-amber-500" />
+                    <label className="block text-sm font-bold text-charcoal mb-3 flex items-center">
+                      <Phone className="w-4 h-4 mr-2 text-sunny-yellow" />
                       Phone Number
                     </label>
                     <input
@@ -366,21 +366,21 @@ const Contact: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full border-2 border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all duration-300 bg-gray-50/50"
+                      className="w-full border-2 border-soft-gray rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-vibrant-orange/20 focus:border-vibrant-orange transition-all duration-300 bg-soft-gray/50"
                       placeholder="+91 98765 43210"
                     />
                   </motion.div>
                   
                   <motion.div whileFocus={{ scale: 1.02 }}>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
-                      <Heart className="w-4 h-4 mr-2 text-amber-500" />
+                    <label className="block text-sm font-bold text-charcoal mb-3 flex items-center">
+                      <Heart className="w-4 h-4 mr-2 text-sunny-yellow" />
                       Pet Type
                     </label>
                     <select
                       name="petType"
                       value={formData.petType}
                       onChange={handleChange}
-                      className="w-full border-2 border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all duration-300 bg-gray-50/50"
+                      className="w-full border-2 border-soft-gray rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-vibrant-orange/20 focus:border-vibrant-orange transition-all duration-300 bg-soft-gray/50"
                     >
                       <option value="">Select your pet</option>
                       <option value="dog">🐕 Dog</option>
@@ -394,15 +394,15 @@ const Contact: React.FC = () => {
                 </div>
 
                 <motion.div whileFocus={{ scale: 1.02 }}>
-                  <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
-                    <MessageCircle className="w-4 h-4 mr-2 text-amber-500" />
+                  <label className="block text-sm font-bold text-charcoal mb-3 flex items-center">
+                    <MessageCircle className="w-4 h-4 mr-2 text-sunny-yellow" />
                     Subject *
                   </label>
                   <select
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    className="w-full border-2 border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all duration-300 bg-gray-50/50"
+                    className="w-full border-2 border-soft-gray rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-vibrant-orange/20 focus:border-vibrant-orange transition-all duration-300 bg-soft-gray/50"
                     required
                   >
                     <option value="">Select a subject</option>
@@ -419,7 +419,7 @@ const Contact: React.FC = () => {
                 </motion.div>
                 
                 <motion.div whileFocus={{ scale: 1.02 }}>
-                  <label className="block text-sm font-bold text-gray-700 mb-3">
+                  <label className="block text-sm font-bold text-charcoal mb-3">
                     Message *
                   </label>
                   <div className="relative">
@@ -428,11 +428,11 @@ const Contact: React.FC = () => {
                       value={formData.message}
                       onChange={handleChange}
                       rows={6}
-                      className="w-full border-2 border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all duration-300 resize-none bg-gray-50/50"
+                      className="w-full border-2 border-soft-gray rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-vibrant-orange/20 focus:border-vibrant-orange transition-all duration-300 resize-none bg-soft-gray/50"
                       placeholder="Tell us how we can help you..."
                       required
                     />
-                    <div className="absolute bottom-4 right-4 text-sm text-gray-400">
+                    <div className="absolute bottom-4 right-4 text-sm text-charcoal/40">
                       {formData.message.length}/500
                     </div>
                   </div>
@@ -445,9 +445,9 @@ const Contact: React.FC = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 rounded-2xl"></div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-600 via-orange-700 to-pink-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold px-8 py-5 rounded-2xl flex items-center justify-center space-x-3 shadow-xl">
+                  <div className="absolute inset-0 bg-gradient-to-r from-sunny-yellow via-vibrant-orange to-coral-red rounded-2xl"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-sunny-yellow/80 via-vibrant-orange/80 to-coral-red/80 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="relative bg-gradient-to-r from-sunny-yellow to-vibrant-orange text-white font-bold px-8 py-5 rounded-2xl flex items-center justify-center space-x-3 shadow-xl">
                     {isSubmitting ? (
                       <>
                         <motion.div 
@@ -490,10 +490,10 @@ const Contact: React.FC = () => {
               transition={{ type: "spring", stiffness: 300 }}
             >
               <div className="flex items-center mb-6">
-                <div className="bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl p-3 mr-3">
+                <div className="bg-gradient-to-r from-primary-blue to-vibrant-orange rounded-2xl p-3 mr-3">
                   <MapPin className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800">Visit Our Store</h3>
+                <h3 className="text-2xl font-bold text-charcoal">Visit Our Store</h3>
               </div>
               
               <div className="relative rounded-2xl overflow-hidden mb-6 group">
@@ -511,11 +511,11 @@ const Contact: React.FC = () => {
               
               <div className="space-y-4">
                 <motion.div 
-                  className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4"
+                  className="bg-gradient-to-r from-sunny-yellow/10 to-vibrant-orange/10 rounded-2xl p-4"
                   whileHover={{ scale: 1.02 }}
                 >
-                  <p className="font-bold text-gray-800 mb-2">📍 Pawsome Pet Store</p>
-                  <p className="text-gray-600 text-sm">
+                  <p className="font-bold text-charcoal mb-2">📍 Pawsome Pet Store</p>
+                  <p className="text-charcoal/60 text-sm">
                     123 Pet Care Street,<br />
                     Animal District, Mumbai,<br />
                     Maharashtra 400001
@@ -523,14 +523,14 @@ const Contact: React.FC = () => {
                 </motion.div>
                 
                 <motion.div 
-                  className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4"
+                  className="bg-gradient-to-r from-primary-blue/10 to-vibrant-orange/10 rounded-2xl p-4"
                   whileHover={{ scale: 1.02 }}
                 >
-                  <p className="font-bold text-gray-800 mb-3 flex items-center">
-                    <Clock className="w-5 h-5 mr-2 text-purple-500" />
+                  <p className="font-bold text-charcoal mb-3 flex items-center">
+                    <Clock className="w-5 h-5 mr-2 text-vibrant-orange" />
                     Store Hours
                   </p>
-                  <div className="text-sm text-gray-600 space-y-1">
+                  <div className="text-sm text-charcoal/60 space-y-1">
                     <div className="flex justify-between">
                       <span>Mon - Fri:</span>
                       <span className="font-semibold">9:00 AM - 8:00 PM</span>
@@ -550,7 +550,7 @@ const Contact: React.FC = () => {
             
             {/* Interactive Quick Help Card */}
             <motion.div 
-              className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl shadow-2xl p-8 text-white overflow-hidden relative"
+              className="bg-gradient-to-br from-sunny-yellow to-vibrant-orange rounded-3xl shadow-2xl p-8 text-white overflow-hidden relative"
               whileHover={{ scale: 1.02 }}
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
@@ -591,7 +591,7 @@ const Contact: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <div className="bg-gradient-to-r from-red-500 to-pink-600 rounded-3xl shadow-2xl p-8 text-white relative overflow-hidden">
+              <div className="bg-gradient-to-r from-coral-red to-coral-red rounded-3xl shadow-2xl p-8 text-white relative overflow-hidden">
                 <motion.div 
                   className="absolute inset-0 bg-white/10"
                   animate={{ 
@@ -632,7 +632,7 @@ const Contact: React.FC = () => {
 
       {/* Animated Stats Section */}
       <div className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-100 via-orange-50 to-pink-100"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-sunny-yellow/10 via-vibrant-orange/10 to-coral-red/10"></div>
         <motion.div 
           className="absolute inset-0"
           style={{
@@ -642,7 +642,7 @@ const Contact: React.FC = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           <motion.h2 
-            className="text-4xl font-bold text-center text-gray-800 mb-16"
+            className="text-4xl font-bold text-center text-charcoal mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -672,7 +672,7 @@ const Contact: React.FC = () => {
                   <stat.icon className={`h-12 w-12 ${stat.color}`} />
                 </motion.div>
                 <motion.h3 
-                  className="text-4xl font-bold text-gray-800 mb-2"
+                  className="text-4xl font-bold text-charcoal mb-2"
                   initial={{ scale: 0 }}
                   whileInView={{ scale: 1 }}
                   transition={{ delay: index * 0.1, type: "spring" }}
@@ -680,7 +680,7 @@ const Contact: React.FC = () => {
                 >
                   {stat.value}
                 </motion.h3>
-                <p className="text-gray-600 font-medium">{stat.label}</p>
+                <p className="text-charcoal/60 font-medium">{stat.label}</p>
               </motion.div>
             ))}
           </motion.div>

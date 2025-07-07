@@ -10,7 +10,7 @@ const NewsletterSection: React.FC = () => {
   };
 
   return (
-    <section className="relative flex flex-wrap gap-5 justify-between items-center px-20 py-16 w-full bg-primary-blue overflow-hidden max-md:px-5 max-md:max-w-full">
+    <section className="relative flex flex-wrap gap-5 justify-center items-center px-20 py-16 w-full bg-primary-blue overflow-hidden max-md:px-5 max-md:max-w-full">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <span className="absolute text-white/20 text-8xl rotate-45" style={{ top: '-20px', right: '100px' }}>🦪</span>
@@ -49,11 +49,11 @@ const NewsletterSection: React.FC = () => {
       </div>
       
       {/* Cute Pet Illustration */}
-      <div className="hidden lg:block relative">
+      {/* <div className="hidden lg:block relative">
         <div className="w-48 h-48 bg-white/20 rounded-full backdrop-blur-sm flex items-center justify-center animate-float">
           <span className="text-8xl">🐕</span>
         </div>
-      </div>
+      </div> */}
     </section>
   );
 };

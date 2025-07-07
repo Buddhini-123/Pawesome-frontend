@@ -55,9 +55,9 @@ export default function SlideshowBanner({ slides, interval = 5000 }) {
           className="p-2 bg-white bg-opacity-60 hover:bg-opacity-80 rounded-full focus:outline-none"
         >
           {playing ? (
-            <Pause className="w-5 h-5 text-calm-blue" />
+            <Pause className="w-5 h-5 text-primary-blue" />
           ) : (
-            <Play className="w-5 h-5 text-calm-blue" />
+            <Play className="w-5 h-5 text-primary-blue" />
           )}
         </button>
         {slides.map((_, idx) => (
@@ -66,8 +66,8 @@ export default function SlideshowBanner({ slides, interval = 5000 }) {
             onClick={() => goTo(idx)}
             className={`w-3 h-3 rounded-full focus:outline-none ${
               idx === current
-                ? 'bg-calm-blue'
-                : 'border-2 border-calm-blue'
+                ? 'bg-primary-blue'
+                : 'border-2 border-primary-blue'
             }`}
           />
         ))}

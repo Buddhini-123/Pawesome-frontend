@@ -13,7 +13,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.02 }}
-      className={`relative bg-gradient-to-r from-energetic-orange to-calm-blue rounded-2xl overflow-hidden h-64 cursor-pointer group ${className}`}
+      className={`relative bg-gradient-to-r from-vibrant-orange to-primary-blue rounded-2xl overflow-hidden h-64 cursor-pointer group ${className}`}
       onClick={handleClick}
     >
       {/* Paw Icon */}
@@ -54,12 +54,12 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-energetic-orange via-energetic-orange/90 to-transparent z-5"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-vibrant-orange via-vibrant-orange/90 to-transparent z-5"></div>
 
       {/* Content */}
       <div className="relative z-10 p-6 h-full flex flex-col justify-between">
         <div className="max-w-[60%]">
-          <h3 className="text-white font-bold text-lg leading-tight mb-2">
+          <h3 className="text-white font-fredoka font-bold text-lg leading-tight mb-2">
             {deal.title}
           </h3>
           <p className="text-white text-sm opacity-90 mb-3">
@@ -68,7 +68,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
         </div>
 
         <div className="max-w-[60%]">
-          <button className="bg-calm-blue text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors group-hover:scale-105 transform duration-200">
+          <button className="bg-primary-blue text-white px-4 py-2 rounded-full text-sm font-fredoka font-medium hover:bg-primary-blue/90 transition-colors group-hover:scale-105 transform duration-200">
             see more
           </button>
         </div>
@@ -77,7 +77,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
       {/* Offer Badge */}
       {deal.offerType && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
-          <div className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium">
+          <div className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-fredoka font-medium">
             {deal.offerType === 'buy-get-free' && 'Buy 2, Get 1 Free'}
             {deal.offerType === 'free-shipping' && 'Free Shipping'}
             {deal.offerType === 'referral' && 'Refer & Save'}

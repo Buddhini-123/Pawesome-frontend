@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const Loading3D: React.FC = () => {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-sky-50 to-amber-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-sky-50 to-sunny-yellow/20 flex items-center justify-center z-50">
       <div className="text-center">
         {/* Pet-themed 3D Loading Animation */}
         <motion.div
@@ -12,7 +12,7 @@ const Loading3D: React.FC = () => {
           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         >
           <motion.div
-            className="absolute inset-0 border-4 border-amber-400/40 rounded-full"
+            className="absolute inset-0 border-4 border-sunny-yellow/40 rounded-full"
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           />
@@ -22,12 +22,12 @@ const Loading3D: React.FC = () => {
             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
           />
           <motion.div
-            className="absolute inset-4 border-4 border-yellow-400/80 rounded-full"
+            className="absolute inset-4 border-4 border-sunny-yellow/80 rounded-full"
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           />
           <motion.div
-            className="absolute inset-6 w-20 h-20 bg-gradient-to-r from-amber-400 to-sky-500 rounded-full flex items-center justify-center shadow-lg"
+            className="absolute inset-6 w-20 h-20 bg-gradient-to-r from-sunny-yellow to-sky-500 rounded-full flex items-center justify-center shadow-lg"
             animate={{ 
               scale: [1, 1.15, 1],
               opacity: [0.8, 1, 0.8]
@@ -49,7 +49,7 @@ const Loading3D: React.FC = () => {
 
         {/* Pet-themed Loading Text */}
         <motion.h2
-          className="text-3xl font-bold text-gray-800 mb-4"
+          className="text-3xl font-bold text-charcoal mb-4"
           animate={{ 
             opacity: [0.6, 1, 0.6],
             scale: [0.98, 1.02, 0.98]

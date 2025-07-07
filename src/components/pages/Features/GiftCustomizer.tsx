@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
-import { useCart } from '../../ui/CartContext';
+import { useCart } from '../../../hooks/useCart';
 import { useNavigate } from 'react-router-dom';
 
 interface Product {
@@ -185,13 +185,21 @@ const GiftCustomizer: React.FC = () => {
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
     try {
-      const giftBoxId = Date.now();
-      addItem({
+      const giftBoxId = `gift-box-${Date.now()}`;
+      const giftBoxProduct = {
         id: giftBoxId,
         name: `Custom Pet Gift Box (${Object.values(selections).flat().length} items)`,
+        brand: 'Pawsome',
         price: getTotalPrice(),
-        image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop"
-      });
+        image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop",
+        rating: 5,
+        reviews: 0,
+        category: 'gifts',
+        subcategory: 'custom-box',
+        inStock: true,
+        description: 'Your personalized pet gift box'
+      };
+      addItem(giftBoxProduct);
       setTimeout(() => { setIsAddingToCart(false); navigate('/cart'); }, 1500);
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -206,7 +214,7 @@ const GiftCustomizer: React.FC = () => {
             initial={{ opacity: 0, y: 30 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ duration: 0.8 }} 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-warm-orange text-center mb-12"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-sunny-yellow text-center mb-12"
           >
             Let's Wrap it !!!
           </motion.h1>
@@ -218,9 +226,9 @@ const GiftCustomizer: React.FC = () => {
                 onClick={() => setCurrentStep(step.id)} 
                 disabled={step.id > 1 && !isStepCompleted[step.id - 1]}
                 className={`px-6 py-3 rounded-full font-semibold text-sm md:text-base transition-all duration-300 ${
-                  step.id === currentStep ? 'bg-charcoal-gray text-white shadow-lg' : 
+                  step.id === currentStep ? 'bg-charcoal text-white shadow-lg' : 
                   isStepCompleted[step.id] ? 'bg-green-500 text-white shadow-md' :
-                  step.id === 1 || isStepCompleted[step.id - 1] ? 'bg-energetic-orange text-white hover:bg-warm-orange shadow-md' :
+                  step.id === 1 || isStepCompleted[step.id - 1] ? 'bg-vibrant-orange text-white hover:bg-sunny-yellow shadow-md' :
                   'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
                 whileHover={step.id === 1 || isStepCompleted[step.id - 1] ? { scale: 1.05 } : {}}
@@ -248,7 +256,7 @@ const GiftCustomizer: React.FC = () => {
               className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl"
             >
             <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-charcoal mb-4">
                 {steps[currentStep - 1].title}
               </h2>
               <p className="text-lg text-gray-600">
@@ -264,7 +272,7 @@ const GiftCustomizer: React.FC = () => {
                   <motion.div 
                     key={product.id} 
                     className={`relative bg-white rounded-2xl p-6 shadow-lg cursor-pointer transition-all duration-300 ${
-                      isSelected ? 'ring-4 ring-energetic-orange bg-gradient-to-br from-energetic-orange/5 to-warm-orange/5' : 'hover:shadow-xl hover:scale-105'
+                      isSelected ? 'ring-4 ring-vibrant-orange bg-gradient-to-br from-vibrant-orange/5 to-sunny-yellow/5' : 'hover:shadow-xl hover:scale-105'
                     }`} 
                     onClick={() => handleProductSelect(currentStep, product.id)} 
                     whileHover={{ y: -5 }} 
@@ -274,7 +282,7 @@ const GiftCustomizer: React.FC = () => {
                       <motion.div 
                         initial={{ scale: 0 }} 
                         animate={{ scale: 1 }} 
-                        className="absolute -top-2 -right-2 bg-energetic-orange text-white rounded-full p-2 shadow-lg z-10"
+                        className="absolute -top-2 -right-2 bg-vibrant-orange text-white rounded-full p-2 shadow-lg z-10"
                       >
                         <Check className="h-4 w-4" />
                       </motion.div>
@@ -289,14 +297,14 @@ const GiftCustomizer: React.FC = () => {
                           e.currentTarget.src = "https://via.placeholder.com/300x300/f0f0f0/999999?text=Product+Image"; 
                         }} 
                       />
-                      <h3 className="text-xl font-bold text-charcoal-gray mb-2">{product.name}</h3>
+                      <h3 className="text-xl font-bold text-charcoal mb-2">{product.name}</h3>
                       <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-                      <div className="text-2xl font-bold text-energetic-orange">Rs.{product.price}</div>
+                      <div className="text-2xl font-bold text-vibrant-orange">Rs.{product.price}</div>
                     </div>
                     
                     <div className="text-center">
                       <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
-                        isSelected ? 'bg-energetic-orange text-white' : 'bg-gray-100 text-charcoal-gray hover:bg-energetic-orange hover:text-white'
+                        isSelected ? 'bg-vibrant-orange text-white' : 'bg-gray-100 text-charcoal hover:bg-vibrant-orange hover:text-white'
                       }`}>
                         {isSelected ? 'Selected' : 'Select'}
                       </button>
@@ -311,7 +319,7 @@ const GiftCustomizer: React.FC = () => {
                 onClick={goToPreviousStep} 
                 disabled={currentStep === 1} 
                 className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  currentStep === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-charcoal-gray hover:bg-gray-200'
+                  currentStep === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-charcoal hover:bg-gray-200'
                 }`}
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -328,7 +336,7 @@ const GiftCustomizer: React.FC = () => {
                   onClick={goToNextStep} 
                   disabled={!canProceedToNext()} 
                   className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                    canProceedToNext() ? 'bg-gradient-to-r from-energetic-orange to-warm-orange text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    canProceedToNext() ? 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
                   <span>Next</span>
@@ -363,7 +371,7 @@ const GiftCustomizer: React.FC = () => {
 
       {/* Summary Sidebar (Fixed) */}
       <div className="fixed top-1/2 right-4 transform -translate-y-1/2 bg-white rounded-2xl p-6 shadow-xl border border-gray-200 w-80 hidden xl:block z-50">
-        <h3 className="text-xl font-bold text-charcoal-gray mb-4">Your Custom Box</h3>
+        <h3 className="text-xl font-bold text-charcoal mb-4">Your Custom Box</h3>
         
         <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
           {Object.entries(selections).map(([stepId, productIds]) => {
@@ -382,7 +390,7 @@ const GiftCustomizer: React.FC = () => {
                   return (
                     <div key={productId} className="flex justify-between items-center text-sm">
                       <span className="text-gray-600 truncate">{product.name}</span>
-                      <span className="font-semibold text-energetic-orange">Rs.{product.price}</span>
+                      <span className="font-semibold text-vibrant-orange">Rs.{product.price}</span>
                     </div>
                   );
                 })}
@@ -395,7 +403,7 @@ const GiftCustomizer: React.FC = () => {
           <div className="border-t border-gray-200 pt-4">
             <div className="flex justify-between items-center text-lg font-bold">
               <span>Total:</span>
-              <span className="text-energetic-orange">Rs.{getTotalPrice()}</span>
+              <span className="text-vibrant-orange">Rs.{getTotalPrice()}</span>
             </div>
             {getTotalPrice() >= 2000 && (
               <p className="text-green-600 text-sm mt-2">🚚 Free shipping included!</p>
@@ -416,9 +424,9 @@ const GiftCustomizer: React.FC = () => {
             className="bg-white rounded-2xl p-8 max-w-md text-center"
           >
             <div className="text-6xl mb-4">🎁</div>
-            <h3 className="text-2xl font-bold text-charcoal-gray mb-2">Gift Box Created!</h3>
+            <h3 className="text-2xl font-bold text-charcoal mb-2">Gift Box Created!</h3>
             <p className="text-gray-600 mb-4">Your custom pet gift box is being added to cart...</p>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-energetic-orange mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-vibrant-orange mx-auto"></div>
           </motion.div>
         </motion.div>
       )}

@@ -68,8 +68,8 @@ const Cart: React.FC = () => {
   };
 
   const benefits = [
-    { icon: Truck, text: 'Free Shipping on ₹200+', color: 'from-blue-400 to-blue-600' },
-    { icon: Shield, text: 'Secure Checkout', color: 'from-green-400 to-green-600' },
+    { icon: Truck, text: 'Free Shipping on ₹200+', color: 'from-primary-blue to-primary-blue' },
+    { icon: Shield, text: 'Secure Checkout', color: 'from-mint-green to-mint-green' },
     { icon: Clock, text: '24/7 Support', color: 'from-purple-400 to-purple-600' },
     { icon: Gift, text: 'Gift Wrapping Available', color: 'from-pink-400 to-pink-600' }
   ];
@@ -100,7 +100,7 @@ const Cart: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-pink-600 bg-clip-text text-transparent mb-4">My Cart</h1>
+            <h1 className="text-5xl font-fredoka font-bold bg-gradient-to-r from-vibrant-orange to-pink-600 bg-clip-text text-transparent mb-4">My Cart</h1>
           </motion.div>
           
           <motion.div 
@@ -114,14 +114,14 @@ const Cart: React.FC = () => {
               className="inline-block mb-6"
             >
               <div className="bg-gradient-to-br from-amber-100 to-pink-100 rounded-full p-8">
-                <ShoppingBag className="h-24 w-24 text-amber-600" />
+                <ShoppingBag className="h-24 w-24 text-vibrant-orange" />
               </div>
             </motion.div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
-            <p className="text-gray-600 mb-8 text-lg">Let's fill it with amazing products for your furry friends!</p>
+            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-4">Your cart is empty</h2>
+            <p className="text-charcoal mb-8 text-lg">Let's fill it with amazing products for your furry friends!</p>
             <motion.button 
               onClick={handleContinueShopping}
-              className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold px-10 py-4 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
+              className="bg-gradient-to-r from-sunny-yellow to-vibrant-orange hover:from-sunny-yellow hover:to-vibrant-orange text-white font-fredoka font-bold px-10 py-4 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -164,9 +164,9 @@ const Cart: React.FC = () => {
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">My Cart</h1>
-              <p className="text-xl text-gray-600 flex items-center">
-                <Package className="w-5 h-5 mr-2 text-amber-500" />
+              <h1 className="text-5xl font-fredoka font-bold bg-gradient-to-r from-vibrant-orange to-vibrant-orange bg-clip-text text-transparent mb-2">My Cart</h1>
+              <p className="text-xl text-charcoal flex items-center">
+                <Package className="w-5 h-5 mr-2 text-sunny-yellow" />
                 {formatters.pluralize(totalItems, 'item')} ready for checkout
               </p>
             </div>
@@ -175,7 +175,7 @@ const Cart: React.FC = () => {
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
               className="hidden md:block"
             >
-              <Sparkles className="w-12 h-12 text-amber-400" />
+              <Sparkles className="w-12 h-12 text-sunny-yellow" />
             </motion.div>
           </div>
         </motion.div>
@@ -197,7 +197,7 @@ const Cart: React.FC = () => {
               <div className={`bg-gradient-to-r ${benefit.color} w-12 h-12 rounded-xl flex items-center justify-center mb-2`}>
                 <benefit.icon className="w-6 h-6 text-white" />
               </div>
-              <p className="text-sm font-medium text-gray-700">{benefit.text}</p>
+              <p className="text-sm font-fredoka font-medium text-charcoal">{benefit.text}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -212,17 +212,17 @@ const Cart: React.FC = () => {
             <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden">
               <div className="p-8 bg-gradient-to-r from-amber-50 to-orange-50 flex justify-between items-center">
                 <div className="flex items-center">
-                  <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl p-3 mr-4">
+                  <div className="bg-gradient-to-r from-sunny-yellow to-vibrant-orange rounded-2xl p-3 mr-4">
                     <ShoppingBag className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Shopping Cart</h2>
-                    <p className="text-sm text-gray-600">{totalItems} items selected</p>
+                    <h2 className="text-2xl font-fredoka font-bold text-charcoal">Shopping Cart</h2>
+                    <p className="text-sm text-charcoal">{totalItems} items selected</p>
                   </div>
                 </div>
                 <motion.button
                   onClick={clearCart}
-                  className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors flex items-center"
+                  className="text-sm text-red-500 hover:text-red-700 font-fredoka font-medium transition-colors flex items-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -231,12 +231,12 @@ const Cart: React.FC = () => {
                 </motion.button>
               </div>
               
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-soft-gray">
                 <AnimatePresence>
                   {cart.map((item, index) => (
                     <motion.div 
                       key={item.id} 
-                      className="p-6 hover:bg-gray-50/50 transition-colors"
+                      className="p-6 hover:bg-soft-gray/50 transition-colors"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ 
                         opacity: removingItem === item.id ? 0 : 1, 
@@ -269,7 +269,7 @@ const Cart: React.FC = () => {
                         </motion.div>
                         
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-800 text-lg flex items-center">
+                          <h3 className="font-fredoka font-bold text-charcoal text-lg flex items-center">
                             {item.product.name}
                             {hoveredItem === item.id && (
                               <motion.span
@@ -281,31 +281,31 @@ const Cart: React.FC = () => {
                               </motion.span>
                             )}
                           </h3>
-                          <p className="text-sm text-gray-600 flex items-center mt-1">
-                            <Star className="w-3 h-3 text-amber-400 mr-1" />
+                          <p className="text-sm text-charcoal flex items-center mt-1">
+                            <Star className="w-3 h-3 text-sunny-yellow mr-1" />
                             {item.product.brand}
                           </p>
                           <motion.p 
-                            className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mt-2"
+                            className="text-xl font-fredoka font-bold bg-gradient-to-r from-mint-green to-mint-green bg-clip-text text-transparent mt-2"
                             animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
                           >
                             {formatters.currency(item.product.price)}
                           </motion.p>
                         </div>
                         
-                        <div className="flex items-center bg-gray-100 rounded-full p-1">
+                        <div className="flex items-center bg-soft-gray rounded-full p-1">
                           <motion.button 
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="bg-white hover:bg-gray-50 p-2 rounded-full transition-all shadow-sm hover:shadow-md"
+                            className="bg-white hover:bg-soft-gray p-2 rounded-full transition-all shadow-sm hover:shadow-md"
                             disabled={item.quantity <= 1}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
-                            <Minus className="h-4 w-4 text-gray-600" />
+                            <Minus className="h-4 w-4 text-charcoal" />
                           </motion.button>
                           
                           <motion.span 
-                            className="w-12 text-center font-bold text-gray-800 text-lg"
+                            className="w-12 text-center font-fredoka font-bold text-charcoal text-lg"
                             key={item.quantity}
                             animate={{ scale: [1, 1.2, 1] }}
                             transition={{ duration: 0.3 }}
@@ -315,18 +315,18 @@ const Cart: React.FC = () => {
                           
                           <motion.button 
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="bg-white hover:bg-gray-50 p-2 rounded-full transition-all shadow-sm hover:shadow-md"
+                            className="bg-white hover:bg-soft-gray p-2 rounded-full transition-all shadow-sm hover:shadow-md"
                             disabled={item.quantity >= 99}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
-                            <Plus className="h-4 w-4 text-gray-600" />
+                            <Plus className="h-4 w-4 text-charcoal" />
                           </motion.button>
                         </div>
                         
                         <div className="text-right">
                           <motion.p 
-                            className="font-bold text-2xl text-gray-800"
+                            className="font-fredoka font-bold text-2xl text-charcoal"
                             animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
                           >
                             {formatters.currency(item.product.price * item.quantity)}
@@ -358,7 +358,7 @@ const Cart: React.FC = () => {
             <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 sticky top-6 border border-white/50 overflow-hidden">
               {/* Animated Background Pattern */}
               <div className="absolute inset-0 opacity-5">
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-sunny-yellow to-vibrant-orange"></div>
               </div>
               
               <div className="relative z-10">
@@ -366,17 +366,17 @@ const Cart: React.FC = () => {
                   <div className="bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl p-3 mr-3">
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-800">Order Summary</h2>
+                  <h2 className="text-2xl font-fredoka font-bold text-charcoal">Order Summary</h2>
                 </div>
               
                 <div className="space-y-4 mb-8">
                   <motion.div 
-                    className="flex justify-between items-center p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                    className="flex justify-between items-center p-3 rounded-xl hover:bg-soft-gray transition-colors"
                     whileHover={{ x: 5 }}
                   >
-                    <span className="text-gray-600 font-medium">Subtotal</span>
+                    <span className="text-charcoal font-fredoka font-medium">Subtotal</span>
                     <motion.span 
-                      className="font-bold text-lg"
+                      className="font-fredoka font-bold text-lg"
                       key={totalPrice}
                       animate={{ scale: [1, 1.1, 1] }}
                     >
@@ -385,17 +385,17 @@ const Cart: React.FC = () => {
                   </motion.div>
                   
                   <motion.div 
-                    className="flex justify-between items-center p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                    className="flex justify-between items-center p-3 rounded-xl hover:bg-soft-gray transition-colors"
                     whileHover={{ x: 5 }}
                   >
-                    <span className="text-gray-600 font-medium flex items-center">
+                    <span className="text-charcoal font-fredoka font-medium flex items-center">
                       <Truck className="w-4 h-4 mr-2" />
                       Shipping
                     </span>
-                    <span className="font-bold">
+                    <span className="font-fredoka font-bold">
                       {getShippingCost() === 0 ? (
                         <motion.span 
-                          className="text-green-600 flex items-center"
+                          className="text-mint-green flex items-center"
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           transition={{ type: "spring", stiffness: 300 }}
@@ -411,20 +411,20 @@ const Cart: React.FC = () => {
                   
                   {totalPrice < 20000 && (
                     <motion.div 
-                      className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4"
+                      className="bg-gradient-to-r from-amber-50 to-orange-50 border border-sunny-yellow rounded-2xl p-4"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
                     >
                       <div className="flex items-start">
-                        <Zap className="w-5 h-5 text-amber-600 mr-2 flex-shrink-0 mt-0.5" />
+                        <Zap className="w-5 h-5 text-vibrant-orange mr-2 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm font-bold text-amber-800">
+                          <p className="text-sm font-fredoka font-bold text-vibrant-orange">
                             You're {formatters.currency(20000 - totalPrice)} away from FREE shipping!
                           </p>
-                          <div className="mt-2 bg-gray-200 rounded-full h-2 overflow-hidden">
+                          <div className="mt-2 bg-light-gray rounded-full h-2 overflow-hidden">
                             <motion.div 
-                              className="h-full bg-gradient-to-r from-amber-400 to-orange-500"
+                              className="h-full bg-gradient-to-r from-sunny-yellow to-vibrant-orange"
                               initial={{ width: 0 }}
                               animate={{ width: `${(totalPrice / 20000) * 100}%` }}
                               transition={{ duration: 1, ease: "easeOut" }}
@@ -435,11 +435,11 @@ const Cart: React.FC = () => {
                     </motion.div>
                   )}
                   
-                  <div className="border-t-2 border-gray-100 pt-6">
+                  <div className="border-t-2 border-soft-gray pt-6">
                     <div className="flex justify-between items-center">
-                      <span className="text-xl font-bold text-gray-800">Total</span>
+                      <span className="text-xl font-fredoka font-bold text-charcoal">Total</span>
                       <motion.span 
-                        className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent"
+                        className="text-3xl font-fredoka font-bold bg-gradient-to-r from-vibrant-orange to-vibrant-orange bg-clip-text text-transparent"
                         key={getFinalTotal()}
                         animate={{ scale: [1, 1.05, 1] }}
                       >
@@ -456,8 +456,8 @@ const Cart: React.FC = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 rounded-2xl"></div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-600 via-orange-700 to-pink-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold py-4 rounded-2xl flex items-center justify-center space-x-2 shadow-xl">
+                  <div className="absolute inset-0 bg-gradient-to-r from-vibrant-orange via-vibrant-orange to-pink-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="relative bg-gradient-to-r from-sunny-yellow to-vibrant-orange text-white font-fredoka font-bold py-4 rounded-2xl flex items-center justify-center space-x-2 shadow-xl">
                     <Sparkles className="w-5 h-5" />
                     <span className="text-lg">Proceed to Checkout</span>
                     <motion.div
@@ -471,7 +471,7 @@ const Cart: React.FC = () => {
                 
                 <motion.button 
                   onClick={handleContinueShopping}
-                  className="w-full bg-white border-2 border-gray-200 hover:border-amber-400 hover:bg-amber-50 text-gray-700 font-medium py-4 rounded-2xl transition-all duration-300"
+                  className="w-full bg-white border-2 border-light-gray hover:border-sunny-yellow hover:bg-amber-50 text-charcoal font-fredoka font-medium py-4 rounded-2xl transition-all duration-300"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -480,13 +480,13 @@ const Cart: React.FC = () => {
                 
                 {/* Security Features */}
                 <div className="mt-8 space-y-3">
-                  <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
+                  <div className="flex items-center justify-center space-x-6 text-sm text-charcoal">
                     <div className="flex items-center">
-                      <Shield className="w-4 h-4 mr-1 text-green-500" />
+                      <Shield className="w-4 h-4 mr-1 text-mint-green" />
                       Secure
                     </div>
                     <div className="flex items-center">
-                      <Lock className="w-4 h-4 mr-1 text-blue-500" />
+                      <Lock className="w-4 h-4 mr-1 text-primary-blue" />
                       Encrypted
                     </div>
                     <div className="flex items-center">
@@ -516,11 +516,11 @@ const Cart: React.FC = () => {
                   </button>
                   <div className="flex items-center mb-3">
                     <Gift className="w-8 h-8 mr-3" />
-                    <h3 className="text-xl font-bold">Special Offer!</h3>
+                    <h3 className="text-xl font-fredoka font-bold">Special Offer!</h3>
                   </div>
                   <p className="text-white/90 mb-4">Get 10% off your next order with code PAWSOME10</p>
                   <motion.button 
-                    className="bg-white text-purple-600 font-bold py-2 px-6 rounded-full text-sm"
+                    className="bg-white text-purple-600 font-fredoka font-bold py-2 px-6 rounded-full text-sm"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >

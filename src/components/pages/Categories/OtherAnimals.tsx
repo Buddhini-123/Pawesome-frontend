@@ -66,12 +66,12 @@ const OtherAnimals: React.FC = () => {
   }, [selectedFilters, sortBy]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-soft-gray">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-charcoal-gray mb-4">Other Animals</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-3xl font-fredoka font-bold text-charcoal mb-4">Other Animals</h1>
+          <p className="text-lg text-medium-gray">
             Products for rabbits, hamsters, fish, reptiles, and other beloved pets
           </p>
         </div>
@@ -80,32 +80,32 @@ const OtherAnimals: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-3xl mb-2">🐰</div>
-            <h3 className="text-sm font-semibold text-charcoal-gray">Rabbits</h3>
+            <h3 className="text-sm font-fredoka font-semibold text-charcoal">Rabbits</h3>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-3xl mb-2">🐹</div>
-            <h3 className="text-sm font-semibold text-charcoal-gray">Hamsters</h3>
+            <h3 className="text-sm font-fredoka font-semibold text-charcoal">Hamsters</h3>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-3xl mb-2">🐠</div>
-            <h3 className="text-sm font-semibold text-charcoal-gray">Fish</h3>
+            <h3 className="text-sm font-fredoka font-semibold text-charcoal">Fish</h3>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-3xl mb-2">🦎</div>
-            <h3 className="text-sm font-semibold text-charcoal-gray">Reptiles</h3>
+            <h3 className="text-sm font-fredoka font-semibold text-charcoal">Reptiles</h3>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-3xl mb-2">🐾</div>
-            <h3 className="text-sm font-semibold text-charcoal-gray">Guinea Pigs</h3>
+            <h3 className="text-sm font-fredoka font-semibold text-charcoal">Guinea Pigs</h3>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-3xl mb-2">🦘</div>
-            <h3 className="text-sm font-semibold text-charcoal-gray">Ferrets</h3>
+            <h3 className="text-sm font-fredoka font-semibold text-charcoal">Ferrets</h3>
           </div>
         </div>
 
@@ -114,22 +114,22 @@ const OtherAnimals: React.FC = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden flex items-center gap-2 text-charcoal-gray hover:text-energetic-orange"
+              className="lg:hidden flex items-center gap-2 text-charcoal hover:text-vibrant-orange"
             >
               <Filter className="h-5 w-5" />
-              <span className="font-medium">Filters</span>
+              <span className="font-fredoka font-medium">Filters</span>
             </button>
-            <p className="text-gray-600">
+            <p className="text-medium-gray">
               Showing {filteredProducts.length} products
             </p>
           </div>
           
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">Sort by:</label>
+            <label className="text-sm font-fredoka text-medium-gray">Sort by:</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-energetic-orange"
+              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-vibrant-orange"
             >
               <option value="featured">Featured</option>
               <option value="price-low">Price: Low to High</option>
@@ -161,10 +161,10 @@ const OtherAnimals: React.FC = () => {
             {filteredProducts.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🐾</div>
-                <p className="text-xl text-gray-600">No products found matching your filters</p>
+                <p className="text-xl font-fredoka text-medium-gray">No products found matching your filters</p>
                 <button
                   onClick={() => setSelectedFilters({})}
-                  className="mt-4 text-energetic-orange hover:text-orange-600"
+                  className="mt-4 text-vibrant-orange font-fredoka hover:text-orange-600"
                 >
                   Clear all filters
                 </button>
@@ -180,7 +180,7 @@ const OtherAnimals: React.FC = () => {
           <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowMobileFilters(false)} />
           <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl">
             <div className="p-4 border-b flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Filters</h2>
+              <h2 className="text-xl font-fredoka font-semibold">Filters</h2>
               <button onClick={() => setShowMobileFilters(false)}>
                 <X className="h-6 w-6" />
               </button>

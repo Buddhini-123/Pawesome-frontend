@@ -48,7 +48,7 @@ const Login: React.FC = () => {
               className="h-16 w-auto object-contain"
             />
           </div>
-          <p className="text-calm-blue text-base leading-relaxed font-figtree">
+          <p className="text-primary-blue text-base leading-relaxed font-fredoka">
             Sign in to your Pawsome pet care account to order your pet food, manage your rewards, get advises and more !
           </p>
         </div>
@@ -63,8 +63,8 @@ const Login: React.FC = () => {
 
         {/* New member link */}
         <div className="text-center mb-6">
-          <span className="text-gray-700 text-base font-figtree">New Member? </span>
-          <Link to="/register" className="text-energetic-orange font-medium text-base hover:underline">
+          <span className="text-medium-gray text-base font-fredoka">New Member? </span>
+          <Link to="/register" className="text-vibrant-orange font-fredoka font-medium text-base hover:underline">
             Create Account
           </Link>
         </div>
@@ -77,7 +77,7 @@ const Login: React.FC = () => {
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 text-base font-figtree rounded-full bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
+              className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
               required
               disabled={isLoading}
             />
@@ -89,7 +89,7 @@ const Login: React.FC = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-full text-base font-figtree bg-off-white focus:outline-none focus:ring-2 focus:ring-calm-blue focus:border-transparent"
+              className="w-full px-4 py-3 rounded-full text-base font-fredoka bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
               required
               disabled={isLoading}
             />
@@ -98,14 +98,14 @@ const Login: React.FC = () => {
           <div className="flex items-center mt-4 px-8">
             <Link 
               to="/forgot-password" 
-              className="text-energetic-orange text-base font-medium hover:underline whitespace-nowrap"
+              className="text-vibrant-orange text-base font-fredoka font-medium hover:underline whitespace-nowrap"
             >
               Forgot Password ?
             </Link>
 
             <button 
               type="submit" 
-              className="bg-energetic-orange hover:bg-orange-600 text-white text-base font-medium py-3 px-14 rounded-full transition-colors ml-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-vibrant-orange hover:bg-sunny-yellow hover:text-charcoal text-white text-base font-fredoka font-medium py-3 px-14 rounded-full transition-colors ml-4 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
@@ -115,20 +115,20 @@ const Login: React.FC = () => {
 
         {/* Demo credentials */}
         <div className="mt-6 p-4 bg-amber-50 rounded-lg">
-          <p className="text-sm text-gray-700 font-medium mb-2">Demo Credentials:</p>
-          <p className="text-xs text-gray-600">Email: demo@pawsome.com</p>
-          <p className="text-xs text-gray-600">Password: demo123</p>
+          <p className="text-sm text-medium-gray font-fredoka font-medium mb-2">Demo Credentials:</p>
+          <p className="text-xs text-medium-gray">Email: demo@pawsome.com</p>
+          <p className="text-xs text-medium-gray">Password: demo123</p>
         </div>
 
         {/* Terms and privacy */}
         <div className="text-center mt-7 space-y-4">
-          <p className="text-xs text-calm-blue">
+          <p className="text-xs text-primary-blue">
             By signing in you confirm that you accept our{' '}
             <Link to="/terms" className="underline hover:text-blue-600">
               Account Terms and Conditions
             </Link>.
           </p>
-          <p className="text-xs text-calm-blue">
+          <p className="text-xs text-primary-blue">
             You also acknowledge{' '}
             <Link to="/privacy" className="underline hover:text-blue-600">
               Pawsome's privacy policy

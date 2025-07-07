@@ -20,7 +20,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           className="object-contain w-full h-16" />
       </div>
 
-      <h3 className="font-medium text-natural-sage text-sm mb-1 truncate">
+      <h3 className="font-fredoka font-medium text-mint-green text-sm mb-1 truncate">
         {product.name}
       </h3>
 
@@ -28,7 +28,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <StarRating rating={product.rating} size="sm" />
       </div>
 
-      <p className="font-medium text-orange-600 text-sm">
+      <p className="font-fredoka font-medium text-vibrant-orange text-sm">
         Rs. {product.price}
       </p>
     </div>

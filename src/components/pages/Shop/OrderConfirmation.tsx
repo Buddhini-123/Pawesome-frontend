@@ -35,7 +35,7 @@ const OrderConfirmation: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunny-yellow"></div>
       </div>
     );
   }
@@ -48,29 +48,29 @@ const OrderConfirmation: React.FC = () => {
   expectedDelivery.setDate(expectedDelivery.getDate() + 3); // 3 days delivery
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-soft-gray">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           {/* Success Message */}
           <div className="bg-white rounded-lg shadow-md p-8 text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-              <CheckCircle className="h-10 w-10 text-green-600" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-mint-green bg-opacity-20 rounded-full mb-6">
+              <CheckCircle className="h-10 w-10 text-mint-green" />
             </div>
             
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-3xl font-fredoka font-bold text-charcoal mb-4">
               Order Placed Successfully!
             </h1>
             
-            <p className="text-lg text-gray-600 mb-2">
+            <p className="text-lg text-charcoal mb-2">
               Thank you for your order
             </p>
             
-            <p className="text-sm text-gray-500 mb-6">
-              Order ID: <span className="font-mono font-bold">{order.id}</span>
+            <p className="text-sm text-medium-gray mb-6">
+              Order ID: <span className="font-mono font-fredoka font-bold">{order.id}</span>
             </p>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <p className="text-amber-800">
+            <div className="bg-amber-50 border border-sunny-yellow rounded-lg p-4 mb-6">
+              <p className="text-vibrant-orange">
                 We've sent a confirmation email to <strong>{order.userEmail}</strong>
               </p>
             </div>
@@ -78,41 +78,41 @@ const OrderConfirmation: React.FC = () => {
 
           {/* Order Timeline */}
           <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-            <h2 className="text-xl font-bold mb-6">Order Timeline</h2>
+            <h2 className="text-xl font-fredoka font-bold mb-6">Order Timeline</h2>
             
             <div className="relative">
-              <div className="absolute left-5 top-8 bottom-0 w-0.5 bg-gray-200"></div>
+              <div className="absolute left-5 top-8 bottom-0 w-0.5 bg-light-gray"></div>
               
               <div className="space-y-8">
                 <div className="flex items-start">
-                  <div className="relative z-10 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="relative z-10 w-10 h-10 bg-mint-green rounded-full flex items-center justify-center">
                     <Package className="h-5 w-5 text-white" />
                   </div>
                   <div className="ml-6">
-                    <h3 className="font-semibold text-green-600">Order Confirmed</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="font-fredoka font-semibold text-mint-green">Order Confirmed</h3>
+                    <p className="text-sm text-medium-gray">
                       {formatters.date(order.createdAt)}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start">
-                  <div className="relative z-10 w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                  <div className="relative z-10 w-10 h-10 bg-light-gray rounded-full flex items-center justify-center">
                     <Truck className="h-5 w-5 text-white" />
                   </div>
                   <div className="ml-6">
-                    <h3 className="font-semibold text-gray-400">Out for Delivery</h3>
-                    <p className="text-sm text-gray-400">Pending</p>
+                    <h3 className="font-fredoka font-semibold text-medium-gray">Out for Delivery</h3>
+                    <p className="text-sm text-medium-gray">Pending</p>
                   </div>
                 </div>
 
                 <div className="flex items-start">
-                  <div className="relative z-10 w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                  <div className="relative z-10 w-10 h-10 bg-light-gray rounded-full flex items-center justify-center">
                     <Home className="h-5 w-5 text-white" />
                   </div>
                   <div className="ml-6">
-                    <h3 className="font-semibold text-gray-400">Delivered</h3>
-                    <p className="text-sm text-gray-400">
+                    <h3 className="font-fredoka font-semibold text-medium-gray">Delivered</h3>
+                    <p className="text-sm text-medium-gray">
                       Expected by {formatters.date(expectedDelivery)}
                     </p>
                   </div>
@@ -123,16 +123,16 @@ const OrderConfirmation: React.FC = () => {
 
           {/* Order Details */}
           <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-            <h2 className="text-xl font-bold mb-6">Order Details</h2>
+            <h2 className="text-xl font-fredoka font-bold mb-6">Order Details</h2>
             
             <div className="space-y-4">
               {order.items.map((item) => (
                 <div key={item.productId} className="flex justify-between py-3 border-b">
                   <div>
-                    <p className="font-medium">{item.productName}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                    <p className="font-fredoka font-medium">{item.productName}</p>
+                    <p className="text-sm text-medium-gray">Qty: {item.quantity}</p>
                   </div>
-                  <p className="font-medium">
+                  <p className="font-fredoka font-medium">
                     {formatters.currency(item.price * item.quantity)}
                   </p>
                 </div>
@@ -147,13 +147,13 @@ const OrderConfirmation: React.FC = () => {
                   <span>Shipping</span>
                   <span>
                     {order.shippingCost === 0 ? (
-                      <span className="text-green-600">FREE</span>
+                      <span className="text-mint-green">FREE</span>
                     ) : (
                       formatters.currency(order.shippingCost)
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                <div className="flex justify-between font-fredoka font-bold text-lg pt-2 border-t">
                   <span>Total</span>
                   <span>{formatters.currency(order.totalAmount)}</span>
                 </div>
@@ -163,9 +163,9 @@ const OrderConfirmation: React.FC = () => {
 
           {/* Shipping Address */}
           <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-            <h2 className="text-xl font-bold mb-4">Shipping Address</h2>
-            <div className="text-gray-600">
-              <p className="font-medium text-gray-900">{order.shippingAddress.fullName}</p>
+            <h2 className="text-xl font-fredoka font-bold mb-4">Shipping Address</h2>
+            <div className="text-charcoal">
+              <p className="font-fredoka font-medium text-charcoal">{order.shippingAddress.fullName}</p>
               <p>{order.shippingAddress.address}</p>
               <p>{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}</p>
               <p>Phone: {order.shippingAddress.phone}</p>
@@ -176,13 +176,13 @@ const OrderConfirmation: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/orders"
-              className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-center"
+              className="px-6 py-3 bg-vibrant-orange text-white rounded-lg hover:bg-vibrant-orange text-center"
             >
               View All Orders
             </Link>
             <Link
               to="/"
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-center"
+              className="px-6 py-3 border border-light-gray rounded-lg text-charcoal hover:bg-soft-gray text-center"
             >
               Continue Shopping
             </Link>

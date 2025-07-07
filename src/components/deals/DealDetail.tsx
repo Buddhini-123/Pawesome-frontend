@@ -84,10 +84,10 @@ const DealDetail: React.FC = () => {
     return (
       <div className="min-h-screen bg-off-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-charcoal-gray mb-4">Deal Not Found</h1>
+          <h1 className="text-2xl font-fredoka font-bold text-charcoal mb-4">Deal Not Found</h1>
           <button 
             onClick={() => navigate('/deals')}
-            className="bg-energetic-orange text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors"
+            className="bg-vibrant-orange text-white px-6 py-3 rounded-lg font-fredoka hover:bg-vibrant-orange/90 transition-colors"
           >
             Back to Deals
           </button>
@@ -107,7 +107,7 @@ const DealDetail: React.FC = () => {
         <div className="container mx-auto px-4 py-4">
           <button 
             onClick={handleBackClick}
-            className="flex items-center text-charcoal-gray hover:text-energetic-orange transition-colors"
+            className="flex items-center text-charcoal hover:text-vibrant-orange transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Deals
@@ -129,16 +129,16 @@ const DealDetail: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="relative bg-gradient-to-r from-energetic-orange to-calm-blue rounded-2xl overflow-hidden h-96"
+              className="relative bg-gradient-to-r from-vibrant-orange to-primary-blue rounded-2xl overflow-hidden h-96"
             >
               <img 
                 src={deal.image || '/api/placeholder/400/400'} 
                 alt={deal.title}
                 className="absolute right-0 top-0 h-full w-1/2 object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-energetic-orange via-energetic-orange/90 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-vibrant-orange via-vibrant-orange/90 to-transparent"></div>
               <div className="relative z-10 p-8 h-full flex flex-col justify-center">
-                <h1 className="text-white font-bold text-3xl leading-tight mb-4">
+                <h1 className="text-white font-fredoka font-bold text-3xl leading-tight mb-4">
                   {deal.title}
                 </h1>
                 <p className="text-white text-lg opacity-90">
@@ -155,7 +155,7 @@ const DealDetail: React.FC = () => {
               className="space-y-6"
             >
               {/* Offer Badge */}
-              <div className="inline-flex items-center bg-energetic-orange/10 text-energetic-orange px-4 py-2 rounded-full">
+              <div className="inline-flex items-center bg-vibrant-orange/10 text-vibrant-orange px-4 py-2 rounded-full">
                 <Tag className="w-4 h-4 mr-2" />
                 {deal.offerType === 'buy-get-free' && 'Buy 2, Get 1 Free on All Flavors'}
                 {deal.offerType === 'free-shipping' && 'Free Shipping on Every Subscription Plan'}
@@ -167,28 +167,28 @@ const DealDetail: React.FC = () => {
 
               {/* Description */}
               <div>
-                <h2 className="text-2xl font-bold text-charcoal-gray mb-4">About This Deal</h2>
-                <p className="text-gray-600 text-lg leading-relaxed">
+                <h2 className="text-2xl font-fredoka font-bold text-charcoal mb-4">About This Deal</h2>
+                <p className="text-charcoal text-lg leading-relaxed">
                   {deal.description}
                 </p>
               </div>
 
               {/* Deal Details */}
               <div className="bg-white rounded-xl p-6 shadow-sm">
-                <h3 className="text-xl font-semibold text-charcoal-gray mb-4">Deal Details</h3>
+                <h3 className="text-xl font-fredoka font-semibold text-charcoal mb-4">Deal Details</h3>
                 <div className="space-y-3">
                   {deal.validUntil && (
-                    <div className="flex items-center text-gray-600">
-                      <Clock className="w-5 h-5 mr-3 text-energetic-orange" />
+                    <div className="flex items-center text-charcoal">
+                      <Clock className="w-5 h-5 mr-3 text-vibrant-orange" />
                       Valid until {deal.validUntil.toLocaleDateString()}
                     </div>
                   )}
                   <div className="flex items-center text-gray-600">
-                    <Star className="w-5 h-5 mr-3 text-energetic-orange" />
+                    <Star className="w-5 h-5 mr-3 text-vibrant-orange" />
                     Premium quality products included
                   </div>
                   <div className="flex items-center text-gray-600">
-                    <Heart className="w-5 h-5 mr-3 text-energetic-orange" />
+                    <Heart className="w-5 h-5 mr-3 text-vibrant-orange" />
                     Perfect for all dog breeds and sizes
                   </div>
                 </div>
@@ -196,10 +196,10 @@ const DealDetail: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="flex-1 bg-energetic-orange text-white px-8 py-4 rounded-lg font-semibold hover:bg-orange-600 transition-colors">
+                <button className="flex-1 bg-vibrant-orange text-white px-8 py-4 rounded-lg font-fredoka font-semibold hover:bg-vibrant-orange/90 transition-colors">
                   Claim This Deal
                 </button>
-                <button className="flex-1 border-2 border-energetic-orange text-energetic-orange px-8 py-4 rounded-lg font-semibold hover:bg-energetic-orange hover:text-white transition-colors">
+                <button className="flex-1 border-2 border-vibrant-orange text-vibrant-orange px-8 py-4 rounded-lg font-fredoka font-semibold hover:bg-vibrant-orange hover:text-white transition-colors">
                   Learn More
                 </button>
               </div>
@@ -213,17 +213,17 @@ const DealDetail: React.FC = () => {
             transition={{ delay: 0.6, duration: 0.5 }}
             className="bg-white rounded-2xl p-8"
           >
-            <h3 className="text-2xl font-bold text-charcoal-gray mb-6">Products Included in This Deal</h3>
+            <h3 className="text-2xl font-fredoka font-bold text-charcoal mb-6">Products Included in This Deal</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Mock related products */}
               {[1, 2, 3].map((product) => (
                 <div key={product} className="border border-light-gray rounded-xl p-4 hover:shadow-md transition-shadow">
-                  <div className="bg-gray-100 rounded-lg h-32 mb-4"></div>
-                  <h4 className="font-semibold text-charcoal-gray mb-2">Premium Dog Food {product}</h4>
-                  <p className="text-gray-600 text-sm mb-3">High-quality nutrition for your furry friend</p>
+                  <div className="bg-off-white rounded-lg h-32 mb-4"></div>
+                  <h4 className="font-fredoka font-semibold text-charcoal mb-2">Premium Dog Food {product}</h4>
+                  <p className="text-charcoal text-sm mb-3">High-quality nutrition for your furry friend</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-energetic-orange">Rs.999</span>
-                    <button className="bg-energetic-orange text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors">
+                    <span className="text-lg font-fredoka font-bold text-vibrant-orange">Rs.999</span>
+                    <button className="bg-vibrant-orange text-white px-4 py-2 rounded-lg text-sm font-fredoka hover:bg-vibrant-orange/90 transition-colors">
                       Add to Cart
                     </button>
                   </div>
