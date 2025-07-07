@@ -158,7 +158,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             inStock 
               ? isAdded
                 ? 'bg-mint-green text-white'
-                : 'bg-vibrant-orange text-white hover:bg-sunny-yellow hover:shadow-lg hover:scale-105 btn-bounce transition-colors'
+                : 'bg-warm-orange text-white hover:bg-sunny-yellow hover:shadow-lg hover:scale-105 btn-bounce transition-colors'
               : 'bg-light-gray text-medium-gray cursor-not-allowed'
           }`}
         >

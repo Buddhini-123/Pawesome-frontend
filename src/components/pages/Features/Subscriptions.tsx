@@ -766,7 +766,7 @@ const Subscriptions = () => {
                     onClick={() => setSelectedCategory('all')}
                     className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
                       selectedCategory === 'all'
-                        ? 'bg-vibrant-orange text-white'
+                        ? 'bg-warm-orange text-white'
                         : 'bg-white text-medium-gray hover:bg-light-gray'
                     }`}
                   >
@@ -776,7 +776,7 @@ const Subscriptions = () => {
                     onClick={() => setSelectedCategory('dogs')}
                     className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
                       selectedCategory === 'dogs'
-                        ? 'bg-vibrant-orange text-white'
+                        ? 'bg-warm-orange text-white'
                         : 'bg-white text-medium-gray hover:bg-light-gray'
                     }`}
                   >
@@ -786,7 +786,7 @@ const Subscriptions = () => {
                     onClick={() => setSelectedCategory('cats')}
                     className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
                       selectedCategory === 'cats'
-                        ? 'bg-vibrant-orange text-white'
+                        ? 'bg-warm-orange text-white'
                         : 'bg-white text-medium-gray hover:bg-light-gray'
                     }`}
                   >
@@ -796,7 +796,7 @@ const Subscriptions = () => {
                     onClick={() => setSelectedCategory('birds')}
                     className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
                       selectedCategory === 'birds'
-                        ? 'bg-vibrant-orange text-white'
+                        ? 'bg-warm-orange text-white'
                         : 'bg-white text-medium-gray hover:bg-light-gray'
                     }`}
                   >
@@ -806,7 +806,7 @@ const Subscriptions = () => {
                     onClick={() => setSelectedCategory('other')}
                     className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
                       selectedCategory === 'other'
-                        ? 'bg-vibrant-orange text-white'
+                        ? 'bg-warm-orange text-white'
                         : 'bg-white text-medium-gray hover:bg-light-gray'
                     }`}
                   >
@@ -1525,7 +1525,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
             className={`flex-1 text-xs font-fredoka font-medium py-2 px-3 rounded-lg transition-colors ${
               isSelected 
                 ? 'bg-red-500 hover:bg-red-600 text-white' 
-                : 'bg-vibrant-orange hover:bg-sunny-yellow text-white'
+                : 'bg-warm-orange hover:bg-vibrant-yellow text-white'
             }`}
           >
             {isSelected ? 'Remove' : 'Add'}
