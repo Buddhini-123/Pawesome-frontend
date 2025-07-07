@@ -85,10 +85,10 @@ const Header: React.FC = () => {
   return (
     <header className={`w-full sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
       {/* Top notification bar - Hidden on mobile */}
-      <div className="hidden md:block w-full bg-vibrant-orange py-2 px-4">
+      <div className="hidden md:block w-full bg-warm-orange py-2 px-4">
         <div className="container mx-auto flex justify-between items-center">
           <div className="text-sm font-fredoka font-medium text-white flex items-center">
-            <span className="mr-2 animate-bounce-slow">🐾</span>
+            <span className="mr-2 animate-bounce-slow text-warm-orange">🐾</span>
             FREE SHIPPING on orders above ₹20,000 🚚
           </div>
           <div className="flex space-x-4 text-sm">
