@@ -87,12 +87,12 @@ const Header: React.FC = () => {
       {/* Top notification bar - Hidden on mobile */}
       <div className="hidden md:block w-full bg-warm-orange py-2 px-4">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="text-sm font-fredoka font-medium text-white flex items-center">
-            <span className="mr-2 animate-bounce-slow text-warm-orange">🐾</span>
-            FREE SHIPPING on orders above ₹20,000 🚚
+          <div className="text-sm font-fredoka font-medium text-charcoal flex items-center">
+            <span className="mr-2 animate-bounce-slow">🐾</span>
+            FREE1 SHIPPING on orders above ₹20,000 🚚
           </div>
           <div className="flex space-x-4 text-sm">
-            <Link to="/contact" className="text-white hover:text-warm-white transition-colors font-nunito">
+            <Link to="/contact" className="text-charcoal hover:text-warm-white transition-colors font-nunito">
               📞 Contact Us
             </Link>
             <div className="flex items-center">
@@ -141,7 +141,7 @@ const Header: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <Link to="/login" className="text-white hover:text-warm-white transition-colors flex items-center font-nunito">
+                <Link to="/login" className="text-charcoal hover:text-warm-white transition-colors flex items-center font-nunito">
                   <User className="h-4 w-4 mr-1" />
                   Sign In
                 </Link>

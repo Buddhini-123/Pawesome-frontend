@@ -246,11 +246,11 @@ const Subscriptions = () => {
         <div className="text-center mb-12">
           <div className="flex justify-center items-center mb-6">
             <Package className="text-vibrant-orange mr-3 h-12 w-12" />
-            <h1 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal">
+            <h1 className="text-4xl md:text-5xl font-fredoka font-bold text-calm-blue">
               Pawsome Subscriptions
             </h1>
           </div>
-          <p className="text-xl text-medium-gray max-w-3xl mx-auto">
+          <p className="text-xl text-calm-blue max-w-3xl mx-auto">
             Never run out of your pet's essentials with our convenient subscription service
           </p>
         </div>
@@ -264,11 +264,11 @@ const Subscriptions = () => {
             className="bg-gradient-to-br from-white to-yellow-50 rounded-3xl shadow-2xl overflow-hidden"
           >
             {/* Section Header */}
-            <div className="bg-gradient-to-r from-vibrant-orange to-sunny-yellow p-8 text-center">
-              <h2 className="text-4xl font-fredoka font-bold text-white mb-2">
+            <div className="bg-gradient-to-r from-warm-orange to-sunny-yellow p-8 text-center">
+              <h2 className="text-4xl font-fredoka font-bold text-charcoal mb-2">
                 How to Start Your Subscription
               </h2>
-              <p className="text-white/90 text-lg">
+              <p className="text-charcoal/90 text-lg">
                 Four simple steps to never run out of pet essentials
               </p>
             </div>
@@ -414,7 +414,7 @@ const Subscriptions = () => {
                   onClick={handleOpenModal}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-vibrant-orange to-sunny-yellow hover:from-sunny-yellow hover:to-vibrant-orange text-white font-fredoka font-bold text-xl px-16 py-5 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
+                  className="bg-gradient-to-r from-warm-orange to-sunny-yellow hover:from-sunny-yellow hover:to-vibrant-orange text-white font-fredoka font-bold text-xl px-16 py-5 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
                 >
                   Browse Products & Start Subscription
                 </motion.button>
