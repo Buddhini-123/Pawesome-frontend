@@ -178,7 +178,7 @@ const Home: React.FC = () => {
             className="text-center mb-12"
           >
             <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-4">
-              Shop by Your <span className="text-vibrant-orange">Pet Type</span> 🐾
+              Shop by Your <span className="text-warm-orange">Pet Type</span> 🐾
             </h2>
             <p className="text-xl text-medium-gray font-nunito">
               Find everything your pet needs in one place
