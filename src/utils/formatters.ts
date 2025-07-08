@@ -1,9 +1,9 @@
 // Formatting utilities for consistent display
 
 export const formatters = {
-  // Format currency (Indian Rupees)
+  // Format currency (Sri Lankan Rupees)
   currency: (amount: number): string => {
-    return `₹${amount.toLocaleString('en-IN')}`;
+    return `Rs. ${amount.toLocaleString('en-LK')}`;
   },
 
   // Format date
@@ -12,14 +12,14 @@ export const formatters = {
     
     switch (format) {
       case 'short':
-        return dateObj.toLocaleDateString('en-IN', {
+        return dateObj.toLocaleDateString('en-LK', {
           day: 'numeric',
           month: 'short',
           year: 'numeric'
         });
       
       case 'long':
-        return dateObj.toLocaleDateString('en-IN', {
+        return dateObj.toLocaleDateString('en-LK', {
           weekday: 'long',
           day: 'numeric',
           month: 'long',
@@ -30,14 +30,14 @@ export const formatters = {
         return getRelativeTime(dateObj);
       
       default:
-        return dateObj.toLocaleDateString('en-IN');
+        return dateObj.toLocaleDateString('en-LK');
     }
   },
 
   // Format time
   time: (date: Date | string): string => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleTimeString('en-IN', {
+    return dateObj.toLocaleTimeString('en-LK', {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -48,11 +48,15 @@ export const formatters = {
     // Remove all non-digits
     const cleaned = phone.replace(/\D/g, '');
     
-    // Indian phone format
-    if (cleaned.startsWith('91') && cleaned.length === 12) {
-      return `+91 ${cleaned.slice(2, 7)} ${cleaned.slice(7)}`;
-    } else if (cleaned.length === 10) {
-      return `${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
+    // Sri Lankan phone format
+    if (cleaned.startsWith('94') && cleaned.length === 11) {
+      return `+94 ${cleaned.slice(2, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
+    } else if (cleaned.length === 9 && cleaned.startsWith('7')) {
+      // Mobile numbers
+      return `0${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5)}`;
+    } else if (cleaned.length === 9) {
+      // Landline numbers
+      return `0${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5)}`;
     }
     
     return phone;
@@ -120,7 +124,7 @@ export const formatters = {
       address.street,
       address.city,
       `${address.state} ${address.pincode}`,
-      address.country || 'India'
+      address.country || 'Sri Lanka'
     ].filter(Boolean);
     
     return parts.join(', ');

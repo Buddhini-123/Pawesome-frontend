@@ -1,10 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../../hooks/useCart';
 import { useAuth } from '../../../hooks/useAuth';
+import { useLoyalty } from '../../../hooks/useLoyalty';
 import { formatters } from '../../../utils/formatters';
 import { orderService } from '../../../services/order.service';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { 
+  CheckCircle, 
+  AlertCircle, 
+  MapPin, 
+  CreditCard, 
+  Smartphone, 
+  Truck, 
+  Shield, 
+  Gift, 
+  ChevronRight,
+  ChevronLeft,
+  Package,
+  User,
+  Phone,
+  Home,
+  Building,
+  Navigation,
+  Hash,
+  Calendar,
+  Lock,
+  Info,
+  Tag,
+  Clock,
+  Star
+} from 'lucide-react';
+import RedemptionSlider from '../../loyalty/RedemptionSlider';
 
 interface CheckoutForm {
   // Shipping Information
@@ -12,12 +39,15 @@ interface CheckoutForm {
     fullName: string;
     phone: string;
     address: string;
+    street?: string;
     city: string;
     state: string;
     pincode: string;
+    landmark?: string;
+    addressType: 'home' | 'work' | 'other';
   };
   // Payment Information
-  paymentMethod: 'card' | 'upi' | 'cod';
+  paymentMethod: 'card' | 'upi' | 'cod' | 'netbanking';
   cardDetails?: {
     number: string;
     name: string;
@@ -25,26 +55,68 @@ interface CheckoutForm {
     cvv: string;
   };
   upiId?: string;
+  // Delivery Options
+  deliveryOption: 'standard' | 'express';
+  // Gift Options
+  isGift: boolean;
+  giftMessage?: string;
 }
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { cart, totalPrice, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
+  const { loyaltyCard } = useLoyalty();
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [loyaltyRedemption, setLoyaltyRedemption] = useState({ points: 0, value: 0 });
+  const [appliedCoupon, setAppliedCoupon] = useState<string>('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  
   const [formData, setFormData] = useState<CheckoutForm>({
     shippingAddress: {
       fullName: user?.name || '',
       phone: user?.phone || '',
       address: '',
+      street: '',
       city: '',
       state: '',
-      pincode: ''
+      pincode: '',
+      landmark: '',
+      addressType: 'home'
     },
-    paymentMethod: 'card'
+    paymentMethod: 'card',
+    deliveryOption: 'standard',
+    isGift: false
   });
+
+  // Load saved addresses
+  useEffect(() => {
+    if (user?.addresses) {
+      setSavedAddresses(user.addresses);
+      if (user.addresses.length > 0 && user.addresses[0].isDefault) {
+        const defaultAddr = user.addresses[0];
+        setSelectedAddressId(defaultAddr.id);
+        setFormData(prev => ({
+          ...prev,
+          shippingAddress: {
+            fullName: defaultAddr.fullName || user.name || '',
+            phone: defaultAddr.phone || user.phone || '',
+            address: defaultAddr.address || '',
+            street: defaultAddr.street || '',
+            city: defaultAddr.city || '',
+            state: defaultAddr.state || '',
+            pincode: defaultAddr.pincode || '',
+            landmark: '',
+            addressType: 'home'
+          }
+        }));
+      }
+    }
+  }, [user]);
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
@@ -58,8 +130,14 @@ const Checkout: React.FC = () => {
     return null;
   }
 
-  const shippingCost = totalPrice >= 20000 ? 0 : 150;
-  const finalTotal = totalPrice + shippingCost;
+  // Calculate pricing
+  const baseShippingCost = totalPrice >= 2000 ? 0 : 150;
+  const deliveryCharge = formData.deliveryOption === 'express' ? 100 : 0;
+  const codCharge = formData.paymentMethod === 'cod' ? 50 : 0;
+  const shippingCost = baseShippingCost + deliveryCharge;
+  const subtotalAfterCoupon = totalPrice - couponDiscount;
+  const subtotalAfterLoyalty = subtotalAfterCoupon - loyaltyRedemption.value;
+  const finalTotal = subtotalAfterLoyalty + shippingCost + codCharge;
 
   const handleShippingChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -71,7 +149,7 @@ const Checkout: React.FC = () => {
     }));
   };
 
-  const handlePaymentMethodChange = (method: 'card' | 'upi' | 'cod') => {
+  const handlePaymentMethodChange = (method: 'card' | 'upi' | 'cod' | 'netbanking') => {
     setFormData(prev => ({
       ...prev,
       paymentMethod: method,
@@ -80,13 +158,34 @@ const Checkout: React.FC = () => {
     }));
   };
 
+  const handleAddressSelect = (addressId: string) => {
+    setSelectedAddressId(addressId);
+    const address = savedAddresses.find(addr => addr.id === addressId);
+    if (address) {
+      setFormData(prev => ({
+        ...prev,
+        shippingAddress: {
+          fullName: address.fullName || user?.name || '',
+          phone: address.phone || user?.phone || '',
+          address: address.address || '',
+          street: address.street || '',
+          city: address.city || '',
+          state: address.state || '',
+          pincode: address.pincode || '',
+          landmark: '',
+          addressType: address.type || 'home'
+        }
+      }));
+    }
+  };
+
   const validateShipping = () => {
     const { fullName, phone, address, city, state, pincode } = formData.shippingAddress;
     if (!fullName || !phone || !address || !city || !state || !pincode) {
-      setError('Please fill all shipping details');
+      setError('Please fill all required shipping details');
       return false;
     }
-    if (!/^\d{10}$/.test(phone)) {
+    if (!/^\d{10}$/.test(phone.replace(/\s/g, ''))) {
       setError('Please enter a valid 10-digit phone number');
       return false;
     }
@@ -98,7 +197,15 @@ const Checkout: React.FC = () => {
   };
 
   const validatePayment = () => {
-    if (formData.paymentMethod === 'card' && formData.cardDetails) {
+    if (formData.paymentMethod === 'card') {
+      if (!formData.cardDetails) {
+        setFormData(prev => ({
+          ...prev,
+          cardDetails: { number: '', name: '', expiry: '', cvv: '' }
+        }));
+        setError('Please fill card details');
+        return false;
+      }
       const { number, name, expiry, cvv } = formData.cardDetails;
       if (!number || !name || !expiry || !cvv) {
         setError('Please fill all card details');
@@ -123,19 +230,21 @@ const Checkout: React.FC = () => {
     setError('');
     if (step === 1 && validateShipping()) {
       setStep(2);
+    } else if (step === 2 && validatePayment()) {
+      setStep(3);
     }
   };
 
   const handlePreviousStep = () => {
     setError('');
-    setStep(1);
+    if (step === 3) setStep(2);
+    else if (step === 2) setStep(1);
   };
 
   const handlePlaceOrder = async () => {
     setError('');
-    if (!validatePayment()) return;
-
     setIsProcessing(true);
+    
     try {
       const orderData = {
         items: cart.map(item => ({
@@ -147,7 +256,14 @@ const Checkout: React.FC = () => {
         paymentMethod: formData.paymentMethod,
         subtotal: totalPrice,
         shippingCost,
-        totalAmount: finalTotal
+        totalAmount: finalTotal,
+        loyaltyPointsUsed: loyaltyRedemption.points,
+        loyaltyDiscount: loyaltyRedemption.value,
+        couponCode: appliedCoupon,
+        couponDiscount,
+        deliveryOption: formData.deliveryOption,
+        isGift: formData.isGift,
+        giftMessage: formData.giftMessage
       };
 
       const order = await orderService.createOrder(orderData);
@@ -164,263 +280,613 @@ const Checkout: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-soft-gray">
-      <div className="container mx-auto px-4 py-8">
-        {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center">
-            <div className={`flex items-center ${step >= 1 ? 'text-vibrant-orange' : 'text-medium-gray'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-vibrant-orange text-white' : 'bg-light-gray'}`}>
-                1
+  const applyCoupon = () => {
+    // Mock coupon logic
+    if (appliedCoupon.toUpperCase() === 'SAVE10') {
+      setCouponDiscount(totalPrice * 0.1);
+    } else if (appliedCoupon.toUpperCase() === 'FIRST20') {
+      setCouponDiscount(totalPrice * 0.2);
+    } else {
+      setError('Invalid coupon code');
+      setCouponDiscount(0);
+    }
+  };
+
+  const renderStepContent = () => {
+    switch(step) {
+      case 1:
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="bg-white rounded-2xl shadow-xl p-8"
+          >
+            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8 flex items-center">
+              <MapPin className="h-8 w-8 mr-3 text-primary-blue" />
+              Shipping Information
+            </h2>
+
+            {/* Saved Addresses */}
+            {savedAddresses.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-4">
+                  Saved Addresses
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {savedAddresses.map((addr) => (
+                    <motion.div
+                      key={addr.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleAddressSelect(addr.id)}
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        selectedAddressId === addr.id 
+                          ? 'border-primary-blue bg-primary-blue/5' 
+                          : 'border-light-gray hover:border-primary-blue/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-2">
+                            {addr.type === 'home' ? (
+                              <Home className="h-4 w-4 mr-2 text-primary-blue" />
+                            ) : (
+                              <Building className="h-4 w-4 mr-2 text-primary-blue" />
+                            )}
+                            <span className="font-fredoka font-semibold text-charcoal">
+                              {addr.type === 'home' ? 'Home' : 'Work'}
+                            </span>
+                            {addr.isDefault && (
+                              <span className="ml-2 px-2 py-1 bg-mint-green/20 text-mint-green text-xs rounded-full">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-medium-gray">{addr.fullName}</p>
+                          <p className="text-sm text-medium-gray">{addr.address}</p>
+                          <p className="text-sm text-medium-gray">
+                            {addr.city}, {addr.state} - {addr.pincode}
+                          </p>
+                          <p className="text-sm text-medium-gray">{addr.phone}</p>
+                        </div>
+                        <div className="ml-2">
+                          <input
+                            type="radio"
+                            checked={selectedAddressId === addr.id}
+                            onChange={() => handleAddressSelect(addr.id)}
+                            className="w-4 h-4 text-primary-blue"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => setSelectedAddressId(null)}
+                  className="text-primary-blue font-fredoka font-medium hover:underline"
+                >
+                  + Add New Address
+                </button>
               </div>
-              <span className="ml-2 font-fredoka font-medium">Shipping</span>
-            </div>
-            <div className={`mx-8 w-24 h-1 ${step >= 2 ? 'bg-amber-600' : 'bg-gray-200'}`}></div>
-            <div className={`flex items-center ${step >= 2 ? 'text-vibrant-orange' : 'text-medium-gray'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-vibrant-orange text-white' : 'bg-light-gray'}`}>
-                2
-              </div>
-              <span className="ml-2 font-fredoka font-medium">Payment</span>
-            </div>
-          </div>
-        </div>
+            )}
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center max-w-2xl mx-auto">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            {step === 1 ? (
-              /* Shipping Information */
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-2xl font-fredoka font-bold mb-6">Shipping Information</h2>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.shippingAddress.fullName}
-                        onChange={(e) => handleShippingChange('fullName', e.target.value)}
-                        className="w-full px-4 py-2 border border-light-gray rounded-lg focus:ring-2 focus:ring-vibrant-orange focus:border-transparent"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.shippingAddress.phone}
-                        onChange={(e) => handleShippingChange('phone', e.target.value)}
-                        className="w-full px-4 py-2 border border-light-gray rounded-lg focus:ring-2 focus:ring-vibrant-orange focus:border-transparent"
-                        placeholder="10-digit mobile number"
-                        required
-                      />
-                    </div>
-                  </div>
-
+            {/* Address Form */}
+            {(!savedAddresses.length || !selectedAddressId) && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      Address *
+                      <User className="inline h-4 w-4 mr-2" />
+                      Full Name *
                     </label>
-                    <textarea
-                      value={formData.shippingAddress.address}
-                      onChange={(e) => handleShippingChange('address', e.target.value)}
-                      className="w-full px-4 py-2 border border-light-gray rounded-lg focus:ring-2 focus:ring-vibrant-orange focus:border-transparent"
-                      rows={3}
-                      placeholder="House no., Building, Street, Area"
+                    <input
+                      type="text"
+                      value={formData.shippingAddress.fullName}
+                      onChange={(e) => handleShippingChange('fullName', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
                       required
                     />
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        City *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.shippingAddress.city}
-                        onChange={(e) => handleShippingChange('city', e.target.value)}
-                        className="w-full px-4 py-2 border border-light-gray rounded-lg focus:ring-2 focus:ring-vibrant-orange focus:border-transparent"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        State *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.shippingAddress.state}
-                        onChange={(e) => handleShippingChange('state', e.target.value)}
-                        className="w-full px-4 py-2 border border-light-gray rounded-lg focus:ring-2 focus:ring-vibrant-orange focus:border-transparent"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Pincode *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.shippingAddress.pincode}
-                        onChange={(e) => handleShippingChange('pincode', e.target.value)}
-                        className="w-full px-4 py-2 border border-light-gray rounded-lg focus:ring-2 focus:ring-vibrant-orange focus:border-transparent"
-                        placeholder="6-digit pincode"
-                        maxLength={6}
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                      <Phone className="inline h-4 w-4 mr-2" />
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.shippingAddress.phone}
+                      onChange={(e) => handleShippingChange('phone', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                      placeholder="10-digit mobile number"
+                      required
+                    />
                   </div>
                 </div>
 
-                <div className="mt-6 flex justify-between">
-                  <button
-                    onClick={() => navigate('/cart')}
-                    className="px-6 py-3 border border-light-gray rounded-lg text-charcoal hover:bg-soft-gray"
-                  >
-                    Back to Cart
-                  </button>
-                  <button
-                    onClick={handleNextStep}
-                    className="px-6 py-3 bg-vibrant-orange text-white rounded-lg hover:bg-vibrant-orange"
-                  >
-                    Continue to Payment
-                  </button>
+                <div>
+                  <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                    <Home className="inline h-4 w-4 mr-2" />
+                    Address *
+                  </label>
+                  <textarea
+                    value={formData.shippingAddress.address}
+                    onChange={(e) => handleShippingChange('address', e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                    rows={3}
+                    placeholder="House no., Building, Street, Area"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                      <Navigation className="inline h-4 w-4 mr-2" />
+                      Landmark (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.shippingAddress.landmark}
+                      onChange={(e) => handleShippingChange('landmark', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                      placeholder="Near landmark"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                      <Building className="inline h-4 w-4 mr-2" />
+                      City *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.shippingAddress.city}
+                      onChange={(e) => handleShippingChange('city', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                      <MapPin className="inline h-4 w-4 mr-2" />
+                      State *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.shippingAddress.state}
+                      onChange={(e) => handleShippingChange('state', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                      <Hash className="inline h-4 w-4 mr-2" />
+                      Pincode *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.shippingAddress.pincode}
+                      onChange={(e) => handleShippingChange('pincode', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                      placeholder="6-digit pincode"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Address Type */}
+                <div>
+                  <label className="block text-sm font-fredoka font-medium text-charcoal mb-3">
+                    Address Type
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="addressType"
+                        value="home"
+                        checked={formData.shippingAddress.addressType === 'home'}
+                        onChange={(e) => handleShippingChange('addressType', e.target.value)}
+                        className="mr-2"
+                      />
+                      <span className="font-fredoka">Home</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="addressType"
+                        value="work"
+                        checked={formData.shippingAddress.addressType === 'work'}
+                        onChange={(e) => handleShippingChange('addressType', e.target.value)}
+                        className="mr-2"
+                      />
+                      <span className="font-fredoka">Work</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="addressType"
+                        value="other"
+                        checked={formData.shippingAddress.addressType === 'other'}
+                        onChange={(e) => handleShippingChange('addressType', e.target.value)}
+                        className="mr-2"
+                      />
+                      <span className="font-fredoka">Other</span>
+                    </label>
+                  </div>
                 </div>
               </div>
-            ) : (
-              /* Payment Information */
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-2xl font-fredoka font-bold mb-6">Payment Method</h2>
-                
-                {/* Payment Method Selection */}
-                <div className="space-y-4 mb-6">
-                  <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-soft-gray">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="card"
-                      checked={formData.paymentMethod === 'card'}
-                      onChange={() => handlePaymentMethodChange('card')}
-                      className="mr-3"
-                    />
-                    <div>
-                      <div className="font-fredoka font-medium">Credit/Debit Card</div>
-                      <div className="text-sm text-medium-gray">Pay securely with your card</div>
-                    </div>
-                  </label>
+            )}
 
-                  <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-soft-gray">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="upi"
-                      checked={formData.paymentMethod === 'upi'}
-                      onChange={() => handlePaymentMethodChange('upi')}
-                      className="mr-3"
-                    />
-                    <div>
-                      <div className="font-fredoka font-medium">UPI</div>
-                      <div className="text-sm text-medium-gray">Pay with Google Pay, PhonePe, etc.</div>
+            {/* Delivery Options */}
+            <div className="mt-8 pt-8 border-t-2 border-light-gray">
+              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-4">
+                Delivery Options
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label 
+                  className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                    formData.deliveryOption === 'standard' 
+                      ? 'border-primary-blue bg-primary-blue/5' 
+                      : 'border-light-gray hover:border-primary-blue/50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="standard"
+                    checked={formData.deliveryOption === 'standard'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryOption: 'standard' }))}
+                    className="mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <Truck className="h-5 w-5 mr-2 text-primary-blue" />
+                      <span className="font-fredoka font-medium">Standard Delivery</span>
                     </div>
-                  </label>
+                    <p className="text-sm text-medium-gray mt-1">5-7 business days</p>
+                    <p className="text-sm font-fredoka font-semibold text-mint-green">
+                      {baseShippingCost === 0 ? 'FREE' : `₹${baseShippingCost}`}
+                    </p>
+                  </div>
+                </label>
 
-                  <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-soft-gray">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cod"
-                      checked={formData.paymentMethod === 'cod'}
-                      onChange={() => handlePaymentMethodChange('cod')}
-                      className="mr-3"
-                    />
-                    <div>
-                      <div className="font-fredoka font-medium">Cash on Delivery</div>
-                      <div className="text-sm text-medium-gray">Pay when you receive your order</div>
+                <label 
+                  className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                    formData.deliveryOption === 'express' 
+                      ? 'border-primary-blue bg-primary-blue/5' 
+                      : 'border-light-gray hover:border-primary-blue/50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="express"
+                    checked={formData.deliveryOption === 'express'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryOption: 'express' }))}
+                    className="mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <Clock className="h-5 w-5 mr-2 text-vibrant-orange" />
+                      <span className="font-fredoka font-medium">Express Delivery</span>
                     </div>
-                  </label>
+                    <p className="text-sm text-medium-gray mt-1">2-3 business days</p>
+                    <p className="text-sm font-fredoka font-semibold text-vibrant-orange">
+                      +₹100
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Gift Options */}
+            <div className="mt-6">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.isGift}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isGift: e.target.checked }))}
+                  className="mr-3"
+                />
+                <Gift className="h-5 w-5 mr-2 text-coral-red" />
+                <span className="font-fredoka font-medium">This is a gift</span>
+              </label>
+              {formData.isGift && (
+                <div className="mt-4">
+                  <textarea
+                    value={formData.giftMessage}
+                    onChange={(e) => setFormData(prev => ({ ...prev, giftMessage: e.target.value }))}
+                    placeholder="Add a gift message (optional)"
+                    className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-coral-red focus:border-transparent transition-all"
+                    rows={3}
+                  />
                 </div>
+              )}
+            </div>
+          </motion.div>
+        );
 
-                {/* Payment Details based on method */}
-                {formData.paymentMethod === 'card' && (
-                  <div className="space-y-4 p-4 bg-soft-gray rounded-lg">
-                    <div className="bg-amber-50 p-3 rounded-lg">
-                      <p className="text-sm text-vibrant-orange">
-                        Demo Mode: Use any test card number (e.g., 4111 1111 1111 1111)
+      case 2:
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="bg-white rounded-2xl shadow-xl p-8"
+          >
+            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8 flex items-center">
+              <CreditCard className="h-8 w-8 mr-3 text-vibrant-orange" />
+              Payment Method
+            </h2>
+            
+            {/* Payment Method Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <motion.label 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
+                  formData.paymentMethod === 'card' 
+                    ? 'border-vibrant-orange bg-vibrant-orange/5' 
+                    : 'border-light-gray hover:border-vibrant-orange/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="card"
+                  checked={formData.paymentMethod === 'card'}
+                  onChange={() => handlePaymentMethodChange('card')}
+                  className="sr-only"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <CreditCard className="h-6 w-6 mr-2 text-vibrant-orange" />
+                        <span className="font-fredoka font-semibold text-lg">Credit/Debit Card</span>
+                      </div>
+                      <p className="text-sm text-medium-gray">Pay securely with your card</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 ${
+                      formData.paymentMethod === 'card' 
+                        ? 'border-vibrant-orange bg-vibrant-orange' 
+                        : 'border-gray-300'
+                    }`}>
+                      {formData.paymentMethod === 'card' && (
+                        <div className="w-full h-full rounded-full bg-white scale-50" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.label>
+
+              <motion.label 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
+                  formData.paymentMethod === 'upi' 
+                    ? 'border-vibrant-orange bg-vibrant-orange/5' 
+                    : 'border-light-gray hover:border-vibrant-orange/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="upi"
+                  checked={formData.paymentMethod === 'upi'}
+                  onChange={() => handlePaymentMethodChange('upi')}
+                  className="sr-only"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <Smartphone className="h-6 w-6 mr-2 text-primary-blue" />
+                        <span className="font-fredoka font-semibold text-lg">UPI</span>
+                      </div>
+                      <p className="text-sm text-medium-gray">Google Pay, PhonePe, Paytm</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 ${
+                      formData.paymentMethod === 'upi' 
+                        ? 'border-vibrant-orange bg-vibrant-orange' 
+                        : 'border-gray-300'
+                    }`}>
+                      {formData.paymentMethod === 'upi' && (
+                        <div className="w-full h-full rounded-full bg-white scale-50" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.label>
+
+              <motion.label 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
+                  formData.paymentMethod === 'netbanking' 
+                    ? 'border-vibrant-orange bg-vibrant-orange/5' 
+                    : 'border-light-gray hover:border-vibrant-orange/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="netbanking"
+                  checked={formData.paymentMethod === 'netbanking'}
+                  onChange={() => handlePaymentMethodChange('netbanking')}
+                  className="sr-only"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <Building className="h-6 w-6 mr-2 text-mint-green" />
+                        <span className="font-fredoka font-semibold text-lg">Net Banking</span>
+                      </div>
+                      <p className="text-sm text-medium-gray">All major banks supported</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 ${
+                      formData.paymentMethod === 'netbanking' 
+                        ? 'border-vibrant-orange bg-vibrant-orange' 
+                        : 'border-gray-300'
+                    }`}>
+                      {formData.paymentMethod === 'netbanking' && (
+                        <div className="w-full h-full rounded-full bg-white scale-50" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.label>
+
+              <motion.label 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
+                  formData.paymentMethod === 'cod' 
+                    ? 'border-vibrant-orange bg-vibrant-orange/5' 
+                    : 'border-light-gray hover:border-vibrant-orange/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="cod"
+                  checked={formData.paymentMethod === 'cod'}
+                  onChange={() => handlePaymentMethodChange('cod')}
+                  className="sr-only"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <Truck className="h-6 w-6 mr-2 text-sunny-yellow" />
+                        <span className="font-fredoka font-semibold text-lg">Cash on Delivery</span>
+                      </div>
+                      <p className="text-sm text-medium-gray">Pay when you receive</p>
+                      <p className="text-xs text-coral-red mt-1">+₹50 COD charges apply</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 ${
+                      formData.paymentMethod === 'cod' 
+                        ? 'border-vibrant-orange bg-vibrant-orange' 
+                        : 'border-gray-300'
+                    }`}>
+                      {formData.paymentMethod === 'cod' && (
+                        <div className="w-full h-full rounded-full bg-white scale-50" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.label>
+            </div>
+
+            {/* Payment Details based on method */}
+            <AnimatePresence mode="wait">
+              {formData.paymentMethod === 'card' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6 p-6 bg-gradient-to-br from-vibrant-orange/5 to-vibrant-orange/10 rounded-xl"
+                >
+                  <div className="bg-amber-50 p-4 rounded-xl flex items-start">
+                    <Info className="h-5 w-5 text-vibrant-orange mr-2 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-fredoka font-semibold text-vibrant-orange">
+                        Demo Mode
+                      </p>
+                      <p className="text-sm text-medium-gray">
+                        Use test card: 4111 1111 1111 1111, Any future expiry, Any CVV
                       </p>
                     </div>
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Card Number
-                      </label>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                      Card Number
+                    </label>
+                    <div className="relative">
                       <input
                         type="text"
                         placeholder="1234 5678 9012 3456"
                         value={formData.cardDetails?.number || ''}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          cardDetails: {
-                            ...prev.cardDetails!,
-                            number: e.target.value
-                          }
-                        }))}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\s/g, '');
+                          const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                          setFormData(prev => ({
+                            ...prev,
+                            cardDetails: {
+                              ...prev.cardDetails!,
+                              number: formatted
+                            }
+                          }));
+                        }}
+                        className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
                         maxLength={19}
                       />
+                      <CreditCard className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
                     </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                      Cardholder Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="John Doe"
+                      value={formData.cardDetails?.name || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        cardDetails: {
+                          ...prev.cardDetails!,
+                          name: e.target.value
+                        }
+                      }))}
+                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Cardholder Name
+                        Expiry Date
                       </label>
-                      <input
-                        type="text"
-                        placeholder="John Doe"
-                        value={formData.cardDetails?.name || ''}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          cardDetails: {
-                            ...prev.cardDetails!,
-                            name: e.target.value
-                          }
-                        }))}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                          Expiry Date
-                        </label>
+                      <div className="relative">
                         <input
                           type="text"
                           placeholder="MM/YY"
                           value={formData.cardDetails?.expiry || ''}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            cardDetails: {
-                              ...prev.cardDetails!,
-                              expiry: e.target.value
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, '');
+                            if (value.length >= 2) {
+                              value = value.slice(0, 2) + '/' + value.slice(2, 4);
                             }
-                          }))}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            setFormData(prev => ({
+                              ...prev,
+                              cardDetails: {
+                                ...prev.cardDetails!,
+                                expiry: value
+                              }
+                            }));
+                          }}
+                          className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
                           maxLength={5}
                         />
+                        <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
                       </div>
-                      <div>
-                        <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                          CVV
-                        </label>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                        CVV
+                      </label>
+                      <div className="relative">
                         <input
                           type="text"
                           placeholder="123"
@@ -429,22 +895,30 @@ const Checkout: React.FC = () => {
                             ...prev,
                             cardDetails: {
                               ...prev.cardDetails!,
-                              cvv: e.target.value
+                              cvv: e.target.value.replace(/\D/g, '')
                             }
                           }))}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
                           maxLength={4}
                         />
+                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
                       </div>
                     </div>
                   </div>
-                )}
+                </motion.div>
+              )}
 
-                {formData.paymentMethod === 'upi' && (
-                  <div className="p-4 bg-soft-gray rounded-lg">
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      UPI ID
-                    </label>
+              {formData.paymentMethod === 'upi' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="p-6 bg-gradient-to-br from-primary-blue/5 to-primary-blue/10 rounded-xl"
+                >
+                  <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                    UPI ID
+                  </label>
+                  <div className="relative">
                     <input
                       type="text"
                       placeholder="yourname@paytm"
@@ -453,65 +927,382 @@ const Checkout: React.FC = () => {
                         ...prev,
                         upiId: e.target.value
                       }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
                     />
+                    <Smartphone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
                   </div>
-                )}
+                  <p className="text-sm text-medium-gray mt-2">
+                    Enter your UPI ID to receive payment request
+                  </p>
+                </motion.div>
+              )}
 
-                {formData.paymentMethod === 'cod' && (
-                  <div className="p-4 bg-amber-50 rounded-lg">
-                    <p className="text-sm text-vibrant-orange">
-                      ₹50 additional charges apply for Cash on Delivery
+              {formData.paymentMethod === 'netbanking' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="p-6 bg-gradient-to-br from-mint-green/5 to-mint-green/10 rounded-xl"
+                >
+                  <p className="text-sm text-medium-gray flex items-center">
+                    <Info className="h-4 w-4 mr-2" />
+                    You will be redirected to your bank's website to complete the payment
+                  </p>
+                </motion.div>
+              )}
+
+              {formData.paymentMethod === 'cod' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="p-6 bg-gradient-to-br from-sunny-yellow/10 to-sunny-yellow/20 rounded-xl"
+                >
+                  <div className="flex items-start">
+                    <Info className="h-5 w-5 text-sunny-yellow mr-2 mt-0.5" />
+                    <div>
+                      <p className="font-fredoka font-semibold text-charcoal mb-1">
+                        Cash on Delivery
+                      </p>
+                      <p className="text-sm text-medium-gray">
+                        ₹50 additional charges apply for Cash on Delivery orders
+                      </p>
+                      <p className="text-sm text-medium-gray mt-2">
+                        Please keep exact change ready for delivery partner
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Coupon Code */}
+            <div className="mt-8 pt-8 border-t-2 border-light-gray">
+              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-4">
+                Have a coupon code?
+              </h3>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={appliedCoupon}
+                  onChange={(e) => setAppliedCoupon(e.target.value.toUpperCase())}
+                  placeholder="Enter coupon code"
+                  className="flex-1 px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-lavender focus:border-transparent transition-all uppercase"
+                />
+                <button
+                  onClick={applyCoupon}
+                  className="px-6 py-3 bg-lavender text-white rounded-xl hover:bg-lavender/90 transition-colors font-fredoka font-medium"
+                >
+                  Apply
+                </button>
+              </div>
+              {couponDiscount > 0 && (
+                <p className="text-sm text-mint-green mt-2 font-fredoka">
+                  ✓ Coupon applied! You saved ₹{couponDiscount.toFixed(2)}
+                </p>
+              )}
+              <div className="mt-2 text-sm text-medium-gray">
+                <p>Try: <span className="font-fredoka font-semibold">SAVE10</span> for 10% off or <span className="font-fredoka font-semibold">FIRST20</span> for 20% off</p>
+              </div>
+            </div>
+
+            {/* Loyalty Points */}
+            {loyaltyCard && loyaltyCard.points > 0 && (
+              <div className="mt-6">
+                <RedemptionSlider 
+                  orderTotal={subtotalAfterCoupon}
+                  onRedemptionChange={(points, value) => setLoyaltyRedemption({ points, value })}
+                />
+              </div>
+            )}
+          </motion.div>
+        );
+
+      case 3:
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl shadow-xl p-8"
+          >
+            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8">
+              Review Your Order
+            </h2>
+
+            {/* Delivery Address */}
+            <div className="mb-8">
+              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-4 flex items-center">
+                <MapPin className="h-5 w-5 mr-2 text-primary-blue" />
+                Delivery Address
+              </h3>
+              <div className="p-4 bg-soft-gray rounded-xl">
+                <p className="font-fredoka font-semibold">{formData.shippingAddress.fullName}</p>
+                <p className="text-sm text-medium-gray">{formData.shippingAddress.address}</p>
+                <p className="text-sm text-medium-gray">
+                  {formData.shippingAddress.city}, {formData.shippingAddress.state} - {formData.shippingAddress.pincode}
+                </p>
+                <p className="text-sm text-medium-gray">{formData.shippingAddress.phone}</p>
+              </div>
+            </div>
+
+            {/* Payment Method */}
+            <div className="mb-8">
+              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-4 flex items-center">
+                <CreditCard className="h-5 w-5 mr-2 text-vibrant-orange" />
+                Payment Method
+              </h3>
+              <div className="p-4 bg-soft-gray rounded-xl">
+                <p className="font-fredoka font-semibold">
+                  {formData.paymentMethod === 'card' && 'Credit/Debit Card'}
+                  {formData.paymentMethod === 'upi' && 'UPI'}
+                  {formData.paymentMethod === 'netbanking' && 'Net Banking'}
+                  {formData.paymentMethod === 'cod' && 'Cash on Delivery'}
+                </p>
+                {formData.paymentMethod === 'card' && formData.cardDetails && (
+                  <p className="text-sm text-medium-gray">
+                    •••• •••• •••• {formData.cardDetails.number.slice(-4)}
+                  </p>
+                )}
+                {formData.paymentMethod === 'upi' && formData.upiId && (
+                  <p className="text-sm text-medium-gray">{formData.upiId}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Order Items */}
+            <div className="mb-8">
+              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-4 flex items-center">
+                <Package className="h-5 w-5 mr-2 text-mint-green" />
+                Order Items ({cart.length})
+              </h3>
+              <div className="space-y-3">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
+                    <div className="flex items-center space-x-4">
+                      <img 
+                        src={item.product.image} 
+                        alt={item.product.name}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                      <div>
+                        <p className="font-fredoka font-semibold text-charcoal">{item.product.name}</p>
+                        <p className="text-sm text-medium-gray">
+                          {item.product.brand} • Qty: {item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="font-fredoka font-semibold text-charcoal">
+                      {formatters.currency(item.product.price * item.quantity)}
                     </p>
                   </div>
-                )}
+                ))}
+              </div>
+            </div>
 
-                <div className="mt-6 flex justify-between">
-                  <button
-                    onClick={handlePreviousStep}
-                    className="px-6 py-3 border border-light-gray rounded-lg text-charcoal hover:bg-soft-gray"
-                  >
-                    Back to Shipping
-                  </button>
-                  <button
-                    onClick={handlePlaceOrder}
-                    disabled={isProcessing}
-                    className="px-6 py-3 bg-vibrant-orange text-white rounded-lg hover:bg-vibrant-orange disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isProcessing ? 'Processing...' : 'Place Order'}
-                  </button>
+            {/* Gift Message */}
+            {formData.isGift && formData.giftMessage && (
+              <div className="mb-8 p-4 bg-coral-red/10 rounded-xl">
+                <div className="flex items-start">
+                  <Gift className="h-5 w-5 text-coral-red mr-2 mt-0.5" />
+                  <div>
+                    <p className="font-fredoka font-semibold text-charcoal mb-1">Gift Message</p>
+                    <p className="text-sm text-medium-gray">{formData.giftMessage}</p>
+                  </div>
                 </div>
               </div>
             )}
+          </motion.div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-soft-gray to-off-white">
+      <div className="container mx-auto px-4 py-8">
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center">
+            <motion.div 
+              className={`flex items-center ${step >= 1 ? 'text-primary-blue' : 'text-medium-gray'}`}
+              animate={{ scale: step === 1 ? 1.1 : 1 }}
+            >
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                step >= 1 ? 'bg-primary-blue text-white' : 'bg-light-gray'
+              }`}>
+                {step > 1 ? <CheckCircle className="h-6 w-6" /> : '1'}
+              </div>
+              <span className="ml-3 font-fredoka font-medium hidden sm:inline">Shipping</span>
+            </motion.div>
+            
+            <div className={`mx-4 sm:mx-8 w-16 sm:w-24 h-1 rounded-full transition-all ${
+              step >= 2 ? 'bg-primary-blue' : 'bg-light-gray'
+            }`} />
+            
+            <motion.div 
+              className={`flex items-center ${step >= 2 ? 'text-vibrant-orange' : 'text-medium-gray'}`}
+              animate={{ scale: step === 2 ? 1.1 : 1 }}
+            >
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                step >= 2 ? 'bg-vibrant-orange text-white' : 'bg-light-gray'
+              }`}>
+                {step > 2 ? <CheckCircle className="h-6 w-6" /> : '2'}
+              </div>
+              <span className="ml-3 font-fredoka font-medium hidden sm:inline">Payment</span>
+            </motion.div>
+            
+            <div className={`mx-4 sm:mx-8 w-16 sm:w-24 h-1 rounded-full transition-all ${
+              step >= 3 ? 'bg-mint-green' : 'bg-light-gray'
+            }`} />
+            
+            <motion.div 
+              className={`flex items-center ${step >= 3 ? 'text-mint-green' : 'text-medium-gray'}`}
+              animate={{ scale: step === 3 ? 1.1 : 1 }}
+            >
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                step >= 3 ? 'bg-mint-green text-white' : 'bg-light-gray'
+              }`}>
+                3
+              </div>
+              <span className="ml-3 font-fredoka font-medium hidden sm:inline">Review</span>
+            </motion.div>
+          </div>
+        </div>
+
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-coral-red/10 border-2 border-coral-red/20 text-coral-red rounded-xl flex items-center max-w-4xl mx-auto"
+          >
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <span className="font-fredoka">{error}</span>
+          </motion.div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="lg:col-span-2">
+            <AnimatePresence mode="wait">
+              {renderStepContent()}
+            </AnimatePresence>
+
+            {/* Navigation Buttons */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-8 flex justify-between"
+            >
+              {step > 1 ? (
+                <button
+                  onClick={handlePreviousStep}
+                  className="flex items-center px-6 py-3 border-2 border-light-gray rounded-xl text-charcoal hover:bg-soft-gray transition-all font-fredoka font-medium"
+                >
+                  <ChevronLeft className="h-5 w-5 mr-2" />
+                  Back
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate('/cart')}
+                  className="flex items-center px-6 py-3 border-2 border-light-gray rounded-xl text-charcoal hover:bg-soft-gray transition-all font-fredoka font-medium"
+                >
+                  <ChevronLeft className="h-5 w-5 mr-2" />
+                  Back to Cart
+                </button>
+              )}
+              
+              {step < 3 ? (
+                <button
+                  onClick={handleNextStep}
+                  className="flex items-center px-8 py-3 bg-primary-blue text-white rounded-xl hover:bg-primary-blue/90 transition-all font-fredoka font-medium"
+                >
+                  Continue
+                  <ChevronRight className="h-5 w-5 ml-2" />
+                </button>
+              ) : (
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={isProcessing}
+                  className="flex items-center px-8 py-3 bg-mint-green text-white rounded-xl hover:bg-mint-green/90 transition-all font-fredoka font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="h-5 w-5 mr-2" />
+                      Place Order
+                    </>
+                  )}
+                </button>
+              )}
+            </motion.div>
           </div>
 
-          {/* Order Summary */}
+          {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-              <h3 className="text-xl font-fredoka font-bold mb-4">Order Summary</h3>
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white rounded-2xl shadow-xl p-6 sticky top-6"
+            >
+              <h3 className="text-xl font-fredoka font-bold text-charcoal mb-6">Order Summary</h3>
               
-              <div className="space-y-3 mb-4">
+              {/* Items */}
+              <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <div>
-                      <div className="font-fredoka font-medium">{item.product.name}</div>
-                      <div className="text-gray-500">Qty: {item.quantity}</div>
+                  <div key={item.id} className="flex justify-between items-start text-sm">
+                    <div className="flex-1">
+                      <p className="font-fredoka font-medium text-charcoal">{item.product.name}</p>
+                      <p className="text-medium-gray">Qty: {item.quantity} × {formatters.currency(item.product.price)}</p>
                     </div>
-                    <div className="font-fredoka font-medium">
+                    <p className="font-fredoka font-semibold text-charcoal ml-2">
                       {formatters.currency(item.product.price * item.quantity)}
-                    </div>
+                    </p>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t pt-4 space-y-2">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>{formatters.currency(totalPrice)}</span>
+              {/* Price Breakdown */}
+              <div className="border-t-2 border-light-gray pt-4 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-medium-gray">Subtotal</span>
+                  <span className="font-fredoka font-medium">{formatters.currency(totalPrice)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span>
+                
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-medium-gray flex items-center">
+                      <Tag className="h-4 w-4 mr-1" />
+                      Coupon Discount
+                    </span>
+                    <span className="font-fredoka font-medium text-mint-green">
+                      -{formatters.currency(couponDiscount)}
+                    </span>
+                  </div>
+                )}
+                
+                {loyaltyRedemption.value > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-medium-gray flex items-center">
+                      <Star className="h-4 w-4 mr-1" />
+                      Loyalty Points
+                    </span>
+                    <span className="font-fredoka font-medium text-lavender">
+                      -{formatters.currency(loyaltyRedemption.value)}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-medium-gray flex items-center">
+                    <Truck className="h-4 w-4 mr-1" />
+                    Shipping
+                  </span>
+                  <span className="font-fredoka font-medium">
                     {shippingCost === 0 ? (
                       <span className="text-mint-green">FREE</span>
                     ) : (
@@ -519,25 +1310,63 @@ const Checkout: React.FC = () => {
                     )}
                   </span>
                 </div>
+                
                 {formData.paymentMethod === 'cod' && (
-                  <div className="flex justify-between">
-                    <span>COD Charges</span>
-                    <span>{formatters.currency(50)}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-medium-gray">COD Charges</span>
+                    <span className="font-fredoka font-medium">{formatters.currency(50)}</span>
                   </div>
                 )}
-                <div className="border-t pt-2 flex justify-between font-fredoka font-bold text-lg">
-                  <span>Total</span>
-                  <span>{formatters.currency(finalTotal + (formData.paymentMethod === 'cod' ? 50 : 0))}</span>
+                
+                <div className="border-t-2 border-light-gray pt-3 flex justify-between">
+                  <span className="font-fredoka font-bold text-lg text-charcoal">Total</span>
+                  <span className="font-fredoka font-bold text-xl text-charcoal">
+                    {formatters.currency(finalTotal)}
+                  </span>
                 </div>
               </div>
 
-              <div className="mt-6 p-4 bg-green-50 rounded-lg">
+              {/* Loyalty Points Earning */}
+              {loyaltyCard && (
+                <div className="mt-6 p-4 bg-lavender/10 rounded-xl">
+                  <div className="flex items-center text-lavender">
+                    <Star className="h-5 w-5 mr-2" />
+                    <span className="text-sm font-fredoka">
+                      You'll earn {Math.floor(finalTotal * 0.1)} points from this order!
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Security Badge */}
+              <div className="mt-6 p-4 bg-mint-green/10 rounded-xl">
                 <div className="flex items-center text-mint-green">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  <span className="text-sm">Secure checkout</span>
+                  <Shield className="h-5 w-5 mr-2" />
+                  <span className="text-sm font-fredoka font-medium">100% Secure Checkout</span>
                 </div>
               </div>
-            </div>
+
+              {/* Delivery Estimate */}
+              <div className="mt-4 text-center">
+                <p className="text-sm text-medium-gray">
+                  Estimated delivery by
+                </p>
+                <p className="font-fredoka font-semibold text-charcoal">
+                  {formData.deliveryOption === 'express' 
+                    ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })
+                    : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })
+                  }
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>

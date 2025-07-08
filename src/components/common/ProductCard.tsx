@@ -3,6 +3,7 @@ import { Plus, Star, Heart, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../../hooks/useCart';
 import { Product } from '../../types';
+import { formatters } from '../../utils/formatters';
 
 interface ProductCardProps {
   id: string;
@@ -140,11 +141,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Price */}
         <div className="flex items-end gap-2 mb-4">
           <span className="text-2xl font-fredoka font-bold text-vibrant-orange">
-            ₹{price.toLocaleString()}
+            {formatters.currency(price)}
           </span>
           {originalPrice && (
             <span className="text-sm text-medium-gray line-through font-nunito mb-1">
-              ₹{originalPrice.toLocaleString()}
+              {formatters.currency(originalPrice)}
             </span>
           )}
         </div>

@@ -1,0 +1,1 @@
+export { useLoyalty } from '../contexts/LoyaltyContext';

@@ -64,9 +64,10 @@ class AuthService {
     }
 
     // In a real app, we'd verify the password hash
-    // For demo, accept any password for existing users
-    // Demo password is "password123"
-    if (password !== 'password123') {
+    // For demo, accept specific passwords for demo account
+    if (email === 'demo@pawsome.com' && password !== 'demo123') {
+      throw new Error('Invalid email or password');
+    } else if (email !== 'demo@pawsome.com' && password !== 'password123') {
       throw new Error('Invalid email or password');
     }
 

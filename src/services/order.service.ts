@@ -11,11 +11,21 @@ interface CreateOrderData {
   }>;
   shippingAddress: Omit<Address, 'id' | 'type' | 'isDefault' | 'country' | 'street'> & {
     country?: string;
+    street?: string;
+    landmark?: string;
+    addressType?: 'home' | 'work' | 'other';
   };
-  paymentMethod: 'card' | 'upi' | 'cod';
+  paymentMethod: 'card' | 'upi' | 'cod' | 'netbanking';
   subtotal: number;
   shippingCost: number;
   totalAmount: number;
+  loyaltyPointsUsed?: number;
+  loyaltyDiscount?: number;
+  couponCode?: string;
+  couponDiscount?: number;
+  deliveryOption?: 'standard' | 'express';
+  isGift?: boolean;
+  giftMessage?: string;
 }
 
 class OrderService {
@@ -50,7 +60,7 @@ class OrderService {
           id: uuidv4(),
           type: 'home' as const,
           ...orderData.shippingAddress,
-          country: orderData.shippingAddress.country || 'India'
+          country: orderData.shippingAddress.country || 'Sri Lanka'
         },
         paymentMethod: orderData.paymentMethod,
         paymentStatus: orderData.paymentMethod === 'cod' ? 'pending' : 'completed',

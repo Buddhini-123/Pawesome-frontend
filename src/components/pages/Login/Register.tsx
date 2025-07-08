@@ -1,20 +1,31 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
-import { AlertCircle, Check } from 'lucide-react';
+import { AlertCircle, Check, Gift } from 'lucide-react';
+import { formatters } from '../../../utils/formatters';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    referralCode: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referralCode: refCode }));
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -54,6 +65,12 @@ const Register: React.FC = () => {
     
     try {
       await register(formData.email, formData.password, formData.name);
+      
+      // Store referral code if present (the loyalty system will handle it)
+      if (formData.referralCode) {
+        localStorage.setItem('pawsome_referral_code', formData.referralCode);
+      }
+      
       // Redirect to home after successful registration
       navigate('/');
     } catch (err) {
@@ -102,6 +119,23 @@ const Register: React.FC = () => {
             Sign In
           </Link>
         </div>
+
+        {/* Referral code banner if present */}
+        {formData.referralCode && (
+          <div className="mb-4 p-3 bg-mint-green/10 border border-mint-green/20 rounded-lg">
+            <div className="flex items-center">
+              <Gift className="h-5 w-5 text-mint-green mr-2" />
+              <div>
+                <p className="text-sm font-fredoka font-semibold text-mint-green">
+                  Welcome! You'll get {formatters.currency(50)} off your first order
+                </p>
+                <p className="text-xs text-medium-gray">
+                  Referral code: {formData.referralCode}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Registration form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -177,6 +211,21 @@ const Register: React.FC = () => {
               disabled={isLoading}
             />
           </div>
+
+          {/* Referral code field - only show if not already set from URL */}
+          {!searchParams.get('ref') && (
+            <div>
+              <input
+                type="text"
+                name="referralCode"
+                placeholder="Referral Code (Optional)"
+                value={formData.referralCode}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-full text-base font-fredoka bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                disabled={isLoading}
+              />
+            </div>
+          )}
             
           <button 
             type="submit" 

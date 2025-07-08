@@ -19,10 +19,11 @@ export const validators = {
     return null;
   },
 
-  // Phone validation (Indian format)
+  // Phone validation (Sri Lankan format)
   phone: (value: string): string | null => {
     if (!value) return null; // Phone is optional
-    const phoneRegex = /^(\+91)?[6-9]\d{9}$/;
+    // Sri Lankan phone format: +94 XX XXX XXXX or 0XX XXX XXXX
+    const phoneRegex = /^(\+94|0)?7\d{8}$/;
     const cleanedValue = value.replace(/\s|-/g, '');
     if (!phoneRegex.test(cleanedValue)) return 'Invalid phone number';
     return null;
@@ -56,8 +57,8 @@ export const validators = {
     },
     
     pincode: (value: string): string | null => {
-      if (!value) return 'Pincode is required';
-      if (!/^\d{6}$/.test(value)) return 'Pincode must be 6 digits';
+      if (!value) return 'Postal code is required';
+      if (!/^\d{5}$/.test(value)) return 'Postal code must be 5 digits';
       return null;
     }
   },

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Calendar, Gift, Percent, Trophy, ArrowRight, Star, Heart, TruckIcon } from 'lucide-react';
 import HeroSection from './HeroSection';
+import { formatters } from '../../../utils/formatters';
 
 interface ServiceCardProps {
   title: string;
@@ -101,7 +102,7 @@ const Home: React.FC = () => {
   ];
 
   const features = [
-    { icon: <TruckIcon className="w-8 h-8" />, title: 'Free Shipping', description: 'On orders above ₹2000' },
+    { icon: <TruckIcon className="w-8 h-8" />, title: 'Free Shipping', description: `On orders above ${formatters.currency(2000)}` },
     { icon: <Heart className="w-8 h-8" />, title: '100% Safe', description: 'Vet approved products' },
     { icon: <Star className="w-8 h-8" />, title: 'Top Rated', description: '50,000+ happy customers' },
     { icon: <span className="text-3xl">🐾</span>, title: 'Pet Experts', description: '24/7 customer support' },

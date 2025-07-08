@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { LoyaltyProvider } from './contexts/LoyaltyContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
 const rootElement = document.getElementById('root');
@@ -20,7 +21,9 @@ root.render(
       <BrowserRouter>
         <AuthProvider>
           <CartProvider>
-            <App />
+            <LoyaltyProvider>
+              <App />
+            </LoyaltyProvider>
           </CartProvider>
         </AuthProvider>
       </BrowserRouter>

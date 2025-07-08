@@ -5,6 +5,41 @@ This document tracks all significant changes, features, and improvements made to
 
 ---
 
+## 📅 July 8, 2025 - UI Enhancements & Border Radius Updates
+
+### 🎨 **Product Detail Page UI Improvements** (1:30 PM IST)
+- **Status**: Completed
+- **Timestamp**: July 8, 2025 - 1:30 PM IST
+- **Changes Made**:
+  - Updated all product detail components to have rounded corners
+  - Changed sharp edges to smooth curves with `rounded-2xl` and `rounded-xl`
+  - Enhanced visual consistency across product pages
+- **Components Updated**:
+  - `ProductDetails.tsx` - Main container and form elements with rounded-2xl
+  - `ProductGallery.tsx` - Gallery container and thumbnails with rounded corners
+  - `ProductSidebar.tsx` - Sidebar container with rounded-2xl and shadow
+  - `ProductTabs.tsx` - Tab container and buttons with rounded styling
+  - `ProductCard.tsx` - Card containers with rounded-xl
+  - `QuantitySelector.tsx` - Buttons changed to rounded-lg with shadows
+  - `ProductPage.tsx` - Updated background color for consistency
+- **Impact**: Softer, more modern aesthetic aligned with friendly pet brand
+
+### 🔧 **Deals Page Component Fixes** (1:15 PM IST)
+- **Status**: Completed
+- **Timestamp**: July 8, 2025 - 1:15 PM IST
+- **Issues Fixed**:
+  - Applied font-fredoka classes to "Products Your Furry Friend Will Love" section
+  - Removed gradient backgrounds from ReccomendationsGrid component
+  - Updated ProductGrid component to use font-fredoka consistently
+  - Fixed WhyPawsomeSection typography with font-fredoka
+  - Updated FAQAccordion answer text to use font-fredoka
+- **Files Modified**:
+  - `ReccomendationsGrid.tsx` - Removed gradients, added font-fredoka
+  - `ProductGrid.tsx` - Updated font classes from font-figtree to font-fredoka
+  - `WhyPawsomeSection.jsx` - Added font-fredoka to all text elements
+  - `FAQAccordion.jsx` - Added font-fredoka to answer paragraphs
+- **Impact**: Consistent typography and cleaner visual design without gradients
+
 ## 📅 January 7, 2025 - Font System Update & Mobile Responsiveness
 
 ### 🔤 **Global Font System Implementation**
@@ -530,8 +565,8 @@ This document tracks all significant changes, features, and improvements made to
 
 ---
 
-*Last Updated: January 7, 2025*  
-*Changelog Version: 1.3.0*  
-*Total Commits Tracked: 27+*  
+*Last Updated: July 8, 2025*  
+*Changelog Version: 1.4.0*  
+*Total Commits Tracked: 29+*  
 *Documentation Status: Complete* ✅
-*Recent Addition: Font system update and mobile responsiveness improvements*
+*Recent Addition: UI enhancements with rounded corners and Deals page typography fixes*

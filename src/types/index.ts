@@ -37,6 +37,23 @@ export interface User {
   role: 'user' | 'admin';
   addresses?: Address[];
   createdAt: Date;
+  // Loyalty related fields
+  loyaltyCardId?: string;
+  birthDate?: Date;
+  marketingPreferences?: {
+    emailNotifications: boolean;
+    smsNotifications: boolean;
+    promotionalEmails: boolean;
+    pointsExpiryAlerts: boolean;
+    exclusiveOffers: boolean;
+  };
+  // Pet details for personalized offers
+  pets?: {
+    name: string;
+    type: 'dog' | 'cat' | 'bird' | 'other';
+    breed?: string;
+    age?: number;
+  }[];
 }
 
 export interface Address {
@@ -81,7 +98,7 @@ export interface Order {
   userEmail: string;
   items: OrderItem[];
   shippingAddress: Address;
-  paymentMethod: 'card' | 'upi' | 'cod';
+  paymentMethod: 'card' | 'upi' | 'cod' | 'netbanking';
   paymentStatus: 'pending' | 'completed' | 'failed';
   orderStatus: OrderStatus;
   status: OrderStatus; // Alias for orderStatus for backward compatibility
@@ -94,6 +111,10 @@ export interface Order {
   createdAt: Date;
   updatedAt: Date;
   trackingNumber?: string;
+  // Loyalty points information
+  pointsEarned?: number;
+  pointsRedeemed?: number;
+  pointsValue?: number; // Value in LKR of redeemed points
 }
 
 export interface OrderItem {
