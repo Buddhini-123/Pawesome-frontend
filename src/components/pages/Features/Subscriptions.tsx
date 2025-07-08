@@ -14,12 +14,18 @@ import {
   Plus,
   Minus,
   Calendar,
+  Calendar as CalendarIcon,
   Percent as PercentIcon,
   Eye,
   Check,
   TruckIcon,
   ShieldCheck,
   Heart,
+  Settings,
+  MoreHorizontal,
+  TrendingUp,
+  Trophy,
+  ShoppingBag,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SlideshowBanner from '../../banners/subscriptionbanner/SlideshowBanner'
@@ -32,6 +38,7 @@ import rodentImg from '../../carousels/images/rodent.png'
 import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel'
 import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion'
 import { dogProducts, catProducts, birdProducts, otherAnimalsProducts, Product } from '../../../data/mockProducts'
+import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
 
 interface SubscriptionItem {
   name: string;
@@ -261,10 +268,10 @@ const Subscriptions = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-white to-yellow-50 rounded-3xl shadow-2xl overflow-hidden"
+            className="bg-white rounded-3xl shadow-2xl overflow-hidden"
           >
             {/* Section Header */}
-            <div className="bg-gradient-to-r from-warm-orange to-sunny-yellow p-8 text-center">
+            <div className="bg-warm-orange p-8 text-center">
               <h2 className="text-4xl font-fredoka font-bold text-charcoal mb-2">
                 How to Start Your Subscription
               </h2>
@@ -362,7 +369,7 @@ const Subscriptions = () => {
               </div>
 
               {/* Benefits Cards */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-8 mb-8">
+              <div className="bg-yellow-50 rounded-2xl p-8 mb-8">
                 <h3 className="text-2xl font-fredoka font-bold text-center text-charcoal mb-8">
                   Subscription Benefits
                 </h3>
@@ -371,7 +378,7 @@ const Subscriptions = () => {
                     whileHover={{ y: -5 }}
                     className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
                   >
-                    <div className="bg-gradient-to-br from-sunny-yellow to-vibrant-orange rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <div className="bg-sunny-yellow rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
                       <PercentIcon className="h-10 w-10 text-white" />
                     </div>
                     <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Save 10%</h4>
@@ -384,7 +391,7 @@ const Subscriptions = () => {
                     whileHover={{ y: -5 }}
                     className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
                   >
-                    <div className="bg-gradient-to-br from-primary-blue to-primary-blue rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <div className="bg-primary-blue rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
                       <Package className="h-10 w-10 text-white" />
                     </div>
                     <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Free Shipping</h4>
@@ -397,7 +404,7 @@ const Subscriptions = () => {
                     whileHover={{ y: -5 }}
                     className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
                   >
-                    <div className="bg-gradient-to-br from-mint-green to-mint-green rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <div className="bg-mint-green rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
                       <HeadphonesIcon className="h-10 w-10 text-white" />
                     </div>
                     <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Priority Support</h4>
@@ -414,7 +421,7 @@ const Subscriptions = () => {
                   onClick={handleOpenModal}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-warm-orange to-sunny-yellow hover:from-sunny-yellow hover:to-vibrant-orange text-white font-fredoka font-bold text-xl px-16 py-5 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
+                  className="bg-warm-orange hover:bg-sunny-yellow text-white font-fredoka font-bold text-xl px-16 py-5 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
                 >
                   Browse Products & Start Subscription
                 </motion.button>
@@ -446,15 +453,15 @@ const Subscriptions = () => {
             className="max-w-7xl mx-auto mt-16"
           >
             {/* Main Container with Gradient Border */}
-            <div className="relative bg-gradient-to-br from-white to-orange-50 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden">
               {/* Decorative Background Pattern */}
               <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-vibrant-orange to-sunny-yellow rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-primary-blue to-primary-blue rounded-full blur-3xl" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-vibrant-orange rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-blue rounded-full blur-3xl" />
               </div>
 
               {/* Header Section */}
-              <div className="relative bg-gradient-to-r from-vibrant-orange to-sunny-yellow p-8">
+              <div className="relative bg-vibrant-orange p-8">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-3xl font-fredoka font-bold text-white mb-2 flex items-center">
@@ -639,7 +646,7 @@ const Subscriptions = () => {
 
                 {/* Summary and Actions Section */}
                 <motion.div 
-                  className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-8"
+                  className="bg-yellow-50 rounded-2xl p-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
@@ -694,7 +701,7 @@ const Subscriptions = () => {
                         disabled={!startDate || !endDate}
                         className={`w-full font-bold text-lg py-4 rounded-2xl transition-all duration-300 shadow-lg ${
                           startDate && endDate
-                            ? 'bg-gradient-to-r from-mint-green to-mint-green hover:from-mint-green hover:to-mint-green text-white transform hover:scale-105'
+                            ? 'bg-mint-green hover:bg-green-600 text-white transform hover:scale-105'
                             : 'bg-light-gray text-medium-gray cursor-not-allowed'
                         }`}
                       >
@@ -746,7 +753,7 @@ const Subscriptions = () => {
             >
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
               {/* Modal Header */}
-              <div className="bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white p-6 flex justify-between items-center">
+              <div className="bg-vibrant-orange text-white p-6 flex justify-between items-center">
                 <div>
                   <h2 className="text-2xl font-bold">Select Products for Your Subscription</h2>
                   <p className="text-white/90 mt-1">Choose from our complete catalog of pet products</p>
@@ -970,7 +977,7 @@ const Subscriptions = () => {
             >
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
                 {/* Modal Header */}
-                <div className="bg-gradient-to-r from-primary-blue to-vibrant-orange text-white p-6">
+                <div className="bg-primary-blue text-white p-6">
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-2xl font-bold">{selectedSubscription.name}</h2>
@@ -1080,114 +1087,14 @@ const Subscriptions = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating Sidebar for Active Subscriptions */}
-      <AnimatePresence>
-        {showSidebar && (
-          <motion.div
-            initial={{ x: 300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 300, opacity: 0 }}
-            transition={{ type: "spring", damping: 25 }}
-            className="fixed right-0 top-24 bottom-24 w-80 bg-white rounded-l-2xl shadow-2xl z-40 overflow-hidden"
-          >
-            {/* Sidebar Header */}
-            <div className="bg-gradient-to-r from-primary-blue to-vibrant-orange p-4 text-white">
-              <div className="flex justify-between items-center">
-                <h3 className="font-fredoka font-bold text-lg">My Active Subscriptions</h3>
-                <button
-                  onClick={() => setShowSidebar(false)}
-                  className="p-1 hover:bg-white/20 rounded-full transition-colors"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-              <p className="text-sm text-white/90 mt-1">
-                {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-
-            {/* Subscriptions List */}
-            <div className="p-4 overflow-y-auto h-full pb-20">
-              {activeSubscriptions.length > 0 ? (
-                <div className="space-y-4">
-                  {activeSubscriptions.map((subscription) => (
-                    <motion.div
-                      key={subscription.id}
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-soft-gray rounded-xl p-4 border border-light-gray hover:border-vibrant-orange transition-colors cursor-pointer"
-                      onClick={() => handleSubscriptionClick(subscription)}
-                    >
-                      <h4 className="font-fredoka font-semibold text-charcoal mb-2">
-                        {subscription.name}
-                      </h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-medium-gray">Products:</span>
-                          <span className="font-fredoka font-medium">{subscription.products} items</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-medium-gray">Frequency:</span>
-                          <span className="font-fredoka font-medium">{subscription.frequency}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-medium-gray">Next Delivery:</span>
-                          <span className="font-fredoka font-medium text-mint-green">
-                            {new Date(subscription.nextDelivery).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between pt-2 border-t border-light-gray">
-                          <span className="text-medium-gray">Total:</span>
-                          <span className="font-fredoka font-bold text-vibrant-orange">
-                            ₹{subscription.total}
-                          </span>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={(e) => handleManageSubscription(e, subscription)}
-                        className="w-full mt-3 text-sm text-primary-blue hover:text-blue-700 font-fredoka font-medium transition-colors"
-                      >
-                        Manage Subscription →
-                      </button>
-                    </motion.div>
-                  ))}
-                  
-                  {/* Total Monthly Spend */}
-                  <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-300">
-                    <p className="text-sm text-medium-gray mb-1">Total Monthly Spend</p>
-                    <p className="text-2xl font-fredoka font-bold text-charcoal">
-                      ₹{activeSubscriptions.reduce((sum, sub) => sum + sub.total, 0)}
-                    </p>
-                    <p className="text-xs text-mint-green mt-1">
-                      Saving ₹{Math.floor(activeSubscriptions.reduce((sum, sub) => sum + sub.total, 0) * 0.1)} with subscriptions
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Package className="h-12 w-12 text-light-gray mx-auto mb-3" />
-                  <p className="text-medium-gray">No active subscriptions</p>
-                  <p className="text-sm text-gray-400 mt-1">
-                    Start by selecting products above
-                  </p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Toggle Sidebar Button */}
-      {!showSidebar && (
-        <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          whileHover={{ scale: 1.1 }}
-          onClick={() => setShowSidebar(true)}
-          className="fixed right-4 top-24 bg-vibrant-orange text-white p-3 rounded-full shadow-lg hover:bg-sunny-yellow transition-colors z-40"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </motion.button>
-      )}
+      {/* Active Subscriptions Sidebar */}
+      <ActiveSubscriptionsSidebar
+        isOpen={showSidebar}
+        onClose={() => setShowSidebar(!showSidebar)}
+        subscriptions={activeSubscriptions}
+        onSubscriptionClick={handleSubscriptionClick}
+        onManageSubscription={handleManageSubscription}
+      />
 
       {/* Product Details Modal */}
       <AnimatePresence>
@@ -1211,7 +1118,7 @@ const Subscriptions = () => {
             >
               <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
                 {/* Modal Header */}
-                <div className="relative h-80 bg-gradient-to-br from-primary-blue via-vibrant-orange to-sunny-yellow">
+                <div className="relative h-80 bg-primary-blue">
                   <div className="absolute inset-0 bg-black/20" />
                   <button
                     onClick={() => setShowProductModal(false)}
@@ -1317,7 +1224,7 @@ const Subscriptions = () => {
                     {/* Right Column - Pricing and Actions */}
                     <div>
                       {/* Pricing Card */}
-                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 mb-6">
+                      <div className="bg-yellow-50 rounded-2xl p-6 mb-6">
                         <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-4">Pricing Options</h3>
                         
                         {/* One-time Purchase */}
@@ -1343,7 +1250,7 @@ const Subscriptions = () => {
                         </div>
 
                         {/* Subscription Option */}
-                        <div className="p-4 bg-gradient-to-r from-mint-green/20 to-green-100 rounded-xl border-2 border-mint-green">
+                        <div className="p-4 bg-mint-green/20 rounded-xl border-2 border-mint-green">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-gray-700 font-fredoka font-medium">Subscribe & Save</span>
                             <span className="bg-mint-green text-white text-xs px-2 py-1 rounded-full">
@@ -1395,7 +1302,7 @@ const Subscriptions = () => {
                           className={`w-full py-4 px-6 rounded-2xl font-fredoka font-bold text-lg transition-all transform hover:scale-105 ${
                             selectedProducts.some(p => p.id === selectedProduct.id)
                               ? 'bg-light-gray text-medium-gray'
-                              : 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white shadow-lg'
+                              : 'bg-vibrant-orange hover:bg-sunny-yellow text-white shadow-lg'
                           }`}
                           disabled={selectedProducts.some(p => p.id === selectedProduct.id)}
                         >

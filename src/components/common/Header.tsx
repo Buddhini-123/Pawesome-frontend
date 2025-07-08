@@ -89,7 +89,7 @@ const Header: React.FC = () => {
         <div className="container mx-auto flex justify-between items-center">
           <div className="text-sm font-fredoka font-medium text-charcoal flex items-center">
             <span className="mr-2 animate-bounce-slow">🐾</span>
-            FREE1 SHIPPING on orders above ₹20,000 🚚
+            FREE SHIPPING on orders above Rs.20k
           </div>
           <div className="flex space-x-4 text-sm">
             <Link to="/contact" className="text-charcoal hover:text-warm-white transition-colors font-nunito">

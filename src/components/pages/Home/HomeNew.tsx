@@ -136,7 +136,7 @@ const Home: React.FC = () => {
                   {feature.icon}
                 </div>
                 <h3 className="font-fredoka font-semibold text-charcoal mb-1">{feature.title}</h3>
-                <p className="text-medium-gray text-sm">{feature.description}</p>
+                <p className="text-medium-gray text-sm font-fredoka">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -155,7 +155,7 @@ const Home: React.FC = () => {
             <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-4">
               What Makes Us <span className="text-primary-blue">Special</span> 🌟
             </h2>
-            <p className="text-xl text-medium-gray font-nunito max-w-2xl mx-auto">
+            <p className="text-xl text-medium-gray font-fredoka font-nunito max-w-2xl mx-auto">
               Discover our unique services designed to make pet parenting easier and more fun!
             </p>
           </motion.div>
@@ -180,7 +180,7 @@ const Home: React.FC = () => {
             <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-4">
               Shop by Your <span className="text-warm-orange">Pet Type</span> 🐾
             </h2>
-            <p className="text-xl text-medium-gray font-nunito">
+            <p className="text-xl text-medium-gray font-fredoka font-nunito">
               Find everything your pet needs in one place
             </p>
           </motion.div>
