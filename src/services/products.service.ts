@@ -1,5 +1,5 @@
 import { Product, SearchFilters, PaginatedResponse } from '../types';
-import { dogProducts, catProducts, birdProducts, otherAnimalsProducts } from '../data/mockProducts';
+import { dogProducts, catProducts, birdProducts, otherAnimalsProducts, vetDietProducts } from '../data/mockProducts';
 
 class ProductsService {
   private allProducts: Product[];
@@ -10,7 +10,8 @@ class ProductsService {
       ...dogProducts,
       ...catProducts,
       ...birdProducts,
-      ...otherAnimalsProducts
+      ...otherAnimalsProducts,
+      ...vetDietProducts
     ];
   }
 
