@@ -22,7 +22,7 @@ const FeaturedDeals = () => {
       {/* Deals Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {deals.map((deal) => (
-          <div key={deal.id} className="relative bg-gradient-to-r from-vibrant-orange to-blue-400 rounded-2xl overflow-hidden h-64">
+          <div key={deal.id} className="relative bg-vibrant-orange rounded-2xl overflow-hidden h-64">
 
             {/* Content */}
             <div className="relative z-10 p-6 h-full flex flex-col justify-between">
@@ -30,7 +30,7 @@ const FeaturedDeals = () => {
                 <h3 className="text-white font-fredoka font-bold text-xl mb-2 leading-tight">
                   {deal.title}
                 </h3>
-                <p className="text-white text-sm opacity-90 mb-4">
+                <p className="text-white text-sm opacity-90 mb-4 font-fredoka">
                   {deal.subtitle}
                 </p>
               </div>

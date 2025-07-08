@@ -38,7 +38,7 @@ const ProductDetails = ({ quantity, onQuantityChange, product }: ProductDetailsP
   };
   
   return (
-    <div className="bg-white rounded-lg p-6 space-y-4">
+    <div className="bg-white rounded-2xl p-6 space-y-4 shadow-sm">
       {/* Product Title */}
       <div>
         <h1 className="text-2xl font-fredoka font-bold text-gray-900 mb-1">
@@ -62,7 +62,7 @@ const ProductDetails = ({ quantity, onQuantityChange, product }: ProductDetailsP
           <Calendar className="w-4 h-4 mr-2" />
           Delivery Period
         </h3>
-        <select className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-vibrant-orange">
+        <select className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-vibrant-orange">
           <option>Every Week</option>
           <option>Every 2 Weeks</option>
           <option>Every Month</option>
@@ -76,7 +76,7 @@ const ProductDetails = ({ quantity, onQuantityChange, product }: ProductDetailsP
           <input
             type="date"
             defaultValue="2025-06-03"
-            className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-vibrant-orange"
+            className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-vibrant-orange"
           />
         </div>
         <div className="flex flex-col items-start">
@@ -84,7 +84,7 @@ const ProductDetails = ({ quantity, onQuantityChange, product }: ProductDetailsP
           <input
             type="date"
             defaultValue="2025-06-10"
-            className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-vibrant-orange"
+            className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-vibrant-orange"
           />
         </div>
       </div>
@@ -98,7 +98,7 @@ const ProductDetails = ({ quantity, onQuantityChange, product }: ProductDetailsP
         
         <button 
           onClick={handleAddToCart}
-          className="w-full bg-vibrant-orange hover:bg-sunny-yellow hover:text-charcoal text-white font-fredoka font-medium py-2 rounded"
+          className="w-full bg-vibrant-orange hover:bg-sunny-yellow hover:text-charcoal text-white font-fredoka font-medium py-3 rounded-xl transition-colors"
         >
           Add to Cart
         </button>

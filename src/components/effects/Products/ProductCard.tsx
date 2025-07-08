@@ -14,8 +14,8 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   return (
-    <div className="flex flex-col items-center text-center hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
-      <div className="w-24 h-24 flex items-center justify-center mb-2">
+    <div className="flex flex-col items-center text-center hover:bg-gray-50 rounded-xl p-3 transition-colors cursor-pointer">
+      <div className="w-24 h-24 flex items-center justify-center mb-2 bg-gray-50 rounded-xl">
         <img src={product.image} alt={product.name}
           className="object-contain w-full h-16" />
       </div>

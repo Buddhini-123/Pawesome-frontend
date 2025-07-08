@@ -13,7 +13,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.02 }}
-      className={`relative bg-gradient-to-r from-vibrant-orange to-primary-blue rounded-2xl overflow-hidden h-64 cursor-pointer group ${className}`}
+      className={`relative bg-vibrant-orange rounded-2xl overflow-hidden h-64 cursor-pointer group ${className}`}
       onClick={handleClick}
     >
       {/* Paw Icon */}
@@ -54,7 +54,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-vibrant-orange via-vibrant-orange/90 to-transparent z-5"></div>
+      <div className="absolute inset-0 bg-vibrant-orange/90 z-5"></div>
 
       {/* Content */}
       <div className="relative z-10 p-6 h-full flex flex-col justify-between">
@@ -62,7 +62,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
           <h3 className="text-white font-fredoka font-bold text-lg leading-tight mb-2">
             {deal.title}
           </h3>
-          <p className="text-white text-sm opacity-90 mb-3">
+          <p className="text-white text-sm opacity-90 mb-3 font-fredoka">
             {deal.subtitle}
           </p>
         </div>

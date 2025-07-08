@@ -52,15 +52,15 @@ const ReccomendationsGrid = () => {
     <div className="min-h-screen">
       <div className="max-w-8xl mx-auto">
         {/* Top Recommendations Section */}
-        <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mt-20">
+        <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal-gray mt-20">
             Trending Hot Picks For Your Pet!
           </h2>
-        <div className="mt-10 bg-gradient-to-r from-energetic-orange to-calm-blue rounded-2xl p-8 md:p-12 text-center mb-10">
+        <div className="mt-10 bg-vibrant-orange rounded-2xl p-8 md:p-12 text-center mb-10">
           <ProductGrid products={topRecommendations} />
         </div>
 
         {/* Regular Products Section */}
-          <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mb-4">
+          <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal-gray mb-4">
             Products Your Furry Friend Will Love
           </h2>
         <ProductGrid products={regularProducts} />

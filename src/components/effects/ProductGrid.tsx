@@ -26,13 +26,13 @@ const ProductGrid = ({ products }: ProductGridProps) => {
                 className="w-20 h-40 object-contain"
               />
             </div>
-            <h3 className="text-sm text-2xl text-mint-green mb-1 text-center font-figtree font-semibold">
+            <h3 className="text-sm text-2xl text-mint-green mb-1 text-center font-fredoka font-semibold">
               {product.name}
             </h3>
             <div className="flex justify-center mb-2">
               <StarRating rating={product.rating} size="sm" />
             </div>
-            <p className="text-vibrant-orange text-center text-base font-figtree">{product.price}</p>
+            <p className="text-vibrant-orange text-center text-base font-fredoka">{product.price}</p>
           </div>
         </Link>
       ))}

@@ -107,7 +107,7 @@ const DealDetail: React.FC = () => {
         <div className="container mx-auto px-4 py-4">
           <button 
             onClick={handleBackClick}
-            className="flex items-center text-charcoal hover:text-vibrant-orange transition-colors"
+            className="flex items-center text-charcoal hover:text-vibrant-orange transition-colors font-fredoka"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Deals
@@ -129,19 +129,19 @@ const DealDetail: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="relative bg-gradient-to-r from-vibrant-orange to-primary-blue rounded-2xl overflow-hidden h-96"
+              className="relative bg-vibrant-orange rounded-2xl overflow-hidden h-96"
             >
               <img 
                 src={deal.image || '/api/placeholder/400/400'} 
                 alt={deal.title}
                 className="absolute right-0 top-0 h-full w-1/2 object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-vibrant-orange via-vibrant-orange/90 to-transparent"></div>
+              <div className="absolute inset-0 bg-vibrant-orange/90"></div>
               <div className="relative z-10 p-8 h-full flex flex-col justify-center">
                 <h1 className="text-white font-fredoka font-bold text-3xl leading-tight mb-4">
                   {deal.title}
                 </h1>
-                <p className="text-white text-lg opacity-90">
+                <p className="text-white text-lg opacity-90 font-fredoka">
                   {deal.subtitle}
                 </p>
               </div>
@@ -155,7 +155,7 @@ const DealDetail: React.FC = () => {
               className="space-y-6"
             >
               {/* Offer Badge */}
-              <div className="inline-flex items-center bg-vibrant-orange/10 text-vibrant-orange px-4 py-2 rounded-full">
+              <div className="inline-flex items-center bg-vibrant-orange/10 text-vibrant-orange px-4 py-2 rounded-full font-fredoka font-medium">
                 <Tag className="w-4 h-4 mr-2" />
                 {deal.offerType === 'buy-get-free' && 'Buy 2, Get 1 Free on All Flavors'}
                 {deal.offerType === 'free-shipping' && 'Free Shipping on Every Subscription Plan'}
@@ -168,7 +168,7 @@ const DealDetail: React.FC = () => {
               {/* Description */}
               <div>
                 <h2 className="text-2xl font-fredoka font-bold text-charcoal mb-4">About This Deal</h2>
-                <p className="text-charcoal text-lg leading-relaxed">
+                <p className="text-charcoal text-lg leading-relaxed font-fredoka">
                   {deal.description}
                 </p>
               </div>
@@ -180,16 +180,16 @@ const DealDetail: React.FC = () => {
                   {deal.validUntil && (
                     <div className="flex items-center text-charcoal">
                       <Clock className="w-5 h-5 mr-3 text-vibrant-orange" />
-                      Valid until {deal.validUntil.toLocaleDateString()}
+                      <span className="font-fredoka">Valid until {deal.validUntil.toLocaleDateString()}</span>
                     </div>
                   )}
                   <div className="flex items-center text-gray-600">
                     <Star className="w-5 h-5 mr-3 text-vibrant-orange" />
-                    Premium quality products included
+                    <span className="font-fredoka">Premium quality products included</span>
                   </div>
                   <div className="flex items-center text-gray-600">
                     <Heart className="w-5 h-5 mr-3 text-vibrant-orange" />
-                    Perfect for all dog breeds and sizes
+                    <span className="font-fredoka">Perfect for all dog breeds and sizes</span>
                   </div>
                 </div>
               </div>
@@ -220,7 +220,7 @@ const DealDetail: React.FC = () => {
                 <div key={product} className="border border-light-gray rounded-xl p-4 hover:shadow-md transition-shadow">
                   <div className="bg-off-white rounded-lg h-32 mb-4"></div>
                   <h4 className="font-fredoka font-semibold text-charcoal mb-2">Premium Dog Food {product}</h4>
-                  <p className="text-charcoal text-sm mb-3">High-quality nutrition for your furry friend</p>
+                  <p className="text-charcoal text-sm mb-3 font-fredoka">High-quality nutrition for your furry friend</p>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-fredoka font-bold text-vibrant-orange">Rs.999</span>
                     <button className="bg-vibrant-orange text-white px-4 py-2 rounded-lg text-sm font-fredoka hover:bg-vibrant-orange/90 transition-colors">

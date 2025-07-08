@@ -15,8 +15,8 @@ const ProductPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-off-white">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-12 gap-6">
           {/* Left Column - Main Content (10/12 columns) */}
           <div className="lg:col-span-10 space-y-6">

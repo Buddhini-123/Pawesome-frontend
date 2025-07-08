@@ -79,7 +79,7 @@ export default function FAQAccordion({
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <p className="text-white text-sm md:text-base mb-4 text-left">
+                    <p className="text-white text-sm md:text-base mb-4 text-left font-fredoka">
                       {faq.answer}
                     </p>
                   </motion.div>

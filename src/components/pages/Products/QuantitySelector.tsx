@@ -21,18 +21,18 @@ export const QuantitySelector = ({ quantity, onQuantityChange }: QuantitySelecto
     <div className="flex items-center space-x-2">
       <button
         onClick={decreaseQuantity}
-        className="w-7 h-7 flex items-center justify-center rounded bg-primary-blue text-white hover:bg-primary-blue/90 transition-colors"
+        className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary-blue text-white hover:bg-primary-blue/90 transition-colors shadow-sm"
       >
         <Minus className="w-3 h-3" />
       </button>
       
-      <span className="w-8 text-center font-medium text-vibrant-orange text-sm">
+      <span className="w-10 text-center font-fredoka font-medium text-vibrant-orange text-sm">
         {quantity}
       </span>
       
       <button
         onClick={increaseQuantity}
-        className="w-7 h-7 flex items-center justify-center rounded bg-primary-blue text-white hover:bg-primary-blue/90 transition-colors"
+        className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary-blue text-white hover:bg-primary-blue/90 transition-colors shadow-sm"
       >
         <Plus className="w-3 h-3" />
       </button>
