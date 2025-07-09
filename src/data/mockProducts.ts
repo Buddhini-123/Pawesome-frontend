@@ -10,6 +10,7 @@ export interface Product {
   category: string;
   subcategory: string;
   inStock: boolean;
+  stock?: number;
   discount?: number;
   description?: string;
 }
@@ -27,6 +28,7 @@ export const dogProducts: Product[] = [
     category: 'dogs',
     subcategory: 'food',
     inStock: true,
+    stock: 45,
     discount: 17
   },
   {
@@ -39,7 +41,8 @@ export const dogProducts: Product[] = [
     reviews: 156,
     category: 'dogs',
     subcategory: 'toys',
-    inStock: true
+    inStock: true,
+    stock: 8
   },
   {
     id: 'dog-3',

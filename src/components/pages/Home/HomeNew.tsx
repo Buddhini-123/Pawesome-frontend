@@ -170,7 +170,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Shop by Pet Category */}
-      <section className="py-20 bg-warm-white">
+      {/* <section className="py-20 bg-warm-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -208,10 +208,10 @@ const Home: React.FC = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary-blue relative overflow-hidden">
+      {/* <section className="py-20 bg-primary-blue relative overflow-hidden">
         <div className="absolute inset-0">
           {[...Array(10)].map((_, i) => (
             <span
@@ -249,7 +249,7 @@ const Home: React.FC = () => {
             </Link>
           </motion.div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };

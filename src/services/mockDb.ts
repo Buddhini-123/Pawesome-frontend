@@ -96,8 +96,19 @@ class MockDatabase {
         ],
         createdAt: new Date()
       };
+
+      const adminUser: User = {
+        id: 'admin-user-1',
+        email: 'admin@pawsome.com',
+        name: 'Admin User',
+        phone: '+91 9876543211',
+        role: 'admin',
+        addresses: [],
+        createdAt: new Date()
+      };
       
       this.users.set(demoUser.id, demoUser);
+      this.users.set(adminUser.id, adminUser);
       this.saveToLocalStorage();
     }
   }
@@ -124,7 +135,7 @@ class MockDatabase {
 
   async findUserByEmail(email: string): Promise<User | null> {
     await this.simulateDelay();
-    const user = Array.from(this.users.values()).find(u => u.email === email);
+    const user = Array.from(this.users.values()).find(u => u.email.toLowerCase() === email.toLowerCase());
     return user || null;
   }
 
@@ -293,6 +304,19 @@ class MockDatabase {
     return this.reviews.get(productId) || [];
   }
 
+  // Admin methods
+  getAllOrders(): Order[] {
+    const allOrders: Order[] = [];
+    for (const orders of this.orders.values()) {
+      allOrders.push(...orders);
+    }
+    return allOrders;
+  }
+
+  getAllUsers(): User[] {
+    return Array.from(this.users.values());
+  }
+
   // Wishlist methods
   async addToWishlist(userId: string, item: Omit<WishlistItem, 'id' | 'addedAt'>): Promise<WishlistItem> {
     await this.simulateDelay();
@@ -370,7 +394,29 @@ class MockDatabase {
     
     this.seedData();
   }
+  
+  // Force reset with default users
+  forceResetUsers(): void {
+    console.log('Force resetting users...');
+    this.users.clear();
+    localStorage.removeItem('mockDb_users');
+    this.seedData();
+    console.log('Users after reset:', Array.from(this.users.values()));
+  }
+
+  // Debug method to check all users
+  debugGetAllUsers(): any {
+    const users = Array.from(this.users.entries());
+    console.log('All users in database:', users);
+    console.log('Users from localStorage:', localStorage.getItem('mockDb_users'));
+    return users;
+  }
 }
 
 // Create singleton instance
 export const mockDb = new MockDatabase();
+
+// Temporary: expose to window for debugging
+if (typeof window !== 'undefined') {
+  (window as any).mockDb = mockDb;
+}

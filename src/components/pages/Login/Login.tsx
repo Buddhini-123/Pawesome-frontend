@@ -116,8 +116,18 @@ const Login: React.FC = () => {
         {/* Demo credentials */}
         <div className="mt-6 p-4 bg-amber-50 rounded-lg">
           <p className="text-sm text-medium-gray font-fredoka font-medium mb-2">Demo Credentials:</p>
-          <p className="text-xs text-medium-gray">Email: demo@pawsome.com</p>
-          <p className="text-xs text-medium-gray">Password: demo123</p>
+          <div className="space-y-2">
+            <div>
+              <p className="text-xs text-medium-gray font-medium">User Account:</p>
+              <p className="text-xs text-medium-gray">Email: demo@pawsome.com</p>
+              <p className="text-xs text-medium-gray">Password: demo123</p>
+            </div>
+            <div>
+              <p className="text-xs text-medium-gray font-medium">Admin Account:</p>
+              <p className="text-xs text-medium-gray">Email: admin@pawsome.com</p>
+              <p className="text-xs text-medium-gray">Password: admin123</p>
+            </div>
+          </div>
         </div>
 
         {/* Terms and privacy */}

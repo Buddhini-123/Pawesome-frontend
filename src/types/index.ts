@@ -6,11 +6,13 @@ export interface Product {
   price: number;
   originalPrice?: number;
   image: string;
+  images?: string[];
   rating: number;
   reviews: number;
   category: string;
   subcategory: string;
   inStock: boolean;
+  stock?: number;
   discount?: number;
   description?: string;
 }

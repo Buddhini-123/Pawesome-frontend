@@ -56,18 +56,36 @@ class AuthService {
       throw new Error('Email and password are required');
     }
 
+    // Trim whitespace from email
+    const trimmedEmail = email.trim().toLowerCase();
+    
+    console.log('Login attempt:', { email: trimmedEmail, password });
+
     // Check if user exists
-    const user = await mockDb.findUserByEmail(email);
+    const user = await mockDb.findUserByEmail(trimmedEmail);
+    
+    console.log('User found:', user);
     
     if (!user) {
       throw new Error('Invalid email or password');
     }
 
     // In a real app, we'd verify the password hash
-    // For demo, accept specific passwords for demo account
-    if (email === 'demo@pawsome.com' && password !== 'demo123') {
-      throw new Error('Invalid email or password');
-    } else if (email !== 'demo@pawsome.com' && password !== 'password123') {
+    // For demo, accept specific passwords for demo accounts
+    let validPassword = false;
+    
+    if (trimmedEmail === 'demo@pawsome.com') {
+      validPassword = password === 'demo123';
+    } else if (trimmedEmail === 'admin@pawsome.com') {
+      validPassword = password === 'admin123';
+    } else {
+      // For any other user, accept this default password
+      validPassword = password === 'password123';
+    }
+    
+    console.log('Password validation:', { trimmedEmail, expectedPassword: trimmedEmail === 'admin@pawsome.com' ? 'admin123' : 'other', providedPassword: password, validPassword });
+    
+    if (!validPassword) {
       throw new Error('Invalid email or password');
     }
 

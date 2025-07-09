@@ -165,6 +165,24 @@ export const formatters = {
   }
 };
 
+// Export individual formatter functions for easier imports
+export const formatCurrency = formatters.currency;
+export const formatDate = formatters.date;
+export const formatTime = formatters.time;
+export const formatPhone = formatters.phone;
+export const formatOrderId = formatters.orderId;
+export const formatPercentage = formatters.percentage;
+export const formatFileSize = formatters.fileSize;
+export const truncateText = formatters.truncate;
+export const formatCreditCard = formatters.creditCard;
+export const capitalize = formatters.capitalize;
+export const titleCase = formatters.titleCase;
+export const formatAddress = formatters.address;
+export const formatRating = formatters.rating;
+export const formatDeliveryFrequency = formatters.deliveryFrequency;
+export const formatOrderStatus = formatters.orderStatus;
+export const pluralize = formatters.pluralize;
+
 // Helper function for relative time
 function getRelativeTime(date: Date): string {
   const now = new Date();

@@ -7,6 +7,8 @@ import './output.css';
 // Components
 import Header from './components/common/Header';
 import Footer from './components/common/Footer/Footer';
+import AdminProtectedRoute from './components/common/AdminProtectedRoute';
+import AdminLayout from './components/admin/AdminLayout';
 
 // Pages
 import Home from './components/pages/Home/HomeNew';
@@ -36,10 +38,15 @@ import Register from './components/pages/Login/Register';
 import ProductPage from './components/pages/Products/ProductPage';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
+// Admin Pages
+import AdminDashboard from './components/admin/Dashboard/AdminDashboard';
+import ProductList from './components/admin/Products/ProductList';
+import AddProduct from './components/admin/Products/AddProduct';
+
 const App: React.FC = () => {
 
   const location = useLocation();
-  const hideLayout = location.pathname === '/login';
+  const hideLayout = location.pathname === '/login' || location.pathname.startsWith('/admin');
 
   return (
     <div className="App">
@@ -84,6 +91,24 @@ const App: React.FC = () => {
           <Route path="/loyalty-cards" element={<LoyaltyCards />} />
 
           <Route path="/product/:id" element={<ProductPage />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={
+            <AdminProtectedRoute>
+              <AdminLayout />
+            </AdminProtectedRoute>
+          }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<ProductList />} />
+            <Route path="products/new" element={<AddProduct />} />
+            <Route path="orders" element={<div>Orders Management - Coming Soon</div>} />
+            <Route path="users" element={<div>Users Management - Coming Soon</div>} />
+            <Route path="deals" element={<div>Deals Management - Coming Soon</div>} />
+            <Route path="subscriptions" element={<div>Subscriptions Management - Coming Soon</div>} />
+            <Route path="gift-cards" element={<div>Gift Cards Management - Coming Soon</div>} />
+            <Route path="analytics" element={<div>Analytics - Coming Soon</div>} />
+            <Route path="settings" element={<div>Settings - Coming Soon</div>} />
+          </Route>
           
           <Route path="*" element={<NotFound />} />
 
