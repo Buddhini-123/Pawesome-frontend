@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, LogOut, Heart, Gift, Percent, Trophy, Menu, X } from 'lucide-react';
+import { Search, ShoppingCart, User, LogOut, Heart, Gift, Percent, Trophy, Menu, X, Dog, Cat, Bird, Fish, Rabbit } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
+
 
 interface Category {
   name: string;
@@ -68,18 +69,18 @@ const Header: React.FC = () => {
   }, [showMobileMenu]);
 
   const categories: Category[] = [
-    { name: '📝 Subscription', link: '/subscriptions', icon: <Heart className="w-4 h-4" /> },
-    { name: '🎁 Gift Box', link: '/gifts', icon: <Gift className="w-4 h-4" /> },
-    { name: '🔥 Daily Deals', link: '/deals', icon: <Percent className="w-4 h-4" /> },
-    { name: '🏆 Paw Rewards', link: '/loyalty-cards', icon: <Trophy className="w-4 h-4" /> },
+    { name: 'Subscription', link: '/subscriptions', icon: <Heart className="w-4 h-4" /> },
+    { name: 'Gift Box', link: '/gifts', icon: <Gift className="w-4 h-4" /> },
+    { name: 'Daily Deals', link: '/deals', icon: <Percent className="w-4 h-4" /> },
+    { name: 'Paw Rewards', link: '/loyalty-cards', icon: <Trophy className="w-4 h-4" /> },
   ];
 
   const petCategories = [
-    { name: 'Dogs', link: '/dogs', icon: '🐕' },
-    { name: 'Cats', link: '/cats', icon: '🐱' },
-    { name: 'Birds', link: '/birds', icon: '🦜' },
-    { name: 'Fish', link: '/fish', icon: '🐠' },
-    { name: 'Small Pets', link: '/other-animals', icon: '🐰' },
+    { name: 'Dogs', link: '/dogs', icon: <Dog className="w-4 h-4" /> },
+    { name: 'Cats', link: '/cats', icon: <Cat className="w-4 h-4" /> },
+    { name: 'Birds', link: '/birds', icon: <Bird className="w-4 h-4" /> },
+    { name: 'Fish', link: '/fish', icon: <Fish className="w-4 h-4" /> },
+    { name: 'Small Pets', link: '/other-animals', icon: <Rabbit className="w-4 h-4" /> },
   ];
 
   return (
@@ -303,7 +304,8 @@ const Header: React.FC = () => {
                   to={category.link}
                   className="group px-6 py-3 text-white font-fredoka font-medium whitespace-nowrap hover:bg-white/20 transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2 paw-hover"
                 >
-                  {category.name}
+                  {category.icon}
+                  <span>{category.name}</span>
                 </Link>
               ))}
               
