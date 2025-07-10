@@ -7,11 +7,11 @@ const HeroSection: React.FC = () => {
   const [currentPet, setCurrentPet] = useState(0);
   
   const pets = [
-    { emoji: '🐕', name: 'Dogs' },
-    { emoji: '🐱', name: 'Cats' },
-    { emoji: '🐦', name: 'Birds' },
-    { emoji: '🐰', name: 'Rabbits' },
-    { emoji: '🐹', name: 'Hamsters' },
+    { emoji: '/icons/dog.png', name: 'Dogs' },
+    { emoji: '/icons/cat.png', name: 'Cats' },
+    { emoji: '/icons/bird.png', name: 'Birds' },
+    { emoji: '/icons/rabbit.png', name: 'Rabbits' },
+    { emoji: '/icons/hamster.png', name: 'Hamsters' },
   ];
 
   useEffect(() => {
@@ -105,11 +105,20 @@ const HeroSection: React.FC = () => {
                 exit={{ scale: 0, rotate: 180 }}
                 transition={{ duration: 0.5, type: "spring" }}
               >
-                {pets[currentPet].emoji}
+                 <img
+                  src={pets[currentPet].emoji}
+                  alt={pets[currentPet].name}
+                  className="mx-auto select-none drop-shadow-2xl"
+                  style={{
+                    width: '30px',
+                    height: '20px',
+                  }}
+                />
               </motion.span>
               <span className="text-white font-fredoka font-semibold">
                 {pets[currentPet].name}
               </span>
+              
             </motion.div>
 
             {/* Main Heading */}
@@ -237,9 +246,15 @@ const HeroSection: React.FC = () => {
                   ease: "easeInOut",
                 }}
               >
-                <span className="text-[300px] md:text-[400px] select-none filter drop-shadow-2xl">
-                  {pets[currentPet].emoji}
-                </span>
+                <img
+                  src={pets[currentPet].emoji}
+                  alt={pets[currentPet].name}
+                  className="mx-auto select-none drop-shadow-2xl"
+                  style={{
+                    width: '800px',
+                    height: '500px',
+                  }}
+                />
               </motion.div>
 
               {/* Floating Product Cards */}
