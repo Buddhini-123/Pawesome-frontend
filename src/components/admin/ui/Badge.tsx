@@ -1,20 +1,22 @@
 import React from 'react';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple';
-type BadgeSize = 'sm' | 'md' | 'lg';
+type BadgeSize = 'sm' | 'md' | 'lg' | 'large';
 
 interface BadgeProps {
   children: React.ReactNode;
   variant?: BadgeVariant;
   size?: BadgeSize;
   className?: string;
+  icon?: React.ReactNode;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   children,
   variant = 'default',
   size = 'md',
-  className = ''
+  className = '',
+  icon
 }) => {
   const variantClasses = {
     default: 'bg-gray-100 text-gray-800',
@@ -28,13 +30,15 @@ export const Badge: React.FC<BadgeProps> = ({
   const sizeClasses = {
     sm: 'px-2 py-0.5 text-xs',
     md: 'px-2.5 py-0.5 text-sm',
-    lg: 'px-3 py-1 text-base'
+    lg: 'px-3 py-1 text-base',
+    large: 'px-3 py-1 text-base'
   };
 
   return (
     <span
-      className={`inline-flex items-center font-fredoka font-medium rounded-full ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center gap-1 font-fredoka font-medium rounded-full ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
     >
+      {icon}
       {children}
     </span>
   );

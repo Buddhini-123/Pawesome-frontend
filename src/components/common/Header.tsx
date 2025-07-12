@@ -79,7 +79,7 @@ const Header: React.FC = () => {
     { name: 'Dogs', link: '/dogs', icon: <Dog className="w-4 h-4" /> },
     { name: 'Cats', link: '/cats', icon: <Cat className="w-4 h-4" /> },
     { name: 'Birds', link: '/birds', icon: <Bird className="w-4 h-4" /> },
-    { name: 'Fish', link: '/fish', icon: <Fish className="w-4 h-4" /> },
+    // { name: 'Fish', link: '/fish', icon: <Fish className="w-4 h-4" /> },
     { name: 'Small Pets', link: '/other-animals', icon: <Rabbit className="w-4 h-4" /> },
   ];
 

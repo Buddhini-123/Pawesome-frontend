@@ -6,7 +6,6 @@ import {
   Users,
   TrendingUp,
   TrendingDown,
-  Eye,
   Clock,
   CheckCircle,
   XCircle,
@@ -14,6 +13,9 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatters } from '../../../utils/formatters';
+import { adminOrderService } from '../../../services/adminOrder.service';
+import { mockDb } from '../../../services/mockDb';
+import { seedSampleOrders } from '../../../utils/seedOrders';
 
 interface DashboardStats {
   totalRevenue: number;
@@ -56,7 +58,7 @@ const AdminDashboard: React.FC = () => {
     usersChange: 15.7
   });
 
-  const [recentOrders] = useState<RecentOrder[]>([
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([
     {
       id: 'ORD001',
       customer: 'John Doe',
@@ -133,6 +135,56 @@ const AdminDashboard: React.FC = () => {
       stock: 150
     }
   ]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      // Load order statistics
+      const orderStats = await adminOrderService.getOrderStats();
+      const allOrders = mockDb.getAllOrders();
+      const allUsers = mockDb.getAllUsers();
+      
+      // Get admin products from localStorage
+      const adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]');
+      const totalProducts = 133 + adminProducts.length; // Mock products + admin created
+      
+      // Update stats with real data
+      setStats({
+        totalRevenue: orderStats.totalRevenue,
+        totalOrders: orderStats.totalOrders,
+        totalProducts: totalProducts,
+        totalUsers: allUsers.length,
+        revenueChange: 12.5, // These would be calculated from historical data
+        ordersChange: 8.3,
+        productsChange: 2.1,
+        usersChange: 15.7
+      });
+      
+      // Get recent orders
+      const recentOrdersData = allOrders
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5)
+        .map(order => ({
+          id: order.id.slice(0, 8).toUpperCase(),
+          customer: order.shippingAddress.fullName || order.userEmail,
+          date: new Date(order.createdAt).toISOString().split('T')[0],
+          total: order.totalAmount,
+          status: order.status === 'confirmed' ? 'processing' : 
+                 order.status === 'delivered' ? 'completed' : 
+                 order.status as any,
+          items: order.items.length
+        }));
+      
+      if (recentOrdersData.length > 0) {
+        setRecentOrders(recentOrdersData);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -362,6 +414,42 @@ const AdminDashboard: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Development Tools - Only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-8 bg-gray-100 rounded-xl p-6">
+          <h3 className="text-lg font-fredoka font-bold text-gray-700 mb-4">Development Tools</h3>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={async () => {
+                const confirm = window.confirm('This will create 20 sample orders. Continue?');
+                if (confirm) {
+                  try {
+                    await seedSampleOrders(20);
+                    alert('Sample orders created successfully!');
+                    loadDashboardData();
+                  } catch (error) {
+                    console.error('Error creating sample orders:', error);
+                    alert('Error creating sample orders. Check console.');
+                  }
+                }
+              }}
+              className="px-4 py-2 bg-primary-blue text-white rounded-lg font-fredoka hover:bg-blue-600"
+            >
+              Seed Sample Orders
+            </button>
+            <button
+              onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg font-fredoka hover:bg-red-600"
+            >
+              Clear All Data
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

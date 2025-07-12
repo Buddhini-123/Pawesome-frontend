@@ -162,6 +162,12 @@ export const formatters = {
   pluralize: (count: number, singular: string, plural?: string): string => {
     if (count === 1) return `${count} ${singular}`;
     return `${count} ${plural || singular + 's'}`;
+  },
+
+  // Time ago
+  timeAgo: (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return getRelativeTime(dateObj);
   }
 };
 

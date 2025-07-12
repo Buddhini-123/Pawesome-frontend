@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Clock, Tag, Star, Heart } from 'lucide-react';
 import { Deal, DealsPageData } from '../../types/deals';
+import { enhanceDeal, generateMockDealData } from '../../utils/dealHelpers';
 
 const DealDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -16,7 +17,7 @@ const DealDetail: React.FC = () => {
         title: 'Bark-Worthy Deals This Week Only!',
         subtitle: 'Limited time offers on premium pet products',
         deals: [
-          {
+          enhanceDeal(generateMockDealData({
             id: 'buy-2-get-1-free',
             title: 'THE BEST FOOD FOR YOUR DOG',
             subtitle: 'Delicious food made with love',
@@ -24,12 +25,13 @@ const DealDetail: React.FC = () => {
             offerType: 'buy-get-free',
             image: '/api/placeholder/200/300',
             isActive: true,
+            validFrom: new Date(),
             validUntil: new Date('2025-06-15'),
             slug: 'buy-2-get-1-free-all-flavors',
             category: ['dog-food', 'premium'],
             products: ['premium-dog-food-1', 'premium-dog-food-2']
-          },
-          {
+          })),
+          enhanceDeal(generateMockDealData({
             id: 'free-shipping',
             title: 'THE BEST FOOD FOR YOUR DOG',
             subtitle: 'Delicious food made with love',
@@ -37,24 +39,27 @@ const DealDetail: React.FC = () => {
             offerType: 'free-shipping',
             image: '/api/placeholder/200/300',
             isActive: true,
+            validFrom: new Date(),
             slug: 'free-shipping-subscription',
             category: ['subscription', 'shipping'],
             products: ['subscription-plan-1', 'subscription-plan-2']
-          },
-          {
+          })),
+          enhanceDeal(generateMockDealData({
             id: 'referral-deal',
             title: 'THE BEST FOOD FOR YOUR DOG',
             subtitle: 'Delicious food made with love',
             description: 'New to Pawsome? Let your furry friend try their new favorite meal.',
             offerType: 'referral',
             discount: 250,
+            discountType: 'fixed',
             image: '/api/placeholder/200/300',
             isActive: true,
+            validFrom: new Date(),
             slug: 'refer-friend-discount',
             category: ['referral', 'new-customer'],
             products: ['starter-pack-1', 'trial-pack-1']
-          },
-          {
+          })),
+          enhanceDeal(generateMockDealData({
             id: 'premium-upgrade',
             title: 'THE BEST FOOD FOR YOUR DOG',
             subtitle: 'Delicious food made with love',
@@ -62,10 +67,11 @@ const DealDetail: React.FC = () => {
             offerType: 'upgrade',
             image: '/api/placeholder/200/300',
             isActive: true,
+            validFrom: new Date(),
             slug: 'upgrade-to-premium',
             category: ['premium', 'upgrade'],
             products: ['premium-plan-1', 'premium-plan-2']
-          }
+          }))
         ]
       }
     ]

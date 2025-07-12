@@ -42,6 +42,10 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminDashboard from './components/admin/Dashboard/AdminDashboard';
 import ProductList from './components/admin/Products/ProductList';
 import AddProduct from './components/admin/Products/AddProduct';
+import OrderList from './components/admin/Orders/OrderList';
+import UserList from './components/admin/Users/UserList';
+import SubscriptionList from './components/admin/Subscriptions/SubscriptionList';
+import DealsList from './components/admin/Deals/DealsList';
 
 const App: React.FC = () => {
 
@@ -101,10 +105,10 @@ const App: React.FC = () => {
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<ProductList />} />
             <Route path="products/new" element={<AddProduct />} />
-            <Route path="orders" element={<div>Orders Management - Coming Soon</div>} />
-            <Route path="users" element={<div>Users Management - Coming Soon</div>} />
-            <Route path="deals" element={<div>Deals Management - Coming Soon</div>} />
-            <Route path="subscriptions" element={<div>Subscriptions Management - Coming Soon</div>} />
+            <Route path="orders" element={<OrderList />} />
+            <Route path="users" element={<UserList />} />
+            <Route path="deals" element={<DealsList />} />
+            <Route path="subscriptions" element={<SubscriptionList />} />
             <Route path="gift-cards" element={<div>Gift Cards Management - Coming Soon</div>} />
             <Route path="analytics" element={<div>Analytics - Coming Soon</div>} />
             <Route path="settings" element={<div>Settings - Coming Soon</div>} />
