@@ -32,66 +32,118 @@ const LoyaltyDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Main Card */}
+      {/* Credit Card Style Loyalty Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-lavender to-primary-blue rounded-3xl p-8 text-white shadow-2xl"
+        className="relative w-full max-w-md mx-auto"
       >
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h2 className="text-3xl font-fredoka font-bold mb-2">
-              {loyaltyCard.points.toLocaleString()} Points
-            </h2>
-            <p className="text-white/80 font-fredoka">
-              Card: {loyaltyCard.cardNumber}
-            </p>
+        {/* Main Credit Card */}
+        <div className={`relative w-full h-56 rounded-2xl shadow-2xl overflow-hidden ${getTierGradient(loyaltyCard.tier)}`}>
+          {/* Card Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-4 right-4 w-16 h-16 rounded-full border border-white/30"></div>
+            <div className="absolute top-8 right-8 w-8 h-8 rounded-full border border-white/20"></div>
+            <div className="absolute bottom-6 left-6 w-20 h-20 rounded-full border border-white/20"></div>
           </div>
-          <div className="text-right">
-            <div className={`inline-flex items-center px-4 py-2 rounded-full font-fredoka font-semibold ${getTierStyles(loyaltyCard.tier)}`}>
-              {getTierIcon(loyaltyCard.tier)} {loyaltyCard.tier}
+          
+          {/* Card Content */}
+          <div className="relative h-full p-6 flex flex-col justify-between text-white">
+            {/* Top Row - Pawsome Logo & Tier */}
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-fredoka font-bold">Pawsome</h3>
+                <p className="text-xs font-fredoka opacity-80">Loyalty Card</p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl mb-1">{getTierIcon(loyaltyCard.tier)}</div>
+                <p className="text-xs font-fredoka font-semibold uppercase tracking-wider">
+                  {loyaltyCard.tier}
+                </p>
+              </div>
+            </div>
+
+            {/* Middle Row - Points Balance */}
+            <div className="text-center">
+              <p className="text-3xl font-fredoka font-bold tracking-wider">
+                {loyaltyCard.points.toLocaleString()}
+              </p>
+              <p className="text-sm font-fredoka opacity-90">POINTS AVAILABLE</p>
+            </div>
+
+            {/* Bottom Row - Card Number & Member Since */}
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-lg font-fredoka font-semibold tracking-widest">
+                  {formatCardNumber(loyaltyCard.cardNumber)}
+                </p>
+                <p className="text-xs font-fredoka opacity-70">
+                  MEMBER SINCE {new Date(loyaltyCard.joinDate).getFullYear()}
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="w-8 h-5 bg-white/20 rounded border border-white/30 mb-1"></div>
+                <div className="w-10 h-3 bg-white/15 rounded"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Tier Progress */}
-        {nextTier && (
-          <div className="mb-6">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="font-fredoka">Progress to {nextTier.tier}</span>
-              <span className="font-fredoka">{progressToNextTier}%</span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-3">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progressToNextTier}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="bg-white rounded-full h-full"
-              />
-            </div>
-            <p className="text-xs text-white/70 mt-1 font-fredoka">
-              {nextTier.minPoints - loyaltyCard.totalEarned} points to next tier
-            </p>
-          </div>
-        )}
+        {/* Card Shadow/Depth Effect */}
+        <div className="absolute -bottom-2 left-2 right-2 h-56 bg-black/20 rounded-2xl -z-10"></div>
+      </motion.div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white/10 rounded-xl p-4 text-center">
-            <TrendingUp className="h-6 w-6 mx-auto mb-2" />
-            <p className="text-2xl font-fredoka font-bold">{loyaltyCard.totalEarned.toLocaleString()}</p>
-            <p className="text-xs text-white/70 font-fredoka">Total Earned</p>
+      {/* Tier Progress Card */}
+      {nextTier && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-2xl p-6 shadow-lg"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-fredoka font-bold text-charcoal">
+              Progress to {nextTier.tier}
+            </h3>
+            <span className="text-lg font-fredoka font-bold text-lavender">
+              {progressToNextTier}%
+            </span>
           </div>
-          <div className="bg-white/10 rounded-xl p-4 text-center">
-            <Gift className="h-6 w-6 mx-auto mb-2" />
-            <p className="text-2xl font-fredoka font-bold">{loyaltyCard.totalRedeemed.toLocaleString()}</p>
-            <p className="text-xs text-white/70 font-fredoka">Redeemed</p>
+          <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progressToNextTier}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className={`h-full rounded-full ${getTierProgressColor(nextTier.tier)}`}
+            />
           </div>
-          <div className="bg-white/10 rounded-xl p-4 text-center">
-            <Trophy className="h-6 w-6 mx-auto mb-2" />
-            <p className="text-2xl font-fredoka font-bold">{earnedBadgesCount}</p>
-            <p className="text-xs text-white/70 font-fredoka">Badges</p>
-          </div>
+          <p className="text-sm text-medium-gray font-fredoka">
+            {(nextTier.minPoints - loyaltyCard.totalEarned).toLocaleString()} points to unlock {nextTier.tier} benefits
+          </p>
+        </motion.div>
+      )}
+
+      {/* Stats Cards */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="grid grid-cols-3 gap-4"
+      >
+        <div className="bg-white rounded-xl p-4 shadow-lg text-center">
+          <TrendingUp className="h-8 w-8 mx-auto mb-2 text-mint-green" />
+          <p className="text-xl font-fredoka font-bold text-charcoal">{loyaltyCard.totalEarned.toLocaleString()}</p>
+          <p className="text-xs text-medium-gray font-fredoka">Total Earned</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-lg text-center">
+          <Gift className="h-8 w-8 mx-auto mb-2 text-vibrant-orange" />
+          <p className="text-xl font-fredoka font-bold text-charcoal">{loyaltyCard.totalRedeemed.toLocaleString()}</p>
+          <p className="text-xs text-medium-gray font-fredoka">Redeemed</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-lg text-center">
+          <Trophy className="h-8 w-8 mx-auto mb-2 text-sunny-yellow" />
+          <p className="text-xl font-fredoka font-bold text-charcoal">{earnedBadgesCount}</p>
+          <p className="text-xs text-medium-gray font-fredoka">Badges</p>
         </div>
       </motion.div>
 
@@ -258,6 +310,43 @@ function getTierIcon(tier: LoyaltyTier): string {
     default:
       return '⭐';
   }
+}
+
+function getTierGradient(tier: LoyaltyTier): string {
+  switch (tier) {
+    case LoyaltyTier.BRONZE:
+      return 'bg-gradient-to-br from-orange-600 via-orange-500 to-orange-700';
+    case LoyaltyTier.SILVER:
+      return 'bg-gradient-to-br from-gray-400 via-gray-300 to-gray-500';
+    case LoyaltyTier.GOLD:
+      return 'bg-gradient-to-br from-yellow-500 via-yellow-400 to-yellow-600';
+    case LoyaltyTier.PLATINUM:
+      return 'bg-gradient-to-br from-purple-600 via-purple-500 to-purple-700';
+    default:
+      return 'bg-gradient-to-br from-lavender to-primary-blue';
+  }
+}
+
+function getTierProgressColor(tier: LoyaltyTier): string {
+  switch (tier) {
+    case LoyaltyTier.SILVER:
+      return 'bg-gray-400';
+    case LoyaltyTier.GOLD:
+      return 'bg-yellow-500';
+    case LoyaltyTier.PLATINUM:
+      return 'bg-purple-600';
+    default:
+      return 'bg-lavender';
+  }
+}
+
+function formatCardNumber(cardNumber: string): string {
+  // Format like a credit card: PAW1 2345 6789
+  if (cardNumber.startsWith('PAW')) {
+    const numbers = cardNumber.substring(3);
+    return `PAW${numbers.substring(0, 1)} ${numbers.substring(1, 5)} ${numbers.substring(5)}`;
+  }
+  return cardNumber;
 }
 
 export default LoyaltyDashboard;
