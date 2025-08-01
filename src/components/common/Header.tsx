@@ -25,17 +25,17 @@ const Header: React.FC = () => {
 
   // Memoize categories to prevent recreation on every render
   const categories = useMemo<Category[]>(() => [
-    { name: 'Subscription', link: '/subscriptions', icon: <Heart className="w-4 h-4" /> },
-    { name: 'Gift Box', link: '/gifts', icon: <Gift className="w-4 h-4" /> },
-    { name: 'Daily Deals', link: '/deals', icon: <Percent className="w-4 h-4" /> },
-    { name: 'Paw Rewards', link: '/loyalty-cards', icon: <Trophy className="w-4 h-4" /> },
+    { name: 'Subscription', link: '/subscriptions', icon: <Heart className="w-5 h-5" /> },
+    { name: 'Gift Box', link: '/gifts', icon: <Gift className="w-5 h-5" /> },
+    { name: 'Daily Deals', link: '/deals', icon: <Percent className="w-5 h-5" /> },
+    { name: 'Paw Rewards', link: '/loyalty-cards', icon: <Trophy className="w-5 h-5" /> },
   ], []);
 
   const petCategories = useMemo(() => [
-    { name: 'Dogs', link: '/dogs', icon: <Dog className="w-4 h-4" /> },
-    { name: 'Cats', link: '/cats', icon: <Cat className="w-4 h-4" /> },
-    { name: 'Birds', link: '/birds', icon: <Bird className="w-4 h-4" /> },
-    { name: 'Small Pets', link: '/other-animals', icon: <Rabbit className="w-4 h-4" /> },
+    { name: 'Dogs', link: '/dogs', icon: <Dog className="w-5 h-5" /> },
+    { name: 'Cats', link: '/cats', icon: <Cat className="w-5 h-5" /> },
+    { name: 'Birds', link: '/birds', icon: <Bird className="w-5 h-5" /> },
+    { name: 'Small Pets', link: '/other-animals', icon: <Rabbit className="w-5 h-5" /> },
   ], []);
 
   // Debounced search handler
@@ -155,7 +155,7 @@ const Header: React.FC = () => {
         >
           {/* Mobile Menu Header */}
           <div className="bg-primary-blue p-4 flex items-center justify-between">
-            <h2 className="text-white font-fredoka font-bold text-lg">Menu</h2>
+            <h2 className="text-white font-fredoka font-bold text-xl">Menu</h2>
             <button
               onClick={() => setShowMobileMenu(false)}
               className="text-white p-1 rounded hover:bg-white/20 transition-colors"
@@ -173,28 +173,28 @@ const Header: React.FC = () => {
                     <User className="h-5 w-5 text-primary-blue" />
                   </div>
                   <div>
-                    <p className="font-fredoka font-semibold text-charcoal">{user?.name || 'My Account'}</p>
-                    <p className="text-sm text-medium-gray">{user?.email}</p>
+                    <p className="font-fredoka font-semibold text-charcoal text-lg">{user?.name || 'My Account'}</p>
+                    <p className="text-base text-medium-gray">{user?.email}</p>
                   </div>
                 </div>
                 <div className="space-y-2 mt-4">
                   <Link
                     to="/account"
-                    className="block px-4 py-2 text-charcoal hover:bg-soft-gray rounded-lg transition-colors"
+                    className="block px-4 py-2 text-charcoal hover:bg-soft-gray rounded-lg transition-colors text-base"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     👤 My Account
                   </Link>
                   <Link
                     to="/orders"
-                    className="block px-4 py-2 text-charcoal hover:bg-soft-gray rounded-lg transition-colors"
+                    className="block px-4 py-2 text-charcoal hover:bg-soft-gray rounded-lg transition-colors text-base"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     📦 My Orders
                   </Link>
                   <Link
                     to="/wishlist"
-                    className="block px-4 py-2 text-charcoal hover:bg-soft-gray rounded-lg transition-colors"
+                    className="block px-4 py-2 text-charcoal hover:bg-soft-gray rounded-lg transition-colors text-base"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     ❤️ Wishlist
@@ -215,14 +215,14 @@ const Header: React.FC = () => {
                 onClick={() => setShowMobileMenu(false)}
               >
                 <User className="h-5 w-5" />
-                <span className="font-fredoka font-medium">Sign In / Register</span>
+                <span className="font-fredoka font-medium text-lg">Sign In / Register</span>
               </Link>
             )}
           </div>
 
           {/* Special Categories */}
           <div className="p-4 space-y-2">
-            <h3 className="font-fredoka font-semibold text-charcoal mb-3">Special Features</h3>
+            <h3 className="font-fredoka font-semibold text-charcoal mb-3 text-lg">Special Features</h3>
             {categories.map((category, index) => (
               <Link
                 key={index}
@@ -237,7 +237,7 @@ const Header: React.FC = () => {
 
           {/* Pet Categories */}
           <div className="p-4 space-y-2 border-t border-light-gray">
-            <h3 className="font-fredoka font-semibold text-charcoal mb-3">Shop by Pet</h3>
+            <h3 className="font-fredoka font-semibold text-charcoal mb-3 text-lg">Shop by Pet</h3>
             {petCategories.map((pet, index) => (
               <Link
                 key={index}
@@ -245,7 +245,7 @@ const Header: React.FC = () => {
                 className="block px-4 py-3 text-charcoal hover:bg-soft-gray rounded-lg transition-colors"
                 onClick={() => setShowMobileMenu(false)}
               >
-                <span className="text-xl mr-3">{pet.icon}</span>
+                <span className="text-2xl mr-3">{pet.icon}</span>
                 {pet.name}
               </Link>
             ))}
@@ -278,7 +278,7 @@ const Header: React.FC = () => {
 
           {/* Notification Banner */}
           <div className="absolute bottom-0 left-0 right-0 bg-vibrant-orange p-3 text-center">
-            <p className="text-white text-sm font-fredoka">
+            <p className="text-white text-base font-fredoka">
               🐾 FREE SHIPPING on orders above ₹20,000
             </p>
           </div>
@@ -292,11 +292,11 @@ const Header: React.FC = () => {
       {/* Top notification bar - Hidden on mobile */}
       <div className="hidden md:block w-full bg-warm-orange py-2 px-4">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="text-sm font-fredoka font-medium text-charcoal flex items-center">
+          <div className="text-base font-fredoka font-medium text-charcoal flex items-center">
             <span className="mr-2 animate-bounce-slow">🐾</span>
             FREE SHIPPING on orders above Rs.20k
           </div>
-          <div className="flex space-x-4 text-sm">
+          <div className="flex space-x-4 text-base">
             <Link to="/contact" className="text-charcoal hover:text-warm-white transition-colors font-nunito">
               📞 Contact Us
             </Link>
@@ -380,7 +380,7 @@ const Header: React.FC = () => {
                   <input
                     type="text"
                     placeholder="Search treats, toys, food..."
-                    className="w-full pl-4 pr-12 py-3 rounded-full bg-soft-gray border-2 border-transparent focus:outline-none focus:border-primary-blue focus:bg-white transition-all duration-300 font-nunito text-sm"
+                    className="w-full pl-4 pr-12 py-3 rounded-full bg-soft-gray border-2 border-transparent focus:outline-none focus:border-primary-blue focus:bg-white transition-all duration-300 font-nunito text-base"
                     value={searchQuery}
                     onChange={handleSearchChange}
                   />
@@ -417,7 +417,7 @@ const Header: React.FC = () => {
                 <input
                   type="text"
                   placeholder="🔍 Search treats, toys, food and more..."
-                  className="w-full pl-6 pr-12 py-3 rounded-full bg-soft-gray border-2 border-transparent focus:outline-none focus:border-primary-blue focus:bg-white transition-all duration-300 font-nunito shadow-sm"
+                  className="w-full pl-6 pr-12 py-4 rounded-full bg-soft-gray border-2 border-transparent focus:outline-none focus:border-primary-blue focus:bg-white transition-all duration-300 font-nunito shadow-sm text-lg"
                   value={searchQuery}
                   onChange={handleSearchChange}
                 />
@@ -451,7 +451,7 @@ const Header: React.FC = () => {
                 className="flex items-center space-x-2 bg-vibrant-orange hover:bg-sunny-yellow transition-all duration-300 px-6 py-3 rounded-full text-white relative shadow-lg hover:shadow-xl transform hover:scale-105 btn-bounce"
               >
                 <ShoppingCart className="h-6 w-6" />
-                <span className="font-fredoka font-semibold">My Cart</span>
+                <span className="font-fredoka font-semibold text-lg">My Cart</span>
                 {totalItems > 0 && (
                   <span className="absolute -top-2 -right-2 bg-primary-blue text-white text-xs rounded-full h-7 w-7 flex items-center justify-center font-bold animate-pulse">
                     {totalItems}
@@ -474,7 +474,7 @@ const Header: React.FC = () => {
                 <Link
                   key={index}
                   to={category.link}
-                  className="group px-6 py-3 text-white font-fredoka font-medium whitespace-nowrap hover:bg-white/20 transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2 paw-hover"
+                  className="group px-6 py-3 text-white font-fredoka font-medium whitespace-nowrap hover:bg-white/20 transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2 paw-hover text-lg"
                 >
                   {category.icon}
                   <span>{category.name}</span>
@@ -489,9 +489,9 @@ const Header: React.FC = () => {
                 <Link
                   key={index}
                   to={pet.link}
-                  className="group px-4 py-3 text-white font-nunito whitespace-nowrap hover:bg-white/20 transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2 pet-icon-bounce"
+                  className="group px-4 py-3 text-white font-nunito whitespace-nowrap hover:bg-white/20 transition-all duration-300 rounded-full mx-1 my-1 flex items-center gap-2 pet-icon-bounce text-lg"
                 >
-                  <span className="pet-icon-bounce text-xl">{pet.icon}</span>
+                  <span className="pet-icon-bounce text-2xl">{pet.icon}</span>
                   <span className="hidden md:inline">{pet.name}</span>
                 </Link>
               ))}
