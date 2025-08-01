@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type JSX } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Trophy, 
@@ -41,11 +41,12 @@ const LoyaltyDashboard: React.FC = () => {
         {/* Main Credit Card */}
         <div className={`relative w-full h-56 rounded-2xl shadow-2xl overflow-hidden ${getTierGradient(loyaltyCard.tier)}`}>
           {/* Card Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-4 right-4 w-16 h-16 rounded-full border border-white/30"></div>
-            <div className="absolute top-8 right-8 w-8 h-8 rounded-full border border-white/20"></div>
-            <div className="absolute bottom-6 left-6 w-20 h-20 rounded-full border border-white/20"></div>
+          <div className="absolute inset-0">
+            {getTierPattern(loyaltyCard.tier)}
           </div>
+          
+          {/* Tier-specific overlay effects */}
+          <div className={`absolute inset-0 ${getTierOverlay(loyaltyCard.tier)}`}></div>
           
           {/* Card Content */}
           <div className="relative h-full p-6 flex flex-col justify-between text-white">
@@ -315,13 +316,13 @@ function getTierIcon(tier: LoyaltyTier): string {
 function getTierGradient(tier: LoyaltyTier): string {
   switch (tier) {
     case LoyaltyTier.BRONZE:
-      return 'bg-gradient-to-br from-orange-600 via-orange-500 to-orange-700';
+      return 'bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-600';
     case LoyaltyTier.SILVER:
-      return 'bg-gradient-to-br from-gray-400 via-gray-300 to-gray-500';
+      return 'bg-gradient-to-br from-slate-500 via-gray-400 to-blue-gray-600';
     case LoyaltyTier.GOLD:
-      return 'bg-gradient-to-br from-yellow-500 via-yellow-400 to-yellow-600';
+      return 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500';
     case LoyaltyTier.PLATINUM:
-      return 'bg-gradient-to-br from-purple-600 via-purple-500 to-purple-700';
+      return 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600';
     default:
       return 'bg-gradient-to-br from-lavender to-primary-blue';
   }
@@ -330,13 +331,79 @@ function getTierGradient(tier: LoyaltyTier): string {
 function getTierProgressColor(tier: LoyaltyTier): string {
   switch (tier) {
     case LoyaltyTier.SILVER:
-      return 'bg-gray-400';
+      return 'bg-gradient-to-r from-slate-400 to-gray-500';
     case LoyaltyTier.GOLD:
-      return 'bg-yellow-500';
+      return 'bg-gradient-to-r from-yellow-400 to-amber-500';
     case LoyaltyTier.PLATINUM:
-      return 'bg-purple-600';
+      return 'bg-gradient-to-r from-indigo-500 to-purple-600';
     default:
-      return 'bg-lavender';
+      return 'bg-gradient-to-r from-amber-600 to-orange-600';
+  }
+}
+
+function getTierPattern(tier: LoyaltyTier): JSX.Element {
+  switch (tier) {
+    case LoyaltyTier.BRONZE:
+      return (
+        <div className="opacity-15">
+          <div className="absolute top-4 right-4 w-20 h-20 rounded-full border-2 border-white/40"></div>
+          <div className="absolute top-8 right-8 w-12 h-12 rounded-full border border-white/30"></div>
+          <div className="absolute bottom-6 left-6 w-24 h-24 rounded-full border border-white/25"></div>
+          <div className="absolute bottom-10 left-10 w-8 h-8 rounded-full bg-white/20"></div>
+        </div>
+      );
+    case LoyaltyTier.SILVER:
+      return (
+        <div className="opacity-20">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-8 translate-x-8"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+          <div className="absolute top-1/2 left-1/2 w-16 h-16 border-2 border-white/30 rounded-lg rotate-45 -translate-x-8 -translate-y-8"></div>
+        </div>
+      );
+    case LoyaltyTier.GOLD:
+      return (
+        <div className="opacity-25">
+          <div className="absolute top-2 right-2 w-6 h-6 bg-white/30 rounded-full"></div>
+          <div className="absolute top-6 right-8 w-4 h-4 bg-white/20 rounded-full"></div>
+          <div className="absolute top-12 right-4 w-3 h-3 bg-white/25 rounded-full"></div>
+          <div className="absolute bottom-4 left-4 w-28 h-28 border-2 border-white/30 rounded-full"></div>
+          <div className="absolute bottom-8 left-8 w-16 h-16 border border-white/20 rounded-full"></div>
+          <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-white/40 rounded-full"></div>
+        </div>
+      );
+    case LoyaltyTier.PLATINUM:
+      return (
+        <div className="opacity-30">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10"></div>
+          <div className="absolute top-4 right-6 w-12 h-1 bg-white/40 rounded-full"></div>
+          <div className="absolute top-8 right-6 w-16 h-1 bg-white/30 rounded-full"></div>
+          <div className="absolute top-12 right-6 w-8 h-1 bg-white/35 rounded-full"></div>
+          <div className="absolute bottom-6 left-6 w-20 h-20 border border-white/25 rounded-lg rotate-12"></div>
+          <div className="absolute bottom-10 left-10 w-8 h-8 bg-white/15 rounded-lg rotate-45"></div>
+        </div>
+      );
+    default:
+      return (
+        <div className="opacity-10">
+          <div className="absolute top-4 right-4 w-16 h-16 rounded-full border border-white/30"></div>
+          <div className="absolute bottom-6 left-6 w-20 h-20 rounded-full border border-white/20"></div>
+        </div>
+      );
+  }
+}
+
+function getTierOverlay(tier: LoyaltyTier): string {
+  switch (tier) {
+    case LoyaltyTier.BRONZE:
+      return 'bg-gradient-to-br from-transparent via-orange-600/15 to-amber-700/20';
+    case LoyaltyTier.SILVER:
+      return 'bg-gradient-to-br from-white/5 via-transparent to-slate-800/20';
+    case LoyaltyTier.GOLD:
+      return 'bg-gradient-to-br from-yellow-200/10 via-transparent to-amber-800/20';
+    case LoyaltyTier.PLATINUM:
+      return 'bg-gradient-to-br from-indigo-200/10 via-purple-400/10 to-pink-800/20';
+    default:
+      return 'bg-gradient-to-br from-transparent to-black/10';
   }
 }
 

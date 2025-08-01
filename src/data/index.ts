@@ -12,6 +12,9 @@ export * from './giftBoxProducts';
 // Deals
 export { mockDealsData } from '../components/mockDeals';
 
+// Loyalty
+export * from './mockLoyalty';
+
 // Helper function to get products by IDs
 export const getProductsByIds = (productIds: string[], allProducts: any[]) => {
   return allProducts.filter(product => productIds.includes(product.id));

@@ -11,8 +11,68 @@ import {
 import { User } from '../types';
 import { api } from './api';
 import { v4 as uuidv4 } from 'uuid';
+import { 
+  mockLoyaltyCards, 
+  mockPointTransactions,
+  mockBadges 
+} from '../data/mockLoyalty';
 
 class LoyaltyService {
+  constructor() {
+    this.initializeData();
+  }
+
+  // Initialize mock data if not already present
+  private initializeData(): void {
+    // Check if loyalty cards already exist in localStorage
+    const existingCards = localStorage.getItem('loyaltyCards');
+    if (!existingCards) {
+      // Initialize with mock data
+      localStorage.setItem('loyaltyCards', JSON.stringify(mockLoyaltyCards));
+      console.log('Initialized loyalty cards with mock data');
+    }
+
+    // Check if loyalty transactions already exist
+    const existingTransactions = localStorage.getItem('loyaltyTransactions');
+    if (!existingTransactions) {
+      localStorage.setItem('loyaltyTransactions', JSON.stringify(mockPointTransactions));
+      console.log('Initialized loyalty transactions with mock data');
+    }
+
+    // Fix existing demo user if they don't have a loyalty card ID
+    this.linkDemoUserToLoyaltyCard();
+  }
+
+  // Helper method to link existing demo user to their loyalty card
+  private linkDemoUserToLoyaltyCard(): void {
+    try {
+      const authUser = localStorage.getItem('auth_user');
+      if (authUser) {
+        const user = JSON.parse(authUser);
+        if (user.id === 'demo-user-1' && !user.loyaltyCardId) {
+          user.loyaltyCardId = 'lc-001';
+          localStorage.setItem('auth_user', JSON.stringify(user));
+          console.log('Linked demo user to loyalty card');
+        }
+      }
+
+      // Also update in mockDb users
+      const mockDbUsers = localStorage.getItem('mockDb_users');
+      if (mockDbUsers) {
+        const users = JSON.parse(mockDbUsers);
+        const userArray = users.map(([id, userData]: [string, any]) => {
+          if (id === 'demo-user-1' && !userData.loyaltyCardId) {
+            userData.loyaltyCardId = 'lc-001';
+          }
+          return [id, userData];
+        });
+        localStorage.setItem('mockDb_users', JSON.stringify(userArray));
+      }
+    } catch (error) {
+      console.warn('Could not link demo user to loyalty card:', error);
+    }
+  }
+
   // Register new loyalty card
   async registerLoyaltyCard(userId: string): Promise<LoyaltyCard> {
     try {
@@ -468,71 +528,7 @@ class LoyaltyService {
   }
 
   private getAllBadges(): Badge[] {
-    return [
-      {
-        id: '1',
-        name: 'Welcome Paw',
-        description: 'Join the Pawsome loyalty family',
-        icon: '🐾',
-        isLocked: false
-      },
-      {
-        id: '2',
-        name: 'First Purchase',
-        description: 'Complete your first order',
-        icon: '🛍️',
-        requiredOrders: 1,
-        isLocked: true
-      },
-      {
-        id: '3',
-        name: 'Point Collector',
-        description: 'Earn 1,000 points',
-        icon: '⭐',
-        requiredPoints: 1000,
-        isLocked: true
-      },
-      {
-        id: '4',
-        name: 'Silver Paw',
-        description: 'Reach Silver tier',
-        icon: '🥈',
-        tier: LoyaltyTier.SILVER,
-        isLocked: true
-      },
-      {
-        id: '5',
-        name: 'Gold Paw',
-        description: 'Reach Gold tier',
-        icon: '🥇',
-        tier: LoyaltyTier.GOLD,
-        isLocked: true
-      },
-      {
-        id: '6',
-        name: 'Platinum Paw',
-        description: 'Reach Platinum tier',
-        icon: '💎',
-        tier: LoyaltyTier.PLATINUM,
-        isLocked: true
-      },
-      {
-        id: '7',
-        name: 'Loyal Friend',
-        description: 'Complete 10 orders',
-        icon: '🤝',
-        requiredOrders: 10,
-        isLocked: true
-      },
-      {
-        id: '8',
-        name: 'Super Saver',
-        description: 'Earn 10,000 points',
-        icon: '💰',
-        requiredPoints: 10000,
-        isLocked: true
-      }
-    ];
+    return mockBadges;
   }
 }
 

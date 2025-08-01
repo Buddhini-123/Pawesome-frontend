@@ -79,6 +79,7 @@ class MockDatabase {
         name: 'Demo User',
         phone: '+91 9876543210',
         role: 'user',
+        loyaltyCardId: 'lc-001', // Link to demo user's loyalty card
         addresses: [
           {
             id: 'addr-1',
