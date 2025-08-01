@@ -112,7 +112,7 @@ const Home: React.FC = () => {
     { name: 'Dogs', icon: <span className="text-5xl">🐕</span>, count: '500+ Products', color: 'bg-vibrant-orange' },
     { name: 'Cats', icon: <span className="text-5xl">🐱</span>, count: '450+ Products', color: 'bg-primary-blue' },
     { name: 'Birds', icon: <span className="text-5xl">🦜</span>, count: '200+ Products', color: 'bg-mint-green' },
-    { name: 'Small Pets', icon: <span className="text-5xl">🐹</span>, count: '300+ Products', color: 'bg-lavender' },
+    { name: 'Other Pets', icon: <span className="text-5xl">🐹</span>, count: '300+ Products', color: 'bg-lavender' },
   ];
 
   return (

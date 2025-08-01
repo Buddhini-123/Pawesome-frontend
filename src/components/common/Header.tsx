@@ -35,7 +35,7 @@ const Header: React.FC = () => {
     { name: 'Dogs', link: '/dogs', icon: <Dog className="w-5 h-5" /> },
     { name: 'Cats', link: '/cats', icon: <Cat className="w-5 h-5" /> },
     { name: 'Birds', link: '/birds', icon: <Bird className="w-5 h-5" /> },
-    { name: 'Small Pets', link: '/other-animals', icon: <Rabbit className="w-5 h-5" /> },
+    { name: 'Other Pets', link: '/other-animals', icon: <Rabbit className="w-5 h-5" /> },
   ], []);
 
   // Debounced search handler
