@@ -159,7 +159,7 @@ class AdminService {
         registeredDate: '2024-01-15',
         lastLogin: '2025-01-08',
         orders: 12,
-        totalSpent: 25000,
+        totalSpent: 6000,
         addresses: [
           {
             street: '123 Main St',

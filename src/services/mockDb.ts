@@ -1,4 +1,4 @@
-import { User, Order, Subscription, Review, WishlistItem } from '../types';
+import { User, Order, Subscription, Review, WishlistItem, Pet } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 class MockDatabase {
@@ -73,6 +73,182 @@ class MockDatabase {
   private seedData() {
     // Seed with demo user if no users exist
     if (this.users.size === 0) {
+      const samplePets: Pet[] = [
+        {
+          id: 'pet-1',
+          name: 'Buddy',
+          type: 'dog',
+          breed: 'Golden Retriever',
+          age: 3,
+          ageUnit: 'years',
+          weight: 32,
+          weightUnit: 'kg',
+          gender: 'male',
+          color: 'Golden',
+          dateOfBirth: new Date('2021-03-15'),
+          isNeutered: true,
+          microchipId: '123456789012345',
+          medicalNotes: 'Healthy and active. Regular vet checkups.',
+          allergies: ['chicken'],
+          medications: ['heartworm prevention'],
+          timeline: [
+            {
+              id: 'timeline-1',
+              petId: 'pet-1',
+              date: new Date('2024-12-15'),
+              type: 'vet_visit',
+              title: 'Annual Health Checkup',
+              description: 'Regular yearly checkup and vaccinations',
+              category: 'medical',
+              importance: 'medium',
+              vetVisit: {
+                vetName: 'Dr. Sarah Johnson',
+                clinic: 'Pawsome Veterinary Clinic',
+                reason: 'Annual checkup',
+                diagnosis: 'Healthy overall, slight weight gain',
+                treatment: 'Diet adjustment recommended',
+                cost: 150
+              },
+              createdAt: new Date('2024-12-15'),
+              updatedAt: new Date('2024-12-15')
+            },
+            {
+              id: 'timeline-2',
+              petId: 'pet-1',
+              date: new Date('2024-11-20'),
+              type: 'weight_check',
+              title: 'Monthly Weight Check',
+              description: 'Tracking weight management progress',
+              category: 'wellness',
+              importance: 'medium',
+              weight: {
+                weight: 32,
+                unit: 'kg',
+                bodyCondition: 'ideal',
+                notes: 'Maintaining healthy weight'
+              },
+              createdAt: new Date('2024-11-20'),
+              updatedAt: new Date('2024-11-20')
+            },
+            {
+              id: 'timeline-3',
+              petId: 'pet-1',
+              date: new Date('2024-10-05'),
+              type: 'training',
+              title: 'Advanced Obedience Training',
+              description: 'Working on recall and stay commands',
+              category: 'training',
+              importance: 'low',
+              training: {
+                skill: 'Advanced Recall',
+                progress: 'in_progress',
+                trainer: 'Mike Peterson',
+                duration: 60,
+                notes: 'Great progress with distractions'
+              },
+              createdAt: new Date('2024-10-05'),
+              updatedAt: new Date('2024-10-05')
+            }
+          ],
+          vetInfo: {
+            primaryVet: {
+              name: 'Dr. Sarah Johnson',
+              clinic: 'Pawsome Veterinary Clinic',
+              phone: '+91 98765 43210',
+              email: 'sarah@pawsomevet.com',
+              address: '123 Pet Care Street, Mumbai'
+            }
+          },
+          createdAt: new Date('2024-01-15'),
+          updatedAt: new Date('2024-01-15')
+        },
+        {
+          id: 'pet-2',
+          name: 'Whiskers',
+          type: 'cat',
+          breed: 'Persian',
+          age: 2,
+          ageUnit: 'years',  
+          weight: 4.5,
+          weightUnit: 'kg',
+          gender: 'female',
+          color: 'White',
+          dateOfBirth: new Date('2022-06-20'),
+          isNeutered: true,
+          medicalNotes: 'Indoor cat, needs regular grooming.',
+          medications: ['flea prevention'],
+          timeline: [
+            {
+              id: 'timeline-4',
+              petId: 'pet-2',
+              date: new Date('2024-12-10'),
+              type: 'grooming',
+              title: 'Professional Grooming Session',
+              description: 'Full grooming including bath, brush, and nail trim',
+              category: 'grooming',
+              importance: 'medium',
+              grooming: {
+                service: 'Full grooming package',
+                groomer: 'Lisa Chen',
+                cost: 80,
+                nextAppointment: new Date('2025-03-10'),
+                notes: 'Handled grooming very well, minimal matting'
+              },
+              createdAt: new Date('2024-12-10'),
+              updatedAt: new Date('2024-12-10')
+            },
+            {
+              id: 'timeline-5',
+              petId: 'pet-2',
+              date: new Date('2024-11-15'),
+              type: 'vaccination',
+              title: 'Annual Vaccination Booster',
+              description: 'FVRCP and rabies vaccination',
+              category: 'health',
+              importance: 'high',
+              vaccination: {
+                vaccine: 'FVRCP + Rabies',
+                veterinarian: 'Dr. Michael Wong',
+                clinic: 'Downtown Animal Hospital',
+                nextDue: new Date('2025-11-15')
+              },
+              createdAt: new Date('2024-11-15'),
+              updatedAt: new Date('2024-11-15')
+            },
+            {
+              id: 'timeline-6',
+              petId: 'pet-2',
+              date: new Date('2024-09-22'),
+              type: 'behavior',
+              title: 'Excessive Scratching Behavior',
+              description: 'Observed increased scratching of furniture',
+              category: 'behavior',
+              importance: 'medium',
+              behavior: {
+                behavior: 'Furniture scratching',
+                severity: 'moderate',
+                triggers: ['boredom', 'territorial marking'],
+                interventions: ['new scratching posts', 'interactive toys'],
+                progress: 'Improvement seen with new scratching posts'
+              },
+              createdAt: new Date('2024-09-22'),
+              updatedAt: new Date('2024-09-22')
+            }
+          ],
+          vetInfo: {
+            primaryVet: {
+              name: 'Dr. Michael Wong',
+              clinic: 'Downtown Animal Hospital',
+              phone: '+91 98765 43211',
+              email: 'michael@downtownvet.com',
+              address: '456 Main Street, Mumbai'
+            }
+          },
+          createdAt: new Date('2024-02-10'),
+          updatedAt: new Date('2024-02-10')
+        }
+      ];
+
       const demoUser: User = {
         id: 'demo-user-1',
         email: 'demo@pawsome.com',
@@ -80,6 +256,7 @@ class MockDatabase {
         phone: '+91 9876543210',
         role: 'user',
         loyaltyCardId: 'lc-001', // Link to demo user's loyalty card
+        pets: samplePets,
         addresses: [
           {
             id: 'addr-1',

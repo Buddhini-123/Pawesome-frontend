@@ -50,12 +50,7 @@ export interface User {
     exclusiveOffers: boolean;
   };
   // Pet details for personalized offers
-  pets?: {
-    name: string;
-    type: 'dog' | 'cat' | 'bird' | 'other';
-    breed?: string;
-    age?: number;
-  }[];
+  pets?: Pet[];
 }
 
 export interface Address {
@@ -236,6 +231,231 @@ export interface CheckoutForm {
   sameAsShipping: boolean;
   paymentMethod: PaymentMethod | 'card' | 'upi' | 'cod';
   couponCode?: string;
+}
+
+// Pet Management types
+export interface Pet {
+  id: string;
+  name: string;
+  type: 'dog' | 'cat' | 'bird' | 'fish' | 'rabbit' | 'hamster' | 'other';
+  breed?: string;
+  age?: number;
+  ageUnit?: 'months' | 'years';
+  weight?: number;
+  weightUnit?: 'kg' | 'lbs';
+  gender?: 'male' | 'female';
+  color?: string;
+  dateOfBirth?: Date;
+  isNeutered?: boolean;
+  microchipId?: string;
+  image?: string;
+  medicalNotes?: string;
+  allergies?: string[];
+  medications?: string[];
+  favoriteProducts?: string[]; // Product IDs
+  // Enhanced tracking
+  timeline?: PetTimelineEntry[];
+  vetInfo?: VetInfo;
+  emergencyContact?: EmergencyContact;
+  insurance?: PetInsurance;
+  preferences?: PetPreferences;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PetTimelineEntry {
+  id: string;
+  petId: string;
+  date: Date;
+  type: TimelineEntryType;
+  title: string;
+  description?: string;
+  category: TimelineCategory;
+  importance: 'low' | 'medium' | 'high' | 'critical';
+  attachments?: TimelineAttachment[];
+  vetVisit?: VetVisitDetails;
+  medication?: MedicationDetails;
+  weight?: WeightEntry;
+  vaccination?: VaccinationDetails;
+  training?: TrainingDetails;
+  behavior?: BehaviorEntry;
+  grooming?: GroomingDetails;
+  nutrition?: NutritionEntry;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type TimelineEntryType = 
+  | 'vet_visit'
+  | 'vaccination' 
+  | 'medication'
+  | 'weight_check'
+  | 'grooming'
+  | 'training'
+  | 'behavior'
+  | 'nutrition'
+  | 'milestone'
+  | 'emergency'
+  | 'general'
+  | 'surgery'
+  | 'dental'
+  | 'boarding'
+  | 'travel';
+
+export type TimelineCategory = 
+  | 'health'
+  | 'medical'
+  | 'wellness'
+  | 'behavior'
+  | 'training'
+  | 'grooming'
+  | 'nutrition'
+  | 'lifestyle'
+  | 'emergency'
+  | 'milestone';
+
+export interface TimelineAttachment {
+  id: string;
+  name: string;
+  type: 'image' | 'document' | 'video';
+  url: string;
+  size?: number;
+}
+
+export interface VetVisitDetails {
+  vetName: string;
+  clinic: string;
+  reason: string;
+  diagnosis?: string;
+  treatment?: string;
+  followUpDate?: Date;
+  cost?: number;
+  prescriptions?: string[];
+}
+
+export interface MedicationDetails {
+  name: string;
+  dosage: string;
+  frequency: string;
+  startDate: Date;
+  endDate?: Date;
+  prescribedBy?: string;
+  sideEffects?: string[];
+  notes?: string;
+}
+
+export interface WeightEntry {
+  weight: number;
+  unit: 'kg' | 'lbs';
+  bodyCondition?: 'underweight' | 'ideal' | 'overweight' | 'obese';
+  notes?: string;
+}
+
+export interface VaccinationDetails {
+  vaccine: string;
+  batch?: string;
+  nextDue?: Date;
+  veterinarian: string;
+  clinic: string;
+  reactions?: string[];
+}
+
+export interface TrainingDetails {
+  trainer?: string;
+  skill: string;
+  progress: 'started' | 'in_progress' | 'mastered';
+  methods?: string[];
+  duration?: number; // minutes
+  notes?: string;
+}
+
+export interface BehaviorEntry {
+  behavior: string;
+  severity: 'mild' | 'moderate' | 'severe';
+  triggers?: string[];
+  interventions?: string[];
+  progress?: string;
+}
+
+export interface GroomingDetails {
+  service: string;
+  groomer?: string;
+  cost?: number;
+  nextAppointment?: Date;
+  notes?: string;
+}
+
+export interface NutritionEntry {
+  food: string;
+  brand?: string;
+  amount: string;
+  calories?: number;
+  reason?: string; // diet change, weight management, etc.
+  supplements?: string[];
+}
+
+export interface VetInfo {
+  primaryVet: {
+    name: string;
+    clinic: string;
+    phone: string;
+    email?: string;
+    address?: string;
+  };
+  emergencyVet?: {
+    name: string;
+    clinic: string;
+    phone: string;
+    address?: string;
+  };
+}
+
+export interface EmergencyContact {
+  name: string;
+  relationship: string;
+  phone: string;
+  email?: string;
+  hasKeys?: boolean;
+}
+
+export interface PetInsurance {
+  provider: string;
+  policyNumber: string;
+  coverage: string[];
+  deductible?: number;
+  monthlyPremium?: number;
+  expiryDate?: Date;
+}
+
+export interface PetPreferences {
+  favoriteToys?: string[];
+  favoriteActivities?: string[];
+  dislikes?: string[];
+  specialNeeds?: string[];
+  dailyRoutine?: {
+    feeding: string[];
+    walks: string[];
+    sleep: string;
+    play: string[];
+  };
+}
+
+export interface PetForm {
+  name: string;
+  type: Pet['type'];
+  breed: string;
+  age: string;
+  ageUnit: Pet['ageUnit'];
+  weight: string;
+  weightUnit: Pet['weightUnit'];
+  gender: Pet['gender'];
+  color: string;
+  dateOfBirth: string;
+  isNeutered: boolean;
+  microchipId: string;
+  medicalNotes: string;
+  allergies: string;
+  medications: string;
 }
 
 // Notification types
