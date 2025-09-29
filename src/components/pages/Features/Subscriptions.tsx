@@ -1,5 +1,5 @@
 // src/pages/Subscriptions.tsx
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -39,6 +39,7 @@ import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel'
 import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion'
 import { dogProducts, catProducts, birdProducts, otherAnimalsProducts, Product } from '../../../data/mockProducts'
 import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
+import axios from "axios"
 
 interface SubscriptionItem {
   name: string;
@@ -58,6 +59,22 @@ interface Subscription {
   items: SubscriptionItem[];
   deliveryAddress: string;
   savedAmount: number;
+}
+
+interface Category {
+  id: number
+  name: string
+  slug: string
+}
+
+interface Product {
+  id: number
+  name: string
+  slug: string
+  price: string
+  stock_quantity: number
+  category: Category
+  primary_image: string | null
 }
 
 const Subscriptions = () => {
@@ -150,6 +167,9 @@ const Subscriptions = () => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showProductModal, setShowProductModal] = useState(false)
+
+  const [categories, setCategories] = useState<Category[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   
   // Mock active subscriptions data with more details
   const [activeSubscriptions] = useState<Subscription[]>([
@@ -187,6 +207,16 @@ const Subscriptions = () => {
       savedAmount: 120
     }
   ])
+
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/categories").then(res => {
+      setCategories(res.data.data)
+    })
+    axios.get("http://127.0.0.1:8000/api/products").then(res => {
+      setProducts(res.data.data)
+    })
+  }, [])
+
 
   const handleProductToggle = (product: Product) => {
     setSelectedProducts(prev => {
@@ -245,6 +275,11 @@ const Subscriptions = () => {
     setSelectedProduct(product)
     setShowProductModal(true)
   }
+
+  const filteredProducts =
+    selectedCategory === "all"
+      ? products
+      : products.filter(p => p.category?.slug === selectedCategory)
 
   return (
     <div className="min-h-screen bg-soft-gray">
@@ -779,128 +814,29 @@ const Subscriptions = () => {
                   >
                     All Products
                   </button>
-                  <button
-                    onClick={() => setSelectedCategory('dogs')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                      selectedCategory === 'dogs'
+                  {categories.map(cat => (
+                    <button
+                      key={cat.id}
+                      className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap
+                      ${selectedCategory === cat.slug
                         ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
+                        : 'bg-white text-medium-gray hover:bg-light-gray' }
                     }`}
-                  >
-                    Dogs
-                  </button>
-                  <button
-                    onClick={() => setSelectedCategory('cats')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                      selectedCategory === 'cats'
-                        ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
-                    }`}
-                  >
-                    Cats
-                  </button>
-                  <button
-                    onClick={() => setSelectedCategory('birds')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                      selectedCategory === 'birds'
-                        ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
-                    }`}
-                  >
-                    Birds
-                  </button>
-                  <button
-                    onClick={() => setSelectedCategory('other')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                      selectedCategory === 'other'
-                        ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
-                    }`}
-                  >
-                    Other Animals
-                  </button>
+                      onClick={() => setSelectedCategory(cat.slug)}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {/* Products Grid */}
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {/* Filter products based on selected category */}
-                  {selectedCategory === 'all' && (
-                    <>
-                      {dogProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          isSelected={selectedProducts.some(p => p.id === product.id)}
-                          onToggle={handleProductToggle}
-                          onViewDetails={handleViewProductDetails}
-                        />
-                      ))}
-                      {catProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          isSelected={selectedProducts.some(p => p.id === product.id)}
-                          onToggle={handleProductToggle}
-                          onViewDetails={handleViewProductDetails}
-                        />
-                      ))}
-                      {birdProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          isSelected={selectedProducts.some(p => p.id === product.id)}
-                          onToggle={handleProductToggle}
-                          onViewDetails={handleViewProductDetails}
-                        />
-                      ))}
-                      {otherAnimalsProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          isSelected={selectedProducts.some(p => p.id === product.id)}
-                          onToggle={handleProductToggle}
-                          onViewDetails={handleViewProductDetails}
-                        />
-                      ))}
-                    </>
-                  )}
-                  
-                  {selectedCategory === 'dogs' && dogProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      isSelected={selectedProducts.some(p => p.id === product.id)}
-                      onToggle={handleProductToggle}
-                      onViewDetails={handleViewProductDetails}
-                    />
-                  ))}
-                  
-                  {selectedCategory === 'cats' && catProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      isSelected={selectedProducts.some(p => p.id === product.id)}
-                      onToggle={handleProductToggle}
-                      onViewDetails={handleViewProductDetails}
-                    />
-                  ))}
-                  
-                  {selectedCategory === 'birds' && birdProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      isSelected={selectedProducts.some(p => p.id === product.id)}
-                      onToggle={handleProductToggle}
-                      onViewDetails={handleViewProductDetails}
-                    />
-                  ))}
-                  
-                  {selectedCategory === 'other' && otherAnimalsProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
+                  {filteredProducts.map(product => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
                       isSelected={selectedProducts.some(p => p.id === product.id)}
                       onToggle={handleProductToggle}
                       onViewDetails={handleViewProductDetails}
@@ -1390,7 +1326,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         >
           {product.name}
         </h3>
-        <p className="text-xs text-medium-gray mb-2">{product.brand}</p>
+        <p className="text-xs text-medium-gray mb-2">{product.brand?.name}</p>
         
         {/* Price */}
         <div className="flex items-center justify-between mb-3">
