@@ -39,7 +39,7 @@ import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel'
 import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion'
 import { dogProducts, catProducts, birdProducts, otherAnimalsProducts, Product } from '../../../data/mockProducts'
 import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
-import axios from "axios"
+import {api} from "../../../services/api"
 
 interface SubscriptionItem {
   name: string;
@@ -78,81 +78,6 @@ interface Product {
 }
 
 const Subscriptions = () => {
-  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
-
-  const subscriptionSlides = [
-    {
-      image:
-        'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg',
-      title: 'Banner 1',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 1 CTA clicked'),
-    },
-    {
-      image: 'https://petpoints.co.uk/assets/purepet.jpg',
-      title: 'Banner 2',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 2 CTA clicked'),
-    },
-    {
-      image:
-        'https://cdnpublic.budgetpetproducts.com.au/contents/2025/05/21/24044014-2d7d-4f5a-938c-ed2fb11588a3.jpg',
-      title: 'Banner 3',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 3 CTA clicked'),
-    },
-    // ...other slides
-  ]
-
-  const faqs = [
-    {
-      question: 'Want to know who we are?',
-      answer: 'Discover our story, mission, and love for pets.',
-    },
-    {
-      question: 'What brands does Pawsome offer?',
-      answer:
-        'We offer premium brands like Pedigree, Royal Canin, Whiskas, and many more.',
-    },
-    // ...more FAQ items
-  ]
-
-  const petCategories = [
-    {
-      bgClass: 'bg-sunny-yellow',
-      image: dogImg,
-      alt: 'Dog',
-      route: '/dogs',
-    },
-    {
-      bgClass: 'bg-primary-blue',
-      image: catImg,
-      alt: 'Cat',
-      route: '/cats',
-    },
-    {
-      bgClass: 'bg-sunny-yellow',
-      image: birdImg,
-      alt: 'Bird',
-      route: '/birds',
-    },
-    {
-      bgClass: 'bg-vibrant-orange',
-      image: rodentImg,
-      alt: 'Small Pet',
-      route: '/other-animals',
-    },
-    // ...more categories
-  ]
-
-  const slides = [
-    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
-    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
-    // add more banners as needed
-  ]
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -170,49 +95,54 @@ const Subscriptions = () => {
 
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
-  
-  // Mock active subscriptions data with more details
-  const [activeSubscriptions] = useState<Subscription[]>([
-    {
-      id: 1,
-      name: 'Premium Dog Food Bundle',
-      products: 3,
-      frequency: 'Monthly',
-      nextDelivery: '2024-01-15',
-      total: 2500,
-      startDate: '2023-10-15',
-      status: 'Active',
-      items: [
-        { name: 'Royal Canin Adult Dog Food', quantity: 2, price: 900 },
-        { name: 'Pedigree Dental Sticks', quantity: 1, price: 400 },
-        { name: 'Dog Chew Toys Set', quantity: 1, price: 300 }
-      ],
-      deliveryAddress: '123 Main Street, Mumbai, Maharashtra 400001',
-      savedAmount: 250
-    },
-    {
-      id: 2,
-      name: 'Cat Essentials Pack',
-      products: 2,
-      frequency: 'Weekly',
-      nextDelivery: '2024-01-08',
-      total: 1200,
-      startDate: '2023-11-01',
-      status: 'Active',
-      items: [
-        { name: 'Whiskas Cat Food - Tuna', quantity: 4, price: 200 },
-        { name: 'Cat Litter Premium', quantity: 1, price: 400 }
-      ],
-      deliveryAddress: '123 Main Street, Mumbai, Maharashtra 400001',
-      savedAmount: 120
+  const [activeSubscriptions, setActiveSubscriptions] = useState([]);
+
+  const fetchSubscriptions = async () => {
+    try {
+
+      const response = await api.get("/cart/subscription-preview");
+
+      const data = response.data?.data;
+      if (data) {
+        const mappedSubscriptions = data.items.map((item: any) => ({
+          id: item.cart_item_id,
+          name: item.product_name,
+          products: 1,
+          frequency: "Monthly",
+          nextDelivery: new Date().toISOString(),
+          total: item.subscription_total,
+          startDate: new Date().toISOString(),
+          status: "Active",
+          deliveryAddress: "Default Address",
+          savedAmount: data.totals.total_savings,
+          items: [
+            {
+              name: item.product_name,
+              quantity: item.quantity,
+              price: item.subscription_price,
+            },
+          ],
+        }));
+        setActiveSubscriptions(mappedSubscriptions);
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        console.warn("User is unauthenticated. Redirecting to login...");
+      } else {
+        console.error("Error fetching subscriptions:", error);
+      }
     }
-  ])
+  };
 
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/categories").then(res => {
+    fetchSubscriptions();
+  }, []);
+
+  useEffect(() => {
+    api.get("/categories").then(res => {
       setCategories(res.data.data)
     })
-    axios.get("http://127.0.0.1:8000/api/products").then(res => {
+    api.get("/products").then(res => {
       setProducts(res.data.data)
     })
   }, [])
@@ -1353,7 +1283,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onViewDetails(product);
+              onViewDetails(product?.slug);
             }}
             className="flex-1 bg-primary-blue hover:bg-blue-700 text-white text-xs font-fredoka font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
           >

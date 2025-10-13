@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { AlertCircle } from "lucide-react";
+import {api} from "../../../services/api"
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -16,8 +17,8 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/auth/forgot-password",
+      const response = await api.post(
+        "/auth/forgot-password",
         { email }
       );
 

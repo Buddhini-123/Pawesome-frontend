@@ -13,7 +13,7 @@
 
 
 import { useState, useEffect } from "react";
-import axios from "axios";
+import {api} from "../services/api"
 
 export function useAuth() {
   const [user, setUser] = useState<any>(null);
@@ -34,7 +34,7 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/auth/login", {
+      const response = await api.post("/auth/login", {
         email,
         password,
       });
