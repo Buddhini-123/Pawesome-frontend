@@ -201,10 +201,20 @@ const Subscriptions = () => {
     setProductQuantities(newQuantities)
   }
 
-  const handleViewProductDetails = (product: Product) => {
-    setSelectedProduct(product)
-    setShowProductModal(true)
+  const handleViewProductDetails = async (slug: string) => {
+    
+  try {
+    const response = await api.get(`/products/${slug}`);
+    if (response.data.success) {
+      console.log(response.data.data.product);
+      
+      setSelectedProduct(response.data?.data?.product);
+      setShowProductModal(true);
+    }
+  } catch (error) {
+    console.error("Error fetching product details:", error);
   }
+};
 
   const filteredProducts =
     selectedCategory === "all"
@@ -540,9 +550,13 @@ const Subscriptions = () => {
                       >
                         <div className="relative">
                           <img
-                            src={product.image}
+                            src={
+                              product.primary_image
+                                ? `http://127.0.0.1:8000${product.primary_image.url}`
+                                : "https://via.placeholder.com/300x200?text=No+Image"
+                            }
                             alt={product.name}
-                            className="w-full h-40 object-cover"
+                            className="w-full h-full object-cover rounded-md"
                           />
                           <div className="absolute top-2 right-2 bg-vibrant-orange text-white text-xs px-2 py-1 rounded-full">
                             Save 10%
@@ -997,10 +1011,15 @@ const Subscriptions = () => {
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.2 }}
-                      src={selectedProduct.image}
-                      alt={selectedProduct.name}
+                      src={
+                        selectedProduct.images && selectedProduct.images.length > 0
+                          ? `http://127.0.0.1:8000${selectedProduct.images[0].url}`
+                          : "https://via.placeholder.com/300x200?text=No+Image"
+                      }
+                      alt={selectedProduct?.name || "Product image"}
                       className="max-h-64 max-w-sm object-contain drop-shadow-2xl"
                     />
+
                   </div>
                 </div>
 
@@ -1014,7 +1033,7 @@ const Subscriptions = () => {
                           {selectedProduct.name}
                         </h2>
                         <p className="text-lg text-medium-gray flex items-center gap-2">
-                          by <span className="font-fredoka font-semibold text-vibrant-orange">{selectedProduct.brand}</span>
+                          by <span className="font-fredoka font-semibold text-vibrant-orange">{selectedProduct.brand.name}</span>
                         </p>
                       </div>
 
@@ -1025,25 +1044,25 @@ const Subscriptions = () => {
                             <Star
                               key={i}
                               className={`h-5 w-5 ${
-                                i < Math.floor(selectedProduct.rating)
+                                i < Math.floor(selectedProduct.rating_avg)
                                   ? 'fill-yellow-400 text-yellow-400'
                                   : 'fill-gray-200 text-gray-200'
                               }`}
                             />
                           ))}
                           <span className="ml-2 font-fredoka font-semibold text-charcoal">
-                            {selectedProduct.rating}
+                            {selectedProduct.rating_avg}
                           </span>
                         </div>
                         <span className="text-medium-gray">
-                          ({selectedProduct.reviews} reviews)
+                          ({selectedProduct.review_count} reviews)
                         </span>
                         <span className={`px-3 py-1 rounded-full text-sm font-fredoka font-medium ${
-                          selectedProduct.inStock 
+                          selectedProduct.is_in_stock 
                             ? 'bg-green-100 text-green-700' 
                             : 'bg-red-100 text-red-700'
                         }`}>
-                          {selectedProduct.inStock ? 'In Stock' : 'Out of Stock'}
+                          {selectedProduct.is_in_stock ? 'In Stock' : 'Out of Stock'}
                         </span>
                       </div>
 
@@ -1051,7 +1070,7 @@ const Subscriptions = () => {
                       <div className="mb-6">
                         <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-2">Description</h3>
                         <p className="text-medium-gray leading-relaxed">
-                          {selectedProduct.description || `Premium ${selectedProduct.subcategory} for your beloved pet. This high-quality product from ${selectedProduct.brand} is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
+                          {selectedProduct.description || `Premium ${selectedProduct.category.name} for your beloved pet. This high-quality product from ${selectedProduct.brand.name} is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
                         </p>
                       </div>
 
@@ -1097,9 +1116,9 @@ const Subscriptions = () => {
                         <div className="mb-4 p-4 bg-white rounded-xl">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-gray-700 font-fredoka font-medium">One-time Purchase</span>
-                            {selectedProduct.discount && (
+                            {selectedProduct.discount_percentage && (
                               <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                {selectedProduct.discount}% OFF
+                                {selectedProduct.discount_percentage}% OFF
                               </span>
                             )}
                           </div>
@@ -1107,9 +1126,9 @@ const Subscriptions = () => {
                             <span className="text-3xl font-fredoka font-bold text-charcoal">
                               ₹{selectedProduct.price}
                             </span>
-                            {selectedProduct.originalPrice && (
+                            {selectedProduct.price && (
                               <span className="text-lg text-gray-400 line-through">
-                                ₹{selectedProduct.originalPrice}
+                                ₹{selectedProduct.price}
                               </span>
                             )}
                           </div>
@@ -1242,9 +1261,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         onClick={() => onToggle(product)}
       >
         <img
-          src={product.image}
+          src={
+            product.primary_image
+              ? `http://127.0.0.1:8000${product.primary_image.url}`
+              : "https://via.placeholder.com/300x200?text=No+Image"
+          }
           alt={product.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-md"
         />
       </div>
 
