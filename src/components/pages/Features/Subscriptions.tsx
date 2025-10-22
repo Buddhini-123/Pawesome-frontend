@@ -28,18 +28,9 @@ import {
   ShoppingBag,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import SlideshowBanner from '../../banners/subscriptionbanner/SlideshowBanner'
-import WhyPawsomeSection from '../../banners/whypawsome/WhyPawsomeSection'
-import CategoryCarousel from '../../carousels/CategoryCarousel'
-import dogImg from '../../carousels/images/dog.png'
-import catImg from '../../carousels/images/cat.png'
-import birdImg from '../../carousels/images/bird.png'
-import rodentImg from '../../carousels/images/rodent.png'
-import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel'
-import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion'
-import { dogProducts, catProducts, birdProducts, otherAnimalsProducts, Product } from '../../../data/mockProducts'
 import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
 import {api} from "../../../services/api"
+import { toast } from 'react-toastify';
 
 interface SubscriptionItem {
   name: string;
@@ -49,16 +40,33 @@ interface SubscriptionItem {
 
 interface Subscription {
   id: number;
-  name: string;
-  products: number;
-  frequency: string;
-  nextDelivery: string;
-  total: number;
-  startDate: string;
   status: string;
-  items: SubscriptionItem[];
-  deliveryAddress: string;
-  savedAmount: number;
+  status_label: string;
+  schedule: {
+    interval_type: string;
+    interval_value: number;
+    interval_description: string;
+    start_date: string;
+    end_date: string;
+    next_delivery_date: string;
+    last_delivery_date: string | null;
+    days_until_next_delivery: number;
+  };
+  pricing: {
+    subtotal: number;
+    discount_amount: number;
+    discount_percentage: number;
+    tax_amount: number;
+    total_amount: number;
+    currency: string;
+  };
+  items: any[];
+  total_items: number;
+  delivery: { address_id: number; payment_method_id: number };
+  preferences?: Record<string, any>;
+  metadata?: any[];
+  timestamps?: Record<string, any>;
+  actions?: Record<string, any>;
 }
 
 interface Category {
@@ -75,6 +83,8 @@ interface Product {
   stock_quantity: number
   category: Category
   primary_image: string | null
+  preferences: string
+  quantity: number
 }
 
 const Subscriptions = () => {
@@ -95,34 +105,44 @@ const Subscriptions = () => {
 
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
-  const [activeSubscriptions, setActiveSubscriptions] = useState([]);
+  const [activeSubscriptions, setActiveSubscriptions] = useState<Subscription[]>([]);
 
   const fetchSubscriptions = async () => {
     try {
+      const response = await api.get("/subscriptions");
+      const data = response.data as {
+        success: boolean;
+        data: any[];
+        pagination: any;
+      };
 
-      const response = await api.get("/cart/subscription-preview");
 
-      const data = response.data?.data;
-      if (data) {
-        const mappedSubscriptions = data.items.map((item: any) => ({
-          id: item.cart_item_id,
-          name: item.product_name,
-          products: 1,
-          frequency: "Monthly",
-          nextDelivery: new Date().toISOString(),
-          total: item.subscription_total,
-          startDate: new Date().toISOString(),
-          status: "Active",
-          deliveryAddress: "Default Address",
-          savedAmount: data.totals.total_savings,
-          items: [
-            {
-              name: item.product_name,
-              quantity: item.quantity,
-              price: item.subscription_price,
-            },
-          ],
-        }));
+      if (data && Array.isArray(data.data)) {
+        const mappedSubscriptions = data.data.map((item: any) => {
+          const firstItem = item.items?.[0]; 
+
+          return {
+            id: item.id,
+            name: firstItem?.product?.name || "Unknown Product",
+            products: item.total_items || 0,
+            frequency: item.schedule?.interval_description || "N/A",
+            nextDelivery: item.schedule?.next_delivery_date || null,
+            total: item.pricing?.total_amount || 0,
+            startDate: item.schedule?.start_date || null,
+            status: item.status_label || "Unknown",
+            deliveryAddress: item.delivery?.address_id
+              ? `Address ID: ${item.delivery.address_id}`
+              : "Default Address",
+            savedAmount: firstItem?.pricing?.total_savings || 0,
+            items: item.items.map((subItem: any) => ({
+              name: subItem.product?.name || "Unknown Product",
+              quantity: subItem.quantity || 1,
+              price: subItem.pricing?.unit_price || 0,
+            })),
+          };
+        });
+
+        console.log("Mapped subscriptions:", mappedSubscriptions); // Add this line
         setActiveSubscriptions(mappedSubscriptions);
       }
     } catch (error: any) {
@@ -173,10 +193,65 @@ const Subscriptions = () => {
     })
   }
 
-  const handleConfirmSelection = () => {
-    setConfirmedProducts(selectedProducts)
-    setIsModalOpen(false)
-  }
+  const handleConfirmSelection = async () => {
+    if (selectedProducts.length === 0) return;
+
+    // Prepare payload
+    const payload = {
+      products: selectedProducts.map(product => ({
+        product_id: product.id,
+        quantity: product.quantity || 1,
+        preferences: product.preferences || {},
+      })),
+      subscription_data: {
+        interval_type: "monthly", // or dynamic
+        interval_value: 1, // or dynamic
+        start_date: new Date().toISOString().split("T")[0], // e.g., "2025-10-22"
+        end_date: "2025-12-14", // or dynamic
+        delivery_address_id: 1, // get from user/address selection
+        payment_method_id: 2, // get from user/payment selection
+        preferences: {
+          gift_wrap: "test", // optional
+          delivery_time: "morning", // optional
+        },
+      },
+    };
+
+    try {
+      const response = await api.post("/subscriptions/direct-create", payload);
+
+      const data = response.data as {
+        success?: boolean;
+        data?: any;
+        message?: string;
+        errors?: Record<string, string[]>;
+      };
+      console.log(data);
+      
+      if (data?.success) {
+        setActiveSubscriptions(prev => [...prev, data.data]);
+        setIsModalOpen(false);
+        setSelectedProducts([]);
+        toast.success("Subscription created successfully!");
+      } else {
+        const errorMsg =
+          data?.message ||
+          (data?.errors
+            ? Object.values(data.errors).flat().join(", ")
+            : "Failed to create subscription");
+        toast.error(errorMsg);
+      }
+    } catch (error: any) {
+      // Handle Axios errors safely
+      const errorMsg =
+        error.response?.data?.message ||
+        (error.response?.data?.errors
+          ? Object.values(error.response.data.errors).flat().join(", ")
+          : error.message || "An unexpected error occurred");
+      toast.error(errorMsg);
+    }
+
+  };
 
   const handleOpenModal = () => {
     setSelectedProducts(confirmedProducts)
@@ -213,6 +288,26 @@ const Subscriptions = () => {
     }
   } catch (error) {
     console.error("Error fetching product details:", error);
+  }
+};
+
+ const handleCancel = async (subscriptionId: number) => {
+  if (!window.confirm("Are you sure you want to cancel this subscription?")) return;
+
+  try {
+    const response = await api.delete(`/subscriptions/${subscriptionId}/cancel`);
+    const data = response.data;
+
+    if (data.success) {
+      toast.success("Subscription cancelled successfully");
+      setActiveSubscriptions(prev => prev.filter(sub => sub.id !== subscriptionId));
+    } else {
+      toast.error(data.message || "Failed to cancel subscription");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || "An error occurred";
+    toast.error(message);
+    console.error("Cancel subscription error:", error.response || error.message);
   }
 };
 
@@ -953,7 +1048,7 @@ const Subscriptions = () => {
                     >
                       Close
                     </button>
-                    <button className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-fredoka font-medium rounded-full transition-colors">
+                    <button className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-fredoka font-medium rounded-full transition-colors"  onClick={() => handleCancel(selectedSubscription.id)}>
                       Cancel Subscription
                     </button>
                     <button className="px-6 py-2 bg-primary-blue hover:bg-blue-700 text-white font-fredoka font-medium rounded-full transition-colors">
@@ -1177,6 +1272,23 @@ const Subscriptions = () => {
                         </div>
                       </div>
 
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Quantity
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={selectedProduct.quantity || 1}
+                          onChange={(e) =>
+                            setSelectedProduct({
+                              ...selectedProduct,
+                              quantity: parseInt(e.target.value, 10),
+                            })
+                          }
+                          className="border rounded-md px-3 py-2 w-24"
+                        />
+                      </div>
                       {/* Action Buttons */}
                       <div className="space-y-3">
                         <button

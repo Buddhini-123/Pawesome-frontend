@@ -152,10 +152,11 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
                             <div className="flex items-center flex-1">
                               <div className="w-12 h-12 bg-soft-gray rounded-2xl flex items-center justify-center mr-3 shadow-sm">
                                 <span className="text-2xl">
-                                  {subscription.name.includes('Dog') ? '🐕' : 
-                                   subscription.name.includes('Cat') ? '🐱' : 
-                                   subscription.name.includes('Bird') ? '🦜' : '🐾'}
+                                  {subscription.name?.includes('Dog') ? '🐕' :
+                                  subscription.name?.includes('Cat') ? '🐱' :
+                                  subscription.name?.includes('Bird') ? '🦜' : '🐾'}
                                 </span>
+
                               </div>
                               <div className="flex-1">
                                 <h3 className="font-fredoka font-semibold text-charcoal line-clamp-1">
