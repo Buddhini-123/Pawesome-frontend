@@ -54,8 +54,9 @@ const ReccomendationsGrid = () => {
           price: `Rs. ${parseFloat(p.price).toLocaleString()}`,
           rating: parseFloat(p.rating_avg) || 0,
           image: p.primary_image?.url 
-            ? `${host}${p.primary_image.url}` // host + URL from API
-            : '/placeholder.png'             // fallback if no image
+            ? `${host}${p.primary_image.url}`
+            : '/placeholder.png'  ,
+          slug: p.slug           
         }));
         setRegularProducts(products);
       } catch (error) {

@@ -97,7 +97,7 @@ const App: React.FC = () => {
                 <OrderConfirmation />
               </ProtectedRoute>
             } />
-            <Route path="/product/:id" element={<ProductPage />} />
+            <Route path="/product/:slug" element={<ProductPage />} />
             
             {/* Account Routes */}
             <Route path="/account" element={
