@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { AlertCircle, Check, Gift } from 'lucide-react';
 import { formatters } from '../../../utils/formatters';
-import axios from 'axios';
+import {api} from "../../../services/api"
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -65,8 +65,8 @@ const Register: React.FC = () => {
   setIsLoading(true);
 
   try {
-    const response = await axios.post(
-      'http://127.0.0.1:8000/api/auth/register',
+    const response = await api.post(
+      '/auth/register',
       {
         name: formData.name,
         email: formData.email,

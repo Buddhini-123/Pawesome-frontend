@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -54,6 +54,7 @@ import { useLoyalty } from '../../../hooks/useLoyalty';
 import { useNavigate } from 'react-router-dom';
 import { Pet, PetForm, PetTimelineEntry, TimelineEntryType, TimelineCategory } from '../../../types';
 import { v4 as uuidv4 } from 'uuid';
+import {api} from "../../../services/api"
 
 const Account: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -64,13 +65,13 @@ const Account: React.FC = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    firstName: user?.name?.split(' ')[0] || 'John',
-    lastName: user?.name?.split(' ')[1] || 'Doe',
-    email: user?.email || 'john.doe@example.com',
-    phone: user?.phone || '+94 77 123 4567',
-    address: user?.addresses?.[0]?.address || '123 Pet Street, Animal Colony, Colombo, Western Province, 00100'
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: ""
   });
-
+  const [loading, setLoading] = useState(false);
   // Pet Management State
   const [pets, setPets] = useState<Pet[]>(user?.pets || []);
   const [showAddPet, setShowAddPet] = useState(false);
@@ -154,6 +155,69 @@ const Account: React.FC = () => {
     { id: 'settings', name: 'Settings', icon: Settings, color: 'text-mint-green' },
   ];
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/users/profile") as {
+          data: {
+            success: boolean;
+            data: { user: any };
+          };
+        };
+
+        if (response.data.success) {
+          const user = response.data.data.user;
+          setFormData({
+            firstName: user.first_name || "",
+            lastName: user.last_name || "",
+            email: user.email || "",
+            phone: user.phone || "",
+            address: user.address || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleSaveProfile = async () => {
+    try {
+      setLoading(true);
+
+      const payload = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+      };
+      
+      const response = await api.put("/users/profile", payload) as {
+          data: {
+            success: boolean;
+            data: { user: any };
+          };
+        };
+
+      if (response.data.success) {
+        alert("✅ Profile updated successfully!");
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("❌ Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -163,11 +227,6 @@ const Account: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleSaveProfile = () => {
-    // Save profile logic here
-    setIsEditing(false);
   };
 
   const handleLogout = async () => {

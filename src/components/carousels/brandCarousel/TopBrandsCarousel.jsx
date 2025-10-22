@@ -1,33 +1,29 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { api, host } from '../../../services/api';
 
-/**
- * TopBrandsCarousel.jsx
- * "Top Brands we collaborate with" horizontal logo carousel
- */
-const brands = [
-  { image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDYcdtf-UkHe5BLHCs1zkNk6IS2o_IImonfA&s',    alt: 'Dogs Supply',   link: '#' },
-  { image: 'https://images-platform.99static.com//_r1ST2F89Q03J1x03XvhHEnFax4=/0x0:1000x1000/fit-in/500x500/99designs-contests-attachments/115/115076/attachment_115076893',alt: 'Brisbane Bakery', link: '#' },
-  { image: 'https://img.freepik.com/free-vector/healthy-pets-food-graphic-design_24908-54877.jpg?semt=ais_hybrid&w=740',    alt: 'Organic Pet',   link: '#' },
-  { image: '/logos/pet-care.png',       alt: 'Pet Care',      link: '#' },
-  { image: '/logos/ouse.png',           alt: 'Ouse',          link: '#' },
-  { image: '/logos/brisbane-bakery.png',alt: 'Brisbane Bakery', link: '#' },
-  { image: '/logos/organic-pet.png',    alt: 'Organic Pet',   link: '#' },
-  { image: '/logos/pet-care.png',       alt: 'Pet Care',      link: '#' },
-  { image: '/logos/ouse.png',           alt: 'Ouse',          link: '#' },
-  { image: '/logos/brisbane-bakery.png',alt: 'Brisbane Bakery', link: '#' },
-//   { image: '/logos/organic-pet.png',    alt: 'Organic Pet',   link: '#' },
-//   { image: '/logos/pet-care.png',       alt: 'Pet Care',      link: '#' },
-//   { image: '/logos/ouse.png',           alt: 'Ouse',          link: '#' },
-//   { image: '/logos/brisbane-bakery.png',alt: 'Brisbane Bakery', link: '#' },
-//   { image: '/logos/organic-pet.png',    alt: 'Organic Pet',   link: '#' },
-//   { image: '/logos/pet-care.png',       alt: 'Pet Care',      link: '#' },
-//   { image: '/logos/ouse.png',           alt: 'Ouse',          link: '#' },
-  // repeat or add more
-];
 
 const TopBrandsCarousel = () => {
   const carouselRef = useRef(null);
+  const [brands, setBrands] = useState([]);
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const res = await api.get('/brands');
+        const data = res.data.data.map((b) => ({
+          id: b.id,
+          name: b.name,
+          logo: b.logo ? `${host}/storage/${b.logo}` : '/placeholder.png',
+          link: '#', // You can replace with actual brand link if exists
+        }));
+        setBrands(data);
+      } catch (err) {
+        console.error('Failed to fetch brands:', err);
+      }
+    };
+
+    fetchBrands();
+  }, []);
   const scroll = offset => {
     if (carouselRef.current) {
       carouselRef.current.scrollBy({ left: offset, behavior: 'smooth' });
@@ -54,17 +50,17 @@ const TopBrandsCarousel = () => {
           className="flex space-x-6 overflow-x-auto scrollbar-hide py-4"
           style={{ scrollSnapType: 'x mandatory', paddingLeft: '4rem', paddingRight: '4rem' }}
         >
-          {brands.map((brand, idx) => (
+          {brands.map((brand) => (
             <a
-              key={idx}
+              key={brand.id}
               href={brand.link}
-              className="flex-shrink-0 scroll-snap-start bg-white  rounded-md flex items-center justify-center"
+              className="flex-shrink-0 scroll-snap-start bg-white rounded-md flex items-center justify-center"
               style={{ width: '6rem', height: '6rem' }}
-              aria-label={brand.alt}
+              aria-label={brand.name}
             >
               <img
-                src={brand.image}
-                alt={brand.alt}
+                src={brand.logo}
+                alt={brand.name}
                 className="max-w-full max-h-full object-contain"
               />
             </a>

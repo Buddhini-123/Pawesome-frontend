@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 import './index.css';
 import './output.css';
+import { ToastContainer, toast } from 'react-toastify';
 
 // Components
 import Header from './components/common/Header';
@@ -95,7 +96,7 @@ const App: React.FC = () => {
           <Route path="/deals/:slug" element={<DealDetail />} />
           <Route path="/loyalty-cards" element={<LoyaltyCards />} />
 
-          <Route path="/product/:id" element={<ProductPage />} />
+          <Route path="/product/:slug" element={<ProductPage />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={
@@ -120,6 +121,8 @@ const App: React.FC = () => {
         </Routes>
       </main>
       {!hideLayout && <Footer />}
+       {/* Toast Container */}
+      <ToastContainer />
     </div>
   );
 };

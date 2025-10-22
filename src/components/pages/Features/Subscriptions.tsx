@@ -1,5 +1,5 @@
 // src/pages/Subscriptions.tsx
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,17 +28,9 @@ import {
   ShoppingBag,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import SlideshowBanner from '../../banners/subscriptionbanner/SlideshowBanner'
-import WhyPawsomeSection from '../../banners/whypawsome/WhyPawsomeSection'
-import CategoryCarousel from '../../carousels/CategoryCarousel'
-import dogImg from '../../carousels/images/dog.png'
-import catImg from '../../carousels/images/cat.png'
-import birdImg from '../../carousels/images/bird.png'
-import rodentImg from '../../carousels/images/rodent.png'
-import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel'
-import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion'
-import { dogProducts, catProducts, birdProducts, otherAnimalsProducts, Product } from '../../../data/mockProducts'
 import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
+import {api} from "../../../services/api"
+import { toast } from 'react-toastify';
 
 interface SubscriptionItem {
   name: string;
@@ -48,94 +40,54 @@ interface SubscriptionItem {
 
 interface Subscription {
   id: number;
-  name: string;
-  products: number;
-  frequency: string;
-  nextDelivery: string;
-  total: number;
-  startDate: string;
   status: string;
-  items: SubscriptionItem[];
-  deliveryAddress: string;
-  savedAmount: number;
+  status_label: string;
+  schedule: {
+    interval_type: string;
+    interval_value: number;
+    interval_description: string;
+    start_date: string;
+    end_date: string;
+    next_delivery_date: string;
+    last_delivery_date: string | null;
+    days_until_next_delivery: number;
+  };
+  pricing: {
+    subtotal: number;
+    discount_amount: number;
+    discount_percentage: number;
+    tax_amount: number;
+    total_amount: number;
+    currency: string;
+  };
+  items: any[];
+  total_items: number;
+  delivery: { address_id: number; payment_method_id: number };
+  preferences?: Record<string, any>;
+  metadata?: any[];
+  timestamps?: Record<string, any>;
+  actions?: Record<string, any>;
+}
+
+interface Category {
+  id: number
+  name: string
+  slug: string
+}
+
+interface Product {
+  id: number
+  name: string
+  slug: string
+  price: string
+  stock_quantity: number
+  category: Category
+  primary_image: string | null
+  preferences: string
+  quantity: number
 }
 
 const Subscriptions = () => {
-  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
-
-  const subscriptionSlides = [
-    {
-      image:
-        'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg',
-      title: 'Banner 1',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 1 CTA clicked'),
-    },
-    {
-      image: 'https://petpoints.co.uk/assets/purepet.jpg',
-      title: 'Banner 2',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 2 CTA clicked'),
-    },
-    {
-      image:
-        'https://cdnpublic.budgetpetproducts.com.au/contents/2025/05/21/24044014-2d7d-4f5a-938c-ed2fb11588a3.jpg',
-      title: 'Banner 3',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 3 CTA clicked'),
-    },
-    // ...other slides
-  ]
-
-  const faqs = [
-    {
-      question: 'Want to know who we are?',
-      answer: 'Discover our story, mission, and love for pets.',
-    },
-    {
-      question: 'What brands does Pawsome offer?',
-      answer:
-        'We offer premium brands like Pedigree, Royal Canin, Whiskas, and many more.',
-    },
-    // ...more FAQ items
-  ]
-
-  const petCategories = [
-    {
-      bgClass: 'bg-sunny-yellow',
-      image: dogImg,
-      alt: 'Dog',
-      route: '/dogs',
-    },
-    {
-      bgClass: 'bg-primary-blue',
-      image: catImg,
-      alt: 'Cat',
-      route: '/cats',
-    },
-    {
-      bgClass: 'bg-sunny-yellow',
-      image: birdImg,
-      alt: 'Bird',
-      route: '/birds',
-    },
-    {
-      bgClass: 'bg-vibrant-orange',
-      image: rodentImg,
-      alt: 'Small Pet',
-      route: '/other-animals',
-    },
-    // ...more categories
-  ]
-
-  const slides = [
-    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
-    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
-    // add more banners as needed
-  ]
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -150,43 +102,71 @@ const Subscriptions = () => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showProductModal, setShowProductModal] = useState(false)
-  
-  // Mock active subscriptions data with more details
-  const [activeSubscriptions] = useState<Subscription[]>([
-    {
-      id: 1,
-      name: 'Premium Dog Food Bundle',
-      products: 3,
-      frequency: 'Monthly',
-      nextDelivery: '2024-01-15',
-      total: 2500,
-      startDate: '2023-10-15',
-      status: 'Active',
-      items: [
-        { name: 'Royal Canin Adult Dog Food', quantity: 2, price: 900 },
-        { name: 'Pedigree Dental Sticks', quantity: 1, price: 400 },
-        { name: 'Dog Chew Toys Set', quantity: 1, price: 300 }
-      ],
-      deliveryAddress: '123 Main Street, Mumbai, Maharashtra 400001',
-      savedAmount: 250
-    },
-    {
-      id: 2,
-      name: 'Cat Essentials Pack',
-      products: 2,
-      frequency: 'Weekly',
-      nextDelivery: '2024-01-08',
-      total: 1200,
-      startDate: '2023-11-01',
-      status: 'Active',
-      items: [
-        { name: 'Whiskas Cat Food - Tuna', quantity: 4, price: 200 },
-        { name: 'Cat Litter Premium', quantity: 1, price: 400 }
-      ],
-      deliveryAddress: '123 Main Street, Mumbai, Maharashtra 400001',
-      savedAmount: 120
+
+  const [categories, setCategories] = useState<Category[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [activeSubscriptions, setActiveSubscriptions] = useState<Subscription[]>([]);
+
+  const fetchSubscriptions = async () => {
+    try {
+      const response = await api.get("/subscriptions");
+      const data = response.data as {
+        success: boolean;
+        data: any[];
+        pagination: any;
+      };
+
+
+      if (data && Array.isArray(data.data)) {
+        const mappedSubscriptions = data.data.map((item: any) => {
+          const firstItem = item.items?.[0]; 
+
+          return {
+            id: item.id,
+            name: firstItem?.product?.name || "Unknown Product",
+            products: item.total_items || 0,
+            frequency: item.schedule?.interval_description || "N/A",
+            nextDelivery: item.schedule?.next_delivery_date || null,
+            total: item.pricing?.total_amount || 0,
+            startDate: item.schedule?.start_date || null,
+            status: item.status_label || "Unknown",
+            deliveryAddress: item.delivery?.address_id
+              ? `Address ID: ${item.delivery.address_id}`
+              : "Default Address",
+            savedAmount: firstItem?.pricing?.total_savings || 0,
+            items: item.items.map((subItem: any) => ({
+              name: subItem.product?.name || "Unknown Product",
+              quantity: subItem.quantity || 1,
+              price: subItem.pricing?.unit_price || 0,
+            })),
+          };
+        });
+
+        console.log("Mapped subscriptions:", mappedSubscriptions); // Add this line
+        setActiveSubscriptions(mappedSubscriptions);
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        console.warn("User is unauthenticated. Redirecting to login...");
+      } else {
+        console.error("Error fetching subscriptions:", error);
+      }
     }
-  ])
+  };
+
+  useEffect(() => {
+    fetchSubscriptions();
+  }, []);
+
+  useEffect(() => {
+    api.get("/categories").then(res => {
+      setCategories(res.data.data)
+    })
+    api.get("/products/subscriptions").then(res => {
+      setProducts(res.data.data)
+    })
+  }, [])
+
 
   const handleProductToggle = (product: Product) => {
     setSelectedProducts(prev => {
@@ -213,10 +193,65 @@ const Subscriptions = () => {
     })
   }
 
-  const handleConfirmSelection = () => {
-    setConfirmedProducts(selectedProducts)
-    setIsModalOpen(false)
-  }
+  const handleConfirmSelection = async () => {
+    if (selectedProducts.length === 0) return;
+
+    // Prepare payload
+    const payload = {
+      products: selectedProducts.map(product => ({
+        product_id: product.id,
+        quantity: product.quantity || 1,
+        preferences: product.preferences || {},
+      })),
+      subscription_data: {
+        interval_type: "monthly", // or dynamic
+        interval_value: 1, // or dynamic
+        start_date: new Date().toISOString().split("T")[0], // e.g., "2025-10-22"
+        end_date: "2025-12-14", // or dynamic
+        delivery_address_id: 1, // get from user/address selection
+        payment_method_id: 2, // get from user/payment selection
+        preferences: {
+          gift_wrap: "test", // optional
+          delivery_time: "morning", // optional
+        },
+      },
+    };
+
+    try {
+      const response = await api.post("/subscriptions/direct-create", payload);
+
+      const data = response.data as {
+        success?: boolean;
+        data?: any;
+        message?: string;
+        errors?: Record<string, string[]>;
+      };
+      console.log(data);
+      
+      if (data?.success) {
+        setActiveSubscriptions(prev => [...prev, data.data]);
+        setIsModalOpen(false);
+        setSelectedProducts([]);
+        toast.success("Subscription created successfully!");
+      } else {
+        const errorMsg =
+          data?.message ||
+          (data?.errors
+            ? Object.values(data.errors).flat().join(", ")
+            : "Failed to create subscription");
+        toast.error(errorMsg);
+      }
+    } catch (error: any) {
+      // Handle Axios errors safely
+      const errorMsg =
+        error.response?.data?.message ||
+        (error.response?.data?.errors
+          ? Object.values(error.response.data.errors).flat().join(", ")
+          : error.message || "An unexpected error occurred");
+      toast.error(errorMsg);
+    }
+
+  };
 
   const handleOpenModal = () => {
     setSelectedProducts(confirmedProducts)
@@ -241,10 +276,45 @@ const Subscriptions = () => {
     setProductQuantities(newQuantities)
   }
 
-  const handleViewProductDetails = (product: Product) => {
-    setSelectedProduct(product)
-    setShowProductModal(true)
+  const handleViewProductDetails = async (slug: string) => {
+    
+  try {
+    const response = await api.get(`/products/${slug}`);
+    if (response.data.success) {
+      console.log(response.data.data.product);
+      
+      setSelectedProduct(response.data?.data?.product);
+      setShowProductModal(true);
+    }
+  } catch (error) {
+    console.error("Error fetching product details:", error);
   }
+};
+
+ const handleCancel = async (subscriptionId: number) => {
+  if (!window.confirm("Are you sure you want to cancel this subscription?")) return;
+
+  try {
+    const response = await api.delete(`/subscriptions/${subscriptionId}/cancel`);
+    const data = response.data;
+
+    if (data.success) {
+      toast.success("Subscription cancelled successfully");
+      setActiveSubscriptions(prev => prev.filter(sub => sub.id !== subscriptionId));
+    } else {
+      toast.error(data.message || "Failed to cancel subscription");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || "An error occurred";
+    toast.error(message);
+    console.error("Cancel subscription error:", error.response || error.message);
+  }
+};
+
+  const filteredProducts =
+    selectedCategory === "all"
+      ? products
+      : products.filter(p => p.category?.slug === selectedCategory)
 
   return (
     <div className="min-h-screen bg-soft-gray">
@@ -575,9 +645,13 @@ const Subscriptions = () => {
                       >
                         <div className="relative">
                           <img
-                            src={product.image}
+                            src={
+                              product.primary_image
+                                ? `http://127.0.0.1:8000${product.primary_image.url}`
+                                : "https://via.placeholder.com/300x200?text=No+Image"
+                            }
                             alt={product.name}
-                            className="w-full h-40 object-cover"
+                            className="w-full h-full object-cover rounded-md"
                           />
                           <div className="absolute top-2 right-2 bg-vibrant-orange text-white text-xs px-2 py-1 rounded-full">
                             Save 10%
@@ -779,128 +853,29 @@ const Subscriptions = () => {
                   >
                     All Products
                   </button>
-                  <button
-                    onClick={() => setSelectedCategory('dogs')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                      selectedCategory === 'dogs'
+                  {categories.map(cat => (
+                    <button
+                      key={cat.id}
+                      className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap
+                      ${selectedCategory === cat.slug
                         ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
+                        : 'bg-white text-medium-gray hover:bg-light-gray' }
                     }`}
-                  >
-                    Dogs
-                  </button>
-                  <button
-                    onClick={() => setSelectedCategory('cats')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                      selectedCategory === 'cats'
-                        ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
-                    }`}
-                  >
-                    Cats
-                  </button>
-                  <button
-                    onClick={() => setSelectedCategory('birds')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                      selectedCategory === 'birds'
-                        ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
-                    }`}
-                  >
-                    Birds
-                  </button>
-                  <button
-                    onClick={() => setSelectedCategory('other')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                      selectedCategory === 'other'
-                        ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
-                    }`}
-                  >
-                    Other Animals
-                  </button>
+                      onClick={() => setSelectedCategory(cat.slug)}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {/* Products Grid */}
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {/* Filter products based on selected category */}
-                  {selectedCategory === 'all' && (
-                    <>
-                      {dogProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          isSelected={selectedProducts.some(p => p.id === product.id)}
-                          onToggle={handleProductToggle}
-                          onViewDetails={handleViewProductDetails}
-                        />
-                      ))}
-                      {catProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          isSelected={selectedProducts.some(p => p.id === product.id)}
-                          onToggle={handleProductToggle}
-                          onViewDetails={handleViewProductDetails}
-                        />
-                      ))}
-                      {birdProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          isSelected={selectedProducts.some(p => p.id === product.id)}
-                          onToggle={handleProductToggle}
-                          onViewDetails={handleViewProductDetails}
-                        />
-                      ))}
-                      {otherAnimalsProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          isSelected={selectedProducts.some(p => p.id === product.id)}
-                          onToggle={handleProductToggle}
-                          onViewDetails={handleViewProductDetails}
-                        />
-                      ))}
-                    </>
-                  )}
-                  
-                  {selectedCategory === 'dogs' && dogProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      isSelected={selectedProducts.some(p => p.id === product.id)}
-                      onToggle={handleProductToggle}
-                      onViewDetails={handleViewProductDetails}
-                    />
-                  ))}
-                  
-                  {selectedCategory === 'cats' && catProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      isSelected={selectedProducts.some(p => p.id === product.id)}
-                      onToggle={handleProductToggle}
-                      onViewDetails={handleViewProductDetails}
-                    />
-                  ))}
-                  
-                  {selectedCategory === 'birds' && birdProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      isSelected={selectedProducts.some(p => p.id === product.id)}
-                      onToggle={handleProductToggle}
-                      onViewDetails={handleViewProductDetails}
-                    />
-                  ))}
-                  
-                  {selectedCategory === 'other' && otherAnimalsProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
+                  {filteredProducts.map(product => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
                       isSelected={selectedProducts.some(p => p.id === product.id)}
                       onToggle={handleProductToggle}
                       onViewDetails={handleViewProductDetails}
@@ -1073,7 +1048,7 @@ const Subscriptions = () => {
                     >
                       Close
                     </button>
-                    <button className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-fredoka font-medium rounded-full transition-colors">
+                    <button className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-fredoka font-medium rounded-full transition-colors"  onClick={() => handleCancel(selectedSubscription.id)}>
                       Cancel Subscription
                     </button>
                     <button className="px-6 py-2 bg-primary-blue hover:bg-blue-700 text-white font-fredoka font-medium rounded-full transition-colors">
@@ -1131,10 +1106,15 @@ const Subscriptions = () => {
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.2 }}
-                      src={selectedProduct.image}
-                      alt={selectedProduct.name}
+                      src={
+                        selectedProduct.images && selectedProduct.images.length > 0
+                          ? `http://127.0.0.1:8000${selectedProduct.images[0].url}`
+                          : "https://via.placeholder.com/300x200?text=No+Image"
+                      }
+                      alt={selectedProduct?.name || "Product image"}
                       className="max-h-64 max-w-sm object-contain drop-shadow-2xl"
                     />
+
                   </div>
                 </div>
 
@@ -1148,7 +1128,7 @@ const Subscriptions = () => {
                           {selectedProduct.name}
                         </h2>
                         <p className="text-lg text-medium-gray flex items-center gap-2">
-                          by <span className="font-fredoka font-semibold text-vibrant-orange">{selectedProduct.brand}</span>
+                          by <span className="font-fredoka font-semibold text-vibrant-orange">{selectedProduct.brand.name}</span>
                         </p>
                       </div>
 
@@ -1159,25 +1139,25 @@ const Subscriptions = () => {
                             <Star
                               key={i}
                               className={`h-5 w-5 ${
-                                i < Math.floor(selectedProduct.rating)
+                                i < Math.floor(selectedProduct.rating_avg)
                                   ? 'fill-yellow-400 text-yellow-400'
                                   : 'fill-gray-200 text-gray-200'
                               }`}
                             />
                           ))}
                           <span className="ml-2 font-fredoka font-semibold text-charcoal">
-                            {selectedProduct.rating}
+                            {selectedProduct.rating_avg}
                           </span>
                         </div>
                         <span className="text-medium-gray">
-                          ({selectedProduct.reviews} reviews)
+                          ({selectedProduct.review_count} reviews)
                         </span>
                         <span className={`px-3 py-1 rounded-full text-sm font-fredoka font-medium ${
-                          selectedProduct.inStock 
+                          selectedProduct.is_in_stock 
                             ? 'bg-green-100 text-green-700' 
                             : 'bg-red-100 text-red-700'
                         }`}>
-                          {selectedProduct.inStock ? 'In Stock' : 'Out of Stock'}
+                          {selectedProduct.is_in_stock ? 'In Stock' : 'Out of Stock'}
                         </span>
                       </div>
 
@@ -1185,7 +1165,7 @@ const Subscriptions = () => {
                       <div className="mb-6">
                         <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-2">Description</h3>
                         <p className="text-medium-gray leading-relaxed">
-                          {selectedProduct.description || `Premium ${selectedProduct.subcategory} for your beloved pet. This high-quality product from ${selectedProduct.brand} is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
+                          {selectedProduct.description || `Premium ${selectedProduct.category.name} for your beloved pet. This high-quality product from ${selectedProduct.brand.name} is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
                         </p>
                       </div>
 
@@ -1231,9 +1211,9 @@ const Subscriptions = () => {
                         <div className="mb-4 p-4 bg-white rounded-xl">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-gray-700 font-fredoka font-medium">One-time Purchase</span>
-                            {selectedProduct.discount && (
+                            {selectedProduct.discount_percentage && (
                               <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                {selectedProduct.discount}% OFF
+                                {selectedProduct.discount_percentage}% OFF
                               </span>
                             )}
                           </div>
@@ -1241,9 +1221,9 @@ const Subscriptions = () => {
                             <span className="text-3xl font-fredoka font-bold text-charcoal">
                               ₹{selectedProduct.price}
                             </span>
-                            {selectedProduct.originalPrice && (
+                            {selectedProduct.price && (
                               <span className="text-lg text-gray-400 line-through">
-                                ₹{selectedProduct.originalPrice}
+                                ₹{selectedProduct.price}
                               </span>
                             )}
                           </div>
@@ -1292,6 +1272,23 @@ const Subscriptions = () => {
                         </div>
                       </div>
 
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Quantity
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={selectedProduct.quantity || 1}
+                          onChange={(e) =>
+                            setSelectedProduct({
+                              ...selectedProduct,
+                              quantity: parseInt(e.target.value, 10),
+                            })
+                          }
+                          className="border rounded-md px-3 py-2 w-24"
+                        />
+                      </div>
                       {/* Action Buttons */}
                       <div className="space-y-3">
                         <button
@@ -1376,9 +1373,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         onClick={() => onToggle(product)}
       >
         <img
-          src={product.image}
+          src={
+            product.primary_image
+              ? `http://127.0.0.1:8000${product.primary_image.url}`
+              : "https://via.placeholder.com/300x200?text=No+Image"
+          }
           alt={product.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-md"
         />
       </div>
 
@@ -1390,7 +1391,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         >
           {product.name}
         </h3>
-        <p className="text-xs text-medium-gray mb-2">{product.brand}</p>
+        <p className="text-xs text-medium-gray mb-2">{product.brand?.name}</p>
         
         {/* Price */}
         <div className="flex items-center justify-between mb-3">
@@ -1417,7 +1418,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onViewDetails(product);
+              onViewDetails(product?.slug);
             }}
             className="flex-1 bg-primary-blue hover:bg-blue-700 text-white text-xs font-fredoka font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
           >
