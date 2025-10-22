@@ -1,17 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { useCart } from '../../../hooks/useCart';
 import { useNavigate } from 'react-router-dom';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  description: string;
-  category: string;
-}
+import {api, host} from "../../../services/api"
 
 interface Step {
   id: number;
@@ -22,14 +14,47 @@ interface Step {
   maxSelection?: number;
 }
 
+interface Theme {
+  id: number;
+  name: string;
+  description: string;
+  image_url: string;
+  price_range: {
+    min: number;
+    max: number;
+    formatted: string;
+    currency: string;
+  };
+  target_categories: JSON;
+}
+
 const GiftCustomizer: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selections, setSelections] = useState<{ [key: number]: string[] }>({});
   const [isStepCompleted, setIsStepCompleted] = useState<{ [key: number]: boolean }>({});
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const { addItem } = useCart();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchThemes = async () => {
+      try {
+        const res = await api.get("/gifts/themes");
+        setThemes(res.data.data || []);
+      } catch (err) {
+        console.error("Failed to load themes:", err);
+        setError("Failed to load themes");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchThemes();
+  }, []);
 
   const steps: Step[] = [
     {
@@ -38,14 +63,16 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Theme Card",
       minSelection: 1,
       maxSelection: 1,
-      products: [
-        { id: "theme1", name: "Birthday Celebration", price: 150, image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop", description: "Perfect for birthday celebrations", category: "theme" },
-        { id: "theme2", name: "Get Well Soon", price: 150, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop", description: "Caring wishes for recovery", category: "theme" },
-        { id: "theme3", name: "Welcome Home", price: 150, image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop", description: "Perfect for new pet parents", category: "theme" },
-        { id: "theme4", name: "Just Because", price: 150, image: "https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?w=300&h=300&fit=crop", description: "Show your love anytime", category: "theme" },
-        { id: "theme5", name: "Holiday Special", price: 200, image: "https://images.unsplash.com/photo-1576859758361-c8d3b35ce432?w=300&h=300&fit=crop", description: "Festive celebrations", category: "theme" },
-        { id: "theme6", name: "Congratulations", price: 150, image: "https://images.unsplash.com/photo-1531986362435-16b427eb9c26?w=300&h=300&fit=crop", description: "Celebrate achievements", category: "theme" },
-      ]
+      products: themes
+        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("theme"))
+        .map((theme) => ({
+          id: String(theme.id),
+          name: theme.name,
+          price: theme.price_range?.min ?? 0,
+          image: `${host}/storage/${theme.image_url}`,
+          description: theme.description,
+          category: "theme",
+        })),
     },
     {
       id: 2,
@@ -53,14 +80,16 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Main Toy",
       minSelection: 1,
       maxSelection: 1,
-      products: [
-        { id: "toy1", name: "Squeaky Bone", price: 899, image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop", description: "Classic squeaky bone toy", category: "toy" },
-        { id: "toy2", name: "Tennis Ball Set", price: 599, image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=300&h=300&fit=crop", description: "Set of 3 tennis balls", category: "toy" },
-        { id: "toy3", name: "Rope Toy", price: 749, image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop", description: "Durable rope for tug of war", category: "toy" },
-        { id: "toy4", name: "Plush Teddy", price: 1299, image: "https://images.unsplash.com/photo-1586671267731-da2cf3ceeb80?w=300&h=300&fit=crop", description: "Soft and cuddly plush toy", category: "toy" },
-        { id: "toy5", name: "Interactive Puzzle", price: 1599, image: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&h=300&fit=crop", description: "Mental stimulation puzzle", category: "toy" },
-        { id: "toy6", name: "Flying Disc", price: 699, image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop", description: "Perfect for outdoor play", category: "toy" },
-      ]
+      products: themes
+        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("toy"))
+        .map((theme) => ({
+          id: String(theme.id),
+          name: theme.name,
+          price: theme.price_range?.min ?? 0,
+          image: `${host}/storage/${theme.image_url}`,
+          description: theme.description,
+          category: "toy",
+        })),
     },
     {
       id: 3,
@@ -68,14 +97,16 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Extra Toys",
       minSelection: 1,
       maxSelection: 3,
-      products: [
-        { id: "ctoy1", name: "Mini Squeaky Mouse", price: 299, image: "https://images.unsplash.com/photo-1585559700398-b4cb4f65a611?w=300&h=300&fit=crop", description: "Small squeaky mouse toy", category: "toy" },
-        { id: "ctoy2", name: "Feather Wand", price: 399, image: "https://images.unsplash.com/photo-1571566882372-1598d88abd90?w=300&h=300&fit=crop", description: "Interactive feather toy", category: "toy" },
-        { id: "ctoy3", name: "Catnip Ball", price: 249, image: "https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=300&h=300&fit=crop", description: "Catnip-infused ball", category: "toy" },
-        { id: "ctoy4", name: "Chew Ring", price: 349, image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=300&fit=crop", description: "Durable chew ring", category: "toy" },
-        { id: "ctoy5", name: "Laser Pointer", price: 599, image: "https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?w=300&h=300&fit=crop", description: "Interactive laser toy", category: "toy" },
-        { id: "ctoy6", name: "Treat Dispenser", price: 799, image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=300&h=300&fit=crop", description: "Puzzle treat dispenser", category: "toy" },
-      ]
+      products: themes
+        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("toy"))
+        .map((theme) => ({
+          id: String(theme.id),
+          name: theme.name,
+          price: theme.price_range?.min ?? 0,
+          image: `${host}/storage/${theme.image_url}`,
+          description: theme.description,
+          category: "toy",
+        })),
     },
     {
       id: 4,
@@ -83,14 +114,16 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Treats",
       minSelection: 1,
       maxSelection: 3,
-      products: [
-        { id: "treat1", name: "Chicken Jerky", price: 599, image: "https://images.unsplash.com/photo-1589985701653-d9643bc790de?w=300&h=300&fit=crop", description: "Premium chicken jerky treats", category: "treat" },
-        { id: "treat2", name: "Dental Chews", price: 449, image: "https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?w=300&h=300&fit=crop", description: "Healthy dental chews", category: "treat" },
-        { id: "treat3", name: "Salmon Bites", price: 699, image: "https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=300&h=300&fit=crop", description: "Delicious salmon treats", category: "treat" },
-        { id: "treat4", name: "Veggie Crunch", price: 399, image: "https://images.unsplash.com/photo-1585581190777-41d75e2ba755?w=300&h=300&fit=crop", description: "Healthy vegetable treats", category: "treat" },
-        { id: "treat5", name: "Training Treats", price: 349, image: "https://images.unsplash.com/photo-1615497001839-b0a0eac3274c?w=300&h=300&fit=crop", description: "Small training rewards", category: "treat" },
-        { id: "treat6", name: "Freeze-Dried Liver", price: 799, image: "https://images.unsplash.com/photo-1564486123817-39cef6e9e3a1?w=300&h=300&fit=crop", description: "Pure freeze-dried liver", category: "treat" },
-      ]
+      products: themes
+        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("treat"))
+        .map((theme) => ({
+          id: String(theme.id),
+          name: theme.name,
+          price: theme.price_range?.min ?? 0,
+          image: `${host}/storage/${theme.image_url}`,
+          description: theme.description,
+          category: "treat",
+        })),
     },
     {
       id: 5,
@@ -98,14 +131,16 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Care Products",
       minSelection: 1,
       maxSelection: 2,
-      products: [
-        { id: "care1", name: "Gentle Shampoo", price: 899, image: "https://images.unsplash.com/photo-1556909114-8e3e17e6b19d?w=300&h=300&fit=crop", description: "Mild and gentle pet shampoo", category: "care" },
-        { id: "care2", name: "Nail Clippers", price: 649, image: "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=300&h=300&fit=crop", description: "Professional nail clippers", category: "care" },
-        { id: "care3", name: "Ear Cleaner", price: 549, image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=300&h=300&fit=crop", description: "Gentle ear cleaning solution", category: "care" },
-        { id: "care4", name: "Toothbrush Set", price: 399, image: "https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=300&h=300&fit=crop", description: "Pet dental care kit", category: "care" },
-        { id: "care5", name: "Flea & Tick Spray", price: 799, image: "https://images.unsplash.com/photo-1615647285132-0855e8a0de31?w=300&h=300&fit=crop", description: "Natural flea protection", category: "care" },
-        { id: "care6", name: "Paw Balm", price: 449, image: "https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?w=300&h=300&fit=crop", description: "Moisturizing paw balm", category: "care" },
-      ]
+      products: themes
+        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("care"))
+        .map((theme) => ({
+          id: String(theme.id),
+          name: theme.name,
+          price: theme.price_range?.min ?? 0,
+          image: `${host}/storage/${theme.image_url}`,
+          description: theme.description,
+          category: "care",
+        })),
     },
     {
       id: 6,
@@ -113,14 +148,16 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Accessories",
       minSelection: 1,
       maxSelection: 2,
-      products: [
-        { id: "acc1", name: "Stylish Collar", price: 899, image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop", description: "Designer collar with charm", category: "accessory" },
-        { id: "acc2", name: "Cozy Sweater", price: 1299, image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop", description: "Warm winter sweater", category: "clothing" },
-        { id: "acc3", name: "Leash Set", price: 749, image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop", description: "Matching leash and collar", category: "accessory" },
-        { id: "acc4", name: "Bow Tie", price: 499, image: "https://images.unsplash.com/photo-1517519014922-8fc06b814a0e?w=300&h=300&fit=crop", description: "Formal bow tie accessory", category: "accessory" },
-        { id: "acc5", name: "Rain Coat", price: 1599, image: "https://images.unsplash.com/photo-1587734195503-904fca47e0d9?w=300&h=300&fit=crop", description: "Waterproof rain protection", category: "clothing" },
-        { id: "acc6", name: "ID Tag", price: 299, image: "https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=300&h=300&fit=crop", description: "Personalized ID tag", category: "accessory" },
-      ]
+      products: themes
+        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("accessory"))
+        .map((theme) => ({
+          id: String(theme.id),
+          name: theme.name,
+          price: theme.price_range?.min ?? 0,
+          image: `${host}/storage/${theme.image_url}`,
+          description: theme.description,
+          category: "accessory",
+        })),
     },
     {
       id: 7,
@@ -128,14 +165,16 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Greeting Card",
       minSelection: 1,
       maxSelection: 1,
-      products: [
-        { id: "card1", name: "Happy Birthday", price: 199, image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop", description: "Colorful birthday card", category: "card" },
-        { id: "card2", name: "Get Well Soon", price: 199, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop", description: "Caring get well message", category: "card" },
-        { id: "card3", name: "Welcome Home", price: 199, image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop", description: "Welcome new family member", category: "card" },
-        { id: "card4", name: "Thank You", price: 199, image: "https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?w=300&h=300&fit=crop", description: "Express gratitude", category: "card" },
-        { id: "card5", name: "Just Because", price: 199, image: "https://images.unsplash.com/photo-1576859758361-c8d3b35ce432?w=300&h=300&fit=crop", description: "Show you care", category: "card" },
-        { id: "card6", name: "Custom Message", price: 299, image: "https://images.unsplash.com/photo-1531986362435-16b427eb9c26?w=300&h=300&fit=crop", description: "Write your own message", category: "card" },
-      ]
+      products: themes
+        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("card"))
+        .map((theme) => ({
+          id: String(theme.id),
+          name: theme.name,
+          price: theme.price_range?.min ?? 0,
+          image: `${host}/storage/${theme.image_url}`,
+          description: theme.description,
+          category: "card",
+        })),
     }
   ];
   const handleProductSelect = (stepId: number, productId: string) => {
@@ -183,29 +222,52 @@ const GiftCustomizer: React.FC = () => {
   };
 
   const handleAddToCart = async () => {
+    if (!canProceedToNext()) return; 
+
     setIsAddingToCart(true);
+
     try {
-      const giftBoxId = `gift-box-${Date.now()}`;
-      const giftBoxProduct = {
-        id: giftBoxId,
-        name: `Custom Pet Gift Box (${Object.values(selections).flat().length} items)`,
-        brand: 'Pawsome',
-        price: getTotalPrice(),
-        image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop",
-        rating: 5,
-        reviews: 0,
-        category: 'gifts',
-        subcategory: 'custom-box',
-        inStock: true,
-        description: 'Your personalized pet gift box'
-      };
-      addItem(giftBoxProduct);
-      setTimeout(() => { setIsAddingToCart(false); navigate('/cart'); }, 1500);
+      // Flatten all selections into actual product objects
+      const selectedProducts: any[] = [];
+      Object.entries(selections).forEach(([stepId, productIds]) => {
+        const step = steps.find(s => s.id === parseInt(stepId));
+        if (!step) return;
+
+        productIds.forEach((productId) => {
+          const product = step.products.find(p => p.id === productId);
+          if (product) {
+            selectedProducts.push({
+              id: `gift-${product.id}-${Date.now()}`,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+              category: product.category,
+              description: product.description,
+              quantity: 1,
+            });
+          }
+        });
+      });
+
+      if (selectedProducts.length === 0) {
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Add each selected product to cart
+      selectedProducts.forEach(product => addItem(product));
+
+      // Wait a short moment, then navigate to cart
+      setTimeout(() => {
+        setIsAddingToCart(false);
+        navigate("/cart");
+      }, 1000);
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error("Error adding to cart:", error);
       setIsAddingToCart(false);
     }
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-amber-50">
       <section className="pt-8 pb-12 px-4">

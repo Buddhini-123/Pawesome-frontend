@@ -21,6 +21,9 @@ class ApiService {
     return localStorage.getItem('token');
   }
 
+  getBaseURL() {
+    return this.baseURL.replace(/\/api$/, ''); // remove /api if you want the host only
+  }
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     try {
       const { method = 'GET', body, headers = {}, params } = options;
@@ -88,3 +91,5 @@ class ApiService {
 }
 
 export const api = new ApiService();
+export const host = api.getBaseURL();
+
