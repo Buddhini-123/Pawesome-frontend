@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { AlertCircle, Check, Gift } from 'lucide-react';
 import { formatters } from '../../../utils/formatters';
+import axios from 'axios';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ const Register: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { register } = useAuth();
+  // const { register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -45,40 +46,59 @@ const Register: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    
-    // Validate password strength
-    const passwordReqs = validatePassword(formData.password);
-    if (passwordReqs.some(req => !req.met)) {
-      setError('Password does not meet all requirements');
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      await register(formData.email, formData.password, formData.name);
-      
-      // Store referral code if present (the loyalty system will handle it)
+  e.preventDefault();
+  setError('');
+
+  // Validate passwords match
+  if (formData.password !== formData.confirmPassword) {
+    setError('Passwords do not match');
+    return;
+  }
+
+  // Validate password strength
+  const passwordReqs = validatePassword(formData.password);
+  if (passwordReqs.some(req => !req.met)) {
+    setError('Password does not meet all requirements');
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const response = await axios.post(
+      'http://127.0.0.1:8000/api/auth/register',
+      {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword
+      }
+    );
+
+    if (response.data.success) {
+      // Save token in localStorage (or handle auth as needed)
+      localStorage.setItem('access_token', response.data.data.access_token);
+
+      // Store referral code if present
       if (formData.referralCode) {
         localStorage.setItem('pawsome_referral_code', formData.referralCode);
       }
-      
-      // Redirect to home after successful registration
+
+      // Redirect after successful registration
       navigate('/');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(response.data.message || 'Registration failed');
     }
-  };
+  } catch (err: any) {
+    if (err.response?.data?.message) {
+      setError(err.response.data.message);
+    } else {
+      setError('Something went wrong. Please try again.');
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const passwordRequirements = validatePassword(formData.password);
 

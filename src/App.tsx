@@ -46,6 +46,7 @@ import OrderList from './components/admin/Orders/OrderList';
 import UserList from './components/admin/Users/UserList';
 import SubscriptionList from './components/admin/Subscriptions/SubscriptionList';
 import DealsList from './components/admin/Deals/DealsList';
+import ForgotPassword from './components/pages/Login/ForgotPassword';
 
 const App: React.FC = () => {
 
@@ -85,7 +86,7 @@ const App: React.FC = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/join" element={<Register />} />
-          
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           {/* New Feature Routes */}
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/gifts" element={<Gifts />} />
