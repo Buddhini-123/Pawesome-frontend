@@ -1,7 +1,11 @@
+import React, { useEffect, useState } from 'react';
 import FeaturedDeals from '../../effects/FeaturedDeals';
 import ProductGrid from '../../effects/ProductGrid';
+import {api, host} from "../../../services/api"
 
 const ReccomendationsGrid = () => {
+  const [regularProducts, setRegularProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const topRecommendations = [
     {
       id: 1,
@@ -40,13 +44,30 @@ const ReccomendationsGrid = () => {
     },
   ];
 
-  const regularProducts = Array.from({ length: 10 }, (_, index) => ({
-    id: index + 7,
-    name: "Pedigree Dog biscuit",
-    price: "Rs. 2000.00",
-    rating: 5,
-    image: "/pedigree.png"
-  }));
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get("/products");
+        const products = res.data.data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: `Rs. ${parseFloat(p.price).toLocaleString()}`,
+          rating: parseFloat(p.rating_avg) || 0,
+          image: p.primary_image?.url 
+            ? `${host}${p.primary_image.url}` // host + URL from API
+            : '/placeholder.png'             // fallback if no image
+        }));
+        setRegularProducts(products);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
 
   return (
     <div className="min-h-screen">

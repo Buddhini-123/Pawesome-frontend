@@ -162,7 +162,7 @@ const Subscriptions = () => {
     api.get("/categories").then(res => {
       setCategories(res.data.data)
     })
-    api.get("/products").then(res => {
+    api.get("/products/subscriptions").then(res => {
       setProducts(res.data.data)
     })
   }, [])
