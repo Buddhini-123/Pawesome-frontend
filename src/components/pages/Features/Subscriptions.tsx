@@ -36,6 +36,9 @@ interface Subscription {
   id: number;
   status: string;
   status_label: string;
+  name: string;
+  startDate: Date;
+  frequency: number;
   schedule: {
     interval_type: string;
     interval_value: number;
@@ -73,13 +76,33 @@ interface Product {
   id: number
   name: string
   slug: string
-  price: string
+  price: number
   stock_quantity: number
   category: Category
-  primary_image: string | null
+  primary_image?: { url: string } | null;
   preferences: string
   quantity: number
+  brand?: string;
 }
+
+interface MappedSubscription {
+  id: any;
+  name: string;
+  products: any;
+  frequency: any;
+  nextDelivery: any;
+  total: any;
+  startDate: any;
+  status: any;
+  deliveryAddress: string;
+  savedAmount: any;
+  items: {
+    name: string;
+    quantity: number;
+    price: number;
+  }[];
+}
+
 
 const Subscriptions = () => {
 
@@ -99,7 +122,7 @@ const Subscriptions = () => {
 
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
-  const [activeSubscriptions, setActiveSubscriptions] = useState<Subscription[]>([]);
+  const [activeSubscriptions, setActiveSubscriptions] = useState<MappedSubscription[]>([]);
 
   const fetchSubscriptions = async () => {
     try {
@@ -112,7 +135,7 @@ const Subscriptions = () => {
 
 
       if (data && Array.isArray(data.data)) {
-        const mappedSubscriptions: Subscription[] = data.data.map((item: any) => {
+        const mappedSubscriptions: MappedSubscription[] = data.data.map((item: any) => {
           const firstItem = item.items?.[0]; 
 
           return {
@@ -270,10 +293,10 @@ const Subscriptions = () => {
     setProductQuantities(newQuantities)
   }
 
-  const handleViewProductDetails = async (slug: string) => {
+  const handleViewProductDetails = async (product: Product) => {
     
   try {
-    const response = await api.get(`/products/${slug}`);
+    const response = await api.get(`/products/${product}`);
     if ((response.data as any).success) {
       console.log((response.data as any).data.product);
       
@@ -689,7 +712,7 @@ const Subscriptions = () => {
                               <span className="text-sm font-fredoka font-medium text-charcoal">Quantity</span>
                               <div className="flex items-center gap-3 bg-white rounded-lg px-3 py-1 shadow-sm">
                                 <button
-                                  onClick={() => handleQuantityChange(product.id, -1)}
+                                 onClick={() => handleQuantityChange(String(product.id), -1)}
                                   className="w-8 h-8 rounded-full bg-light-gray hover:bg-vibrant-orange hover:text-white flex items-center justify-center transition-all"
                                 >
                                   <Minus className="h-4 w-4" />
@@ -698,7 +721,7 @@ const Subscriptions = () => {
                                   {productQuantities[product.id] || 1}
                                 </span>
                                 <button
-                                  onClick={() => handleQuantityChange(product.id, 1)}
+                                  onClick={() => handleQuantityChange(String(product.id), -1)}
                                   className="w-8 h-8 rounded-full bg-light-gray hover:bg-vibrant-orange hover:text-white flex items-center justify-center transition-all"
                                 >
                                   <Plus className="h-4 w-4" />

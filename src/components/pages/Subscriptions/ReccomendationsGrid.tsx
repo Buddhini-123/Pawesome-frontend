@@ -12,35 +12,40 @@ const ReccomendationsGrid = () => {
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-1" // ✅ add slug
     },
     {
       id: 2,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-2"
     },
     {
       id: 3,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-3"
     },
     {
       id: 4,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-4"
     },
     {
       id: 5,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-5"
     },
   ];
 
@@ -48,7 +53,7 @@ const ReccomendationsGrid = () => {
     const fetchProducts = async () => {
       try {
         const res = await api.get("/products");
-        const products = res.data.data.map((p: any) => ({
+        const products = (res.data as any).data.map((p: any) => ({
           id: p.id,
           name: p.name,
           price: `Rs. ${parseFloat(p.price).toLocaleString()}`,
