@@ -64,6 +64,10 @@ interface Subscription {
   metadata?: any[];
   timestamps?: Record<string, any>;
   actions?: Record<string, any>;
+  deliveryAddress: string;
+  nextDelivery: string | null;
+   total: number;
+  savedAmount: number; 
 }
 
 interface Category {
@@ -83,6 +87,16 @@ interface Product {
   preferences: string
   quantity: number
   brand?: string;
+  originalPrice?: number;
+  discount_percentage?: number;
+  images?: { url: string }[];
+  rating?: number;
+  rating_avg?: number;
+  review_count?: number;
+  is_in_stock?: boolean;
+  description?: string;
+  subcategory?: string;
+  currency?: string;
 }
 
 interface MappedSubscription {
@@ -1011,7 +1025,7 @@ const Subscriptions = () => {
                       <div className="bg-soft-gray p-4 rounded-lg">
                         <p className="text-sm text-medium-gray mb-1">Next Delivery</p>
                         <p className="font-medium text-mint-green">
-                          {new Date(selectedSubscription.nextDelivery).toLocaleDateString()}
+                          {selectedSubscription.nextDelivery ? new Date(selectedSubscription.nextDelivery).toLocaleDateString() : "N/A"}
                         </p>
                       </div>
                       <div className="bg-soft-gray p-4 rounded-lg md:col-span-2">
