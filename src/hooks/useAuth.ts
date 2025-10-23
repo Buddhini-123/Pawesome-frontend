@@ -39,8 +39,14 @@ export function useAuth() {
         password,
       });
 
-      if (response.data.success) {
-        const { user, access_token } = response.data.data;
+      const data = response.data as {
+        success: boolean;
+        data: { user: any; access_token: string };
+        message?: string;
+      };
+
+      if (data.success) {
+        const { user, access_token } = data.data;
 
         // Save to localStorage
         localStorage.setItem("token", access_token);
@@ -51,7 +57,7 @@ export function useAuth() {
 
         return user;
       } else {
-        throw new Error(response.data.message || "Login failed");
+        throw new Error(data.message || "Login failed");
       }
     } catch (err: any) {
       throw new Error(

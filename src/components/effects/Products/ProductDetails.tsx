@@ -3,7 +3,36 @@ import StarRating from "../StarRating/StarRating";
 import { QuantitySelector } from "../../pages/Products/QuantitySelector";
 import { useCart } from "../../../hooks/useCart";
 
-const ProductDetails = ({ product, quantity, onQuantityChange }) => {
+
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  image: string;
+  gallery: string[];
+  rating: number;
+  reviews: number;
+  category: string;
+  subcategory: string;
+  inStock: boolean;
+  description: string;
+  currency: string;
+  rating_avg?: number;
+}
+
+// Define props for the ProductDetails component
+interface ProductDetailsProps {
+  product: Product;
+  quantity: number;
+  onQuantityChange: (quantity: number) => void;
+}
+
+const ProductDetails: React.FC<ProductDetailsProps> = ({
+  product,
+  quantity,
+  onQuantityChange,
+}) => {
   const { addItem } = useCart();
 
   if (!product) return null;
@@ -72,7 +101,10 @@ const ProductDetails = ({ product, quantity, onQuantityChange }) => {
           <span className="text-2xl font-fredoka font-bold text-vibrant-orange">
             {product.currency} {product.price}
           </span>
-          <QuantitySelector quantity={quantity} onQuantityChange={onQuantityChange} />
+          <QuantitySelector
+            quantity={quantity}
+            onQuantityChange={onQuantityChange}
+          />
         </div>
 
         <button

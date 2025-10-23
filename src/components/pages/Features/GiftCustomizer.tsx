@@ -4,6 +4,16 @@ import { Check, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { useCart } from '../../../hooks/useCart';
 import { useNavigate } from 'react-router-dom';
 import {api, host} from "../../../services/api"
+import Product from '../Products/ProductTabs';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  description: string;
+  category: string;
+}
 
 interface Step {
   id: number;
@@ -44,7 +54,7 @@ const GiftCustomizer: React.FC = () => {
     const fetchThemes = async () => {
       try {
         const res = await api.get("/gifts/themes");
-        setThemes(res.data.data || []);
+        setThemes((res.data as any).data || []);
       } catch (err) {
         console.error("Failed to load themes:", err);
         setError("Failed to load themes");

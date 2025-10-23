@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { AlertCircle } from "lucide-react";
 import {api} from "../../../services/api"
 
@@ -22,8 +21,8 @@ const ForgotPassword: React.FC = () => {
         { email }
       );
 
-      if (response.data.success) {
-        setMessage(response.data.message);
+      if ((response.data as any).success) {
+        setMessage((response.data as any).message);
       } else {
         setError("Failed to send reset link. Please try again.");
       }

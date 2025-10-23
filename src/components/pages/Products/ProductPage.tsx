@@ -6,10 +6,27 @@ import ProductDetails from "../../effects/Products/ProductDetails";
 import ProductSidebar from "../../effects/Products/ProductSidebar";
 import ProductTabs from "./ProductTabs";
 
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  image: string;
+  gallery: string[];
+  rating: number;
+  reviews: number;
+  category: string;
+  subcategory: string;
+  inStock: boolean;
+  description: string;
+  currency: string;
+}
+
+
 const ProductPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { slug } = useParams();
@@ -18,11 +35,11 @@ const ProductPage = () => {
     const fetchProduct = async () => {
       try {
         const res = await api.get(`/products/${slug}`);
-        const p = res.data.data.product;
+        const p = (res.data as any).data.product;
 
         const images = [];
         if (p.images && p.images.length > 0) {
-          p.images.forEach((img) => {
+          p.images.forEach((img: { url: string }) => {
             images.push(`${host}${img.url}`);
           });
         } else if (p.primary_image?.url) {

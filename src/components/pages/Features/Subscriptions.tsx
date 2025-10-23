@@ -32,12 +32,6 @@ import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsS
 import {api} from "../../../services/api"
 import { toast } from 'react-toastify';
 
-interface SubscriptionItem {
-  name: string;
-  quantity: number;
-  price: number;
-}
-
 interface Subscription {
   id: number;
   status: string;
@@ -118,7 +112,7 @@ const Subscriptions = () => {
 
 
       if (data && Array.isArray(data.data)) {
-        const mappedSubscriptions = data.data.map((item: any) => {
+        const mappedSubscriptions: Subscription[] = data.data.map((item: any) => {
           const firstItem = item.items?.[0]; 
 
           return {
@@ -160,10 +154,10 @@ const Subscriptions = () => {
 
   useEffect(() => {
     api.get("/categories").then(res => {
-      setCategories(res.data.data)
+      setCategories((res.data as any).data || []);
     })
     api.get("/products/subscriptions").then(res => {
-      setProducts(res.data.data)
+      setProducts((res.data as any).data)
     })
   }, [])
 
@@ -269,7 +263,7 @@ const Subscriptions = () => {
     setShowSubscriptionModal(true)
   }
 
-  const handleRemoveProduct = (productId: string) => {
+  const handleRemoveProduct = (productId: number) => {
     setConfirmedProducts(prev => prev.filter(p => p.id !== productId))
     const newQuantities = { ...productQuantities }
     delete newQuantities[productId]
@@ -280,10 +274,10 @@ const Subscriptions = () => {
     
   try {
     const response = await api.get(`/products/${slug}`);
-    if (response.data.success) {
-      console.log(response.data.data.product);
+    if ((response.data as any).success) {
+      console.log((response.data as any).data.product);
       
-      setSelectedProduct(response.data?.data?.product);
+      setSelectedProduct((response.data as any)?.data?.product);
       setShowProductModal(true);
     }
   } catch (error) {
@@ -296,7 +290,7 @@ const Subscriptions = () => {
 
   try {
     const response = await api.delete(`/subscriptions/${subscriptionId}/cancel`);
-    const data = response.data;
+    const data = response.data as any;
 
     if (data.success) {
       toast.success("Subscription cancelled successfully");
