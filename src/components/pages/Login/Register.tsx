@@ -75,9 +75,9 @@ const Register: React.FC = () => {
       }
     );
 
-    if (response.data.success) {
+    if ((response.data as any).success) {
       // Save token in localStorage (or handle auth as needed)
-      localStorage.setItem('access_token', response.data.data.access_token);
+      localStorage.setItem('access_token',( response.data as any).data.access_token);
 
       // Store referral code if present
       if (formData.referralCode) {
@@ -87,7 +87,7 @@ const Register: React.FC = () => {
       // Redirect after successful registration
       navigate('/');
     } else {
-      setError(response.data.message || 'Registration failed');
+      setError((response.data as any).message || 'Registration failed');
     }
   } catch (err: any) {
     if (err.response?.data?.message) {
