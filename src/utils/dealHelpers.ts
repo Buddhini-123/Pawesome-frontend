@@ -46,6 +46,7 @@ export const enhanceDeal = (legacyDeal: Partial<Deal>): Deal => {
     minOrderAmount: legacyDeal.minOrderAmount,
     maxDiscountAmount: legacyDeal.maxDiscountAmount,
     couponCode: legacyDeal.couponCode
+    
   };
 };
 

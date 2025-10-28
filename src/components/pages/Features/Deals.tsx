@@ -1,101 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Percent } from 'lucide-react';
 import { Deal, DealsPageData, DealCardProps } from '../../../types/deals';
-import { enhanceDeal, generateMockDealData } from '../../../utils/dealHelpers';
-import { mockDealsData } from '../../mockDeals';
 import ReccomendationsGrid from '../Subscriptions/ReccomendationsGrid';
 import SlideshowBanner from '../../banners/subscriptionbanner/SlideshowBanner';
 import WhyPawsomeSection from '../../banners/whypawsome/WhyPawsomeSection';
 import CategoryCarousel from '../../carousels/CategoryCarousel';
-import dogImg from '../../carousels/images/dog.png';
-import catImg from '../../carousels/images/cat.png';
-import birdImg from '../../carousels/images/bird.png';
-import rodentImg from '../../carousels/images/rodent.png';
 import TopBrandsCarousel from '../../carousels/brandCarousel/TopBrandsCarousel';
-import FAQAccordion from '../../FAQ/FaqAccordions/FAQAccordion';
+import {api} from "../../../services/api"
+
 // Inline DealCard component to avoid import issues
 const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) => {
   const handleClick = () => {
     onClick(deal);
   };
-
-  const [expandedFAQ, setExpandedFAQ] = useState(null)
-
-  const subscriptionSlides = [
-    {
-      image:
-        'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg',
-      title: 'Banner 1',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 1 CTA clicked'),
-    },
-    {
-      image: 'https://petpoints.co.uk/assets/purepet.jpg',
-      title: 'Banner 2',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 2 CTA clicked'),
-    },
-    {
-      image:
-        'https://cdnpublic.budgetpetproducts.com.au/contents/2025/05/21/24044014-2d7d-4f5a-938c-ed2fb11588a3.jpg',
-      title: 'Banner 3',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 3 CTA clicked'),
-    },
-    // ...other slides
-  ]
-
-  const faqs = [
-    {
-      question: 'Want to know who we are?',
-      answer: 'Discover our story, mission, and love for pets.',
-    },
-    {
-      question: 'What brands does Pawsome offer?',
-      answer:
-        'We offer premium brands like Pedigree, Royal Canin, Whiskas, and many more.',
-    },
-    // ...more FAQ items
-  ]
-
-  const petCategories = [
-    {
-      bgClass: 'bg-sunny-yellow',
-      image: dogImg,
-      alt: 'Dog',
-      route: '/dogs',
-    },
-    {
-      bgClass: 'bg-primary-blue',
-      image: catImg,
-      alt: 'Cat',
-      route: '/cats',
-    },
-    {
-      bgClass: 'bg-sunny-yellow',
-      image: birdImg,
-      alt: 'Bird',
-      route: '/birds',
-    },
-    {
-      bgClass: 'bg-vibrant-orange',
-      image: rodentImg,
-      alt: 'Small Pet',
-      route: '/other-animals',
-    },
-    // ...more categories
-  ]
-
-  const slides = [
-    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
-    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
-    // add more banners as needed
-  ]
 
   return (
     <motion.div
@@ -177,8 +96,6 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
 
 const Deals: React.FC = () => {
 
-  const [expandedFAQ, setExpandedFAQ] = useState(null)
-
   const subscriptionSlides = [
     {
       image:
@@ -206,52 +123,26 @@ const Deals: React.FC = () => {
     // ...other slides
   ]
 
-  const faqs = [
-    {
-      question: 'Want to know who we are?',
-      answer: 'Discover our story, mission, and love for pets.',
-    },
-    {
-      question: 'What brands does Pawsome offer?',
-      answer:
-        'We offer premium brands like Pedigree, Royal Canin, Whiskas, and many more.',
-    },
-    // ...more FAQ items
-  ]
+  const [deals, setDeals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const petCategories = [
-    {
-      bgClass: 'bg-sunny-yellow',
-      image: dogImg,
-      alt: 'Dog',
-      route: '/dogs',
-    },
-    {
-      bgClass: 'bg-primary-blue',
-      image: catImg,
-      alt: 'Cat',
-      route: '/cats',
-    },
-    {
-      bgClass: 'bg-sunny-yellow',
-      image: birdImg,
-      alt: 'Bird',
-      route: '/birds',
-    },
-    {
-      bgClass: 'bg-vibrant-orange',
-      image: rodentImg,
-      alt: 'Small Pet',
-      route: '/other-animals',
-    },
-    // ...more categories
-  ]
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const response = await api.get("/deals"); // replace with your actual {{host}}
+        setDeals((response.data as any).data || []); // backend returns "data": [...]
+      } catch (err) {
+        console.error("Error fetching deals:", err);
+        setError("Failed to load deals");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const slides = [
-    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
-    { image: 'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg' },
-    // add more banners as needed
-  ]
+    fetchDeals();
+  }, []);
+
 
   const navigate = useNavigate();
 
@@ -260,7 +151,13 @@ const Deals: React.FC = () => {
   };
 
   // Use imported mock data
-  const dealsData: DealsPageData = mockDealsData;
+  if (loading) {
+    return <div className="text-center py-20">Loading deals...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500 py-20">{error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-off-white">
@@ -289,51 +186,46 @@ const Deals: React.FC = () => {
 
         {/* Deal Sections */}
         <div className="space-y-16">
-          {dealsData.sections.map((section, index) => (
-            <motion.section
-              key={section.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: index * 0.2,
-                duration: 0.6
-              }}
-              className="mb-12"
-            >
-              {/* Section Header */}
-              <div className="mb-8">
-                <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal mb-2">
-                  {section.title}
-                </h2>
-                {/* {section.subtitle && (
-                  <p className="text-lg text-medium-gray max-w-2xl">
-                    {section.subtitle}
-                  </p>
-                )} */}
-              </div>
+          <motion.section
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-12"
+          >
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal mb-2">
+                Active Deals
+              </h2>
+            </div>
 
-              {/* Deals Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {section.deals.map((deal, dealIndex) => (
-                  <motion.div
-                    key={deal.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                      delay: dealIndex * 0.1,
-                      duration: 0.4
-                    }}
-                  >
-                    <DealCard
-                      deal={deal}
-                      onClick={handleDealClick}
-                      className="h-full"
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            </motion.section>
-          ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {deals.map((deal, index) => (
+                <motion.div
+                  key={deal.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{
+                    delay: index * 0.1,
+                    duration: 0.4
+                  }}
+                >
+                  <DealCard
+                    deal={{
+                      id: deal.id,
+                      title: deal.title,
+                      subtitle: deal.display_description || deal.description,
+                      offerType: "discount",
+                      discount: Number(deal.discount_value),
+                      image: deal.image,
+                      slug: deal.slug
+                    } as Deal}
+                    onClick={handleDealClick}
+                    className="h-full"
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
         </div>
 
         <CategoryCarousel />

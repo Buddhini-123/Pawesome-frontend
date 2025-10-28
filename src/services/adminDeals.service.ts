@@ -124,7 +124,26 @@ class AdminDealsService {
           conversions: 23,
           revenue: 48500,
           couponCode: 'DOGFLASH50',
-          couponRequired: true
+          couponRequired: true,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          is_available: 'yes',
+          user_data: {
+            can_claim: true,
+            has_claimed: false,
+          },
+          usage_count: 0,
+          usage_statistics: {
+            total_claims: 0,
+            remaining_uses: 100,
+            usage_percentage: 0,
+          },
+          applies_to: {
+            categories: ['dogs'],
+            products: ['prod-1', 'prod-2'],
+          },
+          deal_type: "percentage",
+          discount_value: "25"
         },
         {
           id: uuidv4(),
@@ -152,7 +171,26 @@ class AdminDealsService {
           clicks: 187,
           conversions: 15,
           revenue: 12750,
-          couponRequired: false
+          couponRequired: false,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          is_available: 'yes',
+          user_data: {
+            can_claim: true,
+            has_claimed: false,
+          },
+          usage_count: 0,
+          usage_statistics: {
+            total_claims: 0,
+            remaining_uses: 100,
+            usage_percentage: 0,
+          },
+          applies_to: {
+            categories: ['dogs'],
+            products: ['prod-1', 'prod-2'],
+          },
+          deal_type: "percentage",
+          discount_value: "25"
         },
         {
           id: uuidv4(),
@@ -180,7 +218,26 @@ class AdminDealsService {
           clicks: 890,
           conversions: 156,
           revenue: 312000,
-          couponRequired: false
+          couponRequired: false,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          is_available: 'yes',
+          user_data: {
+            can_claim: true,
+            has_claimed: false,
+          },
+          usage_count: 0,
+          usage_statistics: {
+            total_claims: 0,
+            remaining_uses: 100,
+            usage_percentage: 0,
+          },
+          applies_to: {
+            categories: ['dogs'],
+            products: ['prod-1', 'prod-2'],
+          },
+          deal_type: "percentage",
+          discount_value: "25"
         },
         {
           id: uuidv4(),
@@ -210,7 +267,26 @@ class AdminDealsService {
           conversions: 67,
           revenue: 89500,
           couponCode: 'WELCOME20',
-          couponRequired: true
+          couponRequired: true,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          is_available: 'yes',
+          user_data: {
+            can_claim: true,
+            has_claimed: false,
+          },
+          usage_count: 0,
+          usage_statistics: {
+            total_claims: 0,
+            remaining_uses: 100,
+            usage_percentage: 0,
+          },
+          applies_to: {
+            categories: ['dogs'],
+            products: ['prod-1', 'prod-2'],
+          },
+          deal_type: "percentage",
+          discount_value: "25"
         },
         {
           id: uuidv4(),
@@ -242,7 +318,26 @@ class AdminDealsService {
           clicks: 123,
           conversions: 32,
           revenue: 56000,
-          couponRequired: false
+          couponRequired: false,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          is_available: 'yes',
+          user_data: {
+            can_claim: true,
+            has_claimed: false,
+          },
+          usage_count: 0,
+          usage_statistics: {
+            total_claims: 0,
+            remaining_uses: 100,
+            usage_percentage: 0,
+          },
+          applies_to: {
+            categories: ['dogs'],
+            products: ['prod-1', 'prod-2'],
+          },
+          deal_type: "percentage",
+          discount_value: "25"
         }
       ];
 
