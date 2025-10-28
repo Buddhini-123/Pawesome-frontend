@@ -1,92 +1,118 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Tag, Star, Heart } from 'lucide-react';
-import { Deal, DealsPageData } from '../../types/deals';
-import { enhanceDeal, generateMockDealData } from '../../utils/dealHelpers';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Clock, Tag, Star, Heart, ChevronDown, ChevronUp, Info } from "lucide-react";
+import { Deal } from "../../types/deals";
+import { api, host } from "../../services/api";
+import { toast } from 'react-toastify';
+import { useCart } from "../../hooks/useCart";
+
+interface Product {
+  id: number;
+  name: string;
+  image: string;
+  originalPrice: number;
+  salePrice?: number;
+  primary_image: Image;
+  price: number;
+  description: string
+}
+
+interface Image {
+  url: string;
+}
+
 
 const DealDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [deal, setDeal] = useState<Deal | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showMore, setShowMore] = useState(false);
 
-  // Mock data embedded directly to avoid import issues
-  const mockDealsData: DealsPageData = {
-    sections: [
-      {
-        id: 'weekly-deals',
-        title: 'Bark-Worthy Deals This Week Only!',
-        subtitle: 'Limited time offers on premium pet products',
-        deals: [
-          enhanceDeal(generateMockDealData({
-            id: 'buy-2-get-1-free',
-            title: 'THE BEST FOOD FOR YOUR DOG',
-            subtitle: 'Delicious food made with love',
-            description: 'Stock up on your pup\'s favorites and get more for less – limited time only.',
-            offerType: 'buy-get-free',
-            image: '/api/placeholder/200/300',
-            isActive: true,
-            validFrom: new Date(),
-            validUntil: new Date('2025-06-15'),
-            slug: 'buy-2-get-1-free-all-flavors',
-            category: ['dog-food', 'premium'],
-            products: ['premium-dog-food-1', 'premium-dog-food-2']
-          })),
-          enhanceDeal(generateMockDealData({
-            id: 'free-shipping',
-            title: 'THE BEST FOOD FOR YOUR DOG',
-            subtitle: 'Delicious food made with love',
-            description: 'Premium nutrition without the premium price tag – your wallet (and dog) will thank you.',
-            offerType: 'free-shipping',
-            image: '/api/placeholder/200/300',
-            isActive: true,
-            validFrom: new Date(),
-            slug: 'free-shipping-subscription',
-            category: ['subscription', 'shipping'],
-            products: ['subscription-plan-1', 'subscription-plan-2']
-          })),
-          enhanceDeal(generateMockDealData({
-            id: 'referral-deal',
-            title: 'THE BEST FOOD FOR YOUR DOG',
-            subtitle: 'Delicious food made with love',
-            description: 'New to Pawsome? Let your furry friend try their new favorite meal.',
-            offerType: 'referral',
-            discount: 250,
-            discountType: 'fixed',
-            image: '/api/placeholder/200/300',
-            isActive: true,
-            validFrom: new Date(),
-            slug: 'refer-friend-discount',
-            category: ['referral', 'new-customer'],
-            products: ['starter-pack-1', 'trial-pack-1']
-          })),
-          enhanceDeal(generateMockDealData({
-            id: 'premium-upgrade',
-            title: 'THE BEST FOOD FOR YOUR DOG',
-            subtitle: 'Delicious food made with love',
-            description: 'Wholesome meals made to fit on your budget.',
-            offerType: 'upgrade',
-            image: '/api/placeholder/200/300',
-            isActive: true,
-            validFrom: new Date(),
-            slug: 'upgrade-to-premium',
-            category: ['premium', 'upgrade'],
-            products: ['premium-plan-1', 'premium-plan-2']
-          }))
-        ]
+  const toggleShowMore = () => setShowMore(!showMore);
+
+  const canClaim = deal?.user_data?.can_claim ?? true;
+  const hasClaimed = deal?.user_data?.has_claimed ?? false;
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchDeal = async () => {
+      try {
+        const res = await api.get(`/deals/${slug}`);
+        const dealData = (res.data as any).data;
+        setDeal(dealData);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load deal");
+      } finally {
+        setLoading(false);
       }
-    ]
-  };
+    };
 
-  // Find the deal by slug
-  const deal = React.useMemo(() => {
-    for (const section of mockDealsData.sections) {
-      const foundDeal = section.deals.find(d => d.slug === slug);
-      if (foundDeal) return foundDeal;
-    }
-    return null;
+    fetchDeal();
   }, [slug]);
 
-  if (!deal) {
+  useEffect(() => {
+    if (!deal?.applies_to?.products?.length) return;
+    const fetchProducts = async () => {
+      try {
+        const ids = deal.applies_to.products.join(',');
+        const res = await api.get(`/products?ids=${ids}`);
+        setProducts((res.data as any).data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchProducts();
+  }, [deal]);
+
+  const handleClaim = async () => {
+    if (!deal || deal.user_data?.has_claimed) return;
+
+    try {
+      const res = await api.post(`/deals/${deal.slug}/claim`);
+      if ((res.data as any).status === "success") {
+        setDeal(prev => prev ? {
+          ...prev,
+          user_data: {
+            ...prev.user_data,
+            has_claimed: true,
+            can_claim: false,
+            claimed_at: (res.data as any).data.claim.claimed_at,
+          },
+          usage_count: prev.usage_count + 1,
+          usage_statistics: {
+            ...prev.usage_statistics,
+            total_claims: prev.usage_statistics.total_claims + 1,
+            remaining_uses: prev.usage_statistics.remaining_uses - 1,
+            usage_percentage: prev.usage_statistics.usage_percentage + 1,
+          }
+        } : prev);
+
+        toast.success((res.data as any).message);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to claim the deal");
+    }
+  };
+
+  const { addItem } = useCart();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600 font-fredoka">Loading deal details...</p>
+      </div>
+    );
+  }
+
+  if (error || !deal) {
     return (
       <div className="min-h-screen bg-off-white flex items-center justify-center">
         <div className="text-center">
@@ -102,17 +128,13 @@ const DealDetail: React.FC = () => {
     );
   }
 
-  const handleBackClick = () => {
-    navigate('/deals');
-  };
-
   return (
     <div className="min-h-screen bg-off-white">
-      {/* Header with Back Button */}
+      {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <button 
-            onClick={handleBackClick}
+            onClick={() => navigate('/deals')}
             className="flex items-center text-charcoal hover:text-vibrant-orange transition-colors font-fredoka"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -128,9 +150,8 @@ const DealDetail: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="max-w-6xl mx-auto"
         >
-          {/* Hero Section */}
+          {/* Hero */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-            {/* Deal Image */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -142,51 +163,40 @@ const DealDetail: React.FC = () => {
                 alt={deal.title}
                 className="absolute right-0 top-0 h-full w-1/2 object-cover"
               />
-              <div className="absolute inset-0 bg-vibrant-orange/90"></div>
+              <div className="absolute inset-0 bg-vibrant-orange/70"></div>
               <div className="relative z-10 p-8 h-full flex flex-col justify-center">
-                <h1 className="text-white font-fredoka font-bold text-3xl leading-tight mb-4">
-                  {deal.title}
-                </h1>
-                <p className="text-white text-lg opacity-90 font-fredoka">
-                  {deal.subtitle}
-                </p>
+                <h1 className="text-white font-fredoka font-bold text-3xl leading-tight mb-4">{deal.title}</h1>
+                <p className="text-white text-lg opacity-90 font-fredoka">{deal.subtitle}</p>
               </div>
             </motion.div>
 
-            {/* Deal Info */}
+            {/* Info */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
               className="space-y-6"
             >
-              {/* Offer Badge */}
               <div className="inline-flex items-center bg-vibrant-orange/10 text-vibrant-orange px-4 py-2 rounded-full font-fredoka font-medium">
-                <Tag className="w-4 h-4 mr-2" />
-                {deal.offerType === 'buy-get-free' && 'Buy 2, Get 1 Free on All Flavors'}
-                {deal.offerType === 'free-shipping' && 'Free Shipping on Every Subscription Plan'}
-                {deal.offerType === 'referral' && 'Refer a Friend & Both Get Rs. 250 Off'}
-                {deal.offerType === 'upgrade' && 'Upgrade to Premium'}
-                {deal.offerType === 'discount' && `${deal.discount}% Off All Items`}
-                {deal.offerType === 'bundle' && 'Special Bundle Deal'}
+                <Tag className="w-4 h-4 mr-2" /> {deal.display_description}
               </div>
 
-              {/* Description */}
               <div>
                 <h2 className="text-2xl font-fredoka font-bold text-charcoal mb-4">About This Deal</h2>
-                <p className="text-charcoal text-lg leading-relaxed font-fredoka">
-                  {deal.description}
-                </p>
+                <p className="text-charcoal text-lg leading-relaxed font-fredoka">{deal.description}</p>
               </div>
 
-              {/* Deal Details */}
               <div className="bg-white rounded-xl p-6 shadow-sm">
                 <h3 className="text-xl font-fredoka font-semibold text-charcoal mb-4">Deal Details</h3>
                 <div className="space-y-3">
-                  {deal.validUntil && (
+                  {deal.end_date && (
                     <div className="flex items-center text-charcoal">
                       <Clock className="w-5 h-5 mr-3 text-vibrant-orange" />
-                      <span className="font-fredoka">Valid until {deal.validUntil.toLocaleDateString()}</span>
+                      <span className="font-fredoka"> Valid until {new Date(deal.end_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}</span>
                     </div>
                   )}
                   <div className="flex items-center text-gray-600">
@@ -202,42 +212,119 @@ const DealDetail: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="flex-1 bg-vibrant-orange text-white px-8 py-4 rounded-lg font-fredoka font-semibold hover:bg-vibrant-orange/90 transition-colors">
-                  Claim This Deal
+                <button
+                  onClick={handleClaim}
+                  disabled={hasClaimed || !canClaim}
+                  className={`flex-1 px-8 py-4 rounded-lg font-fredoka font-semibold transition-colors
+                    ${(hasClaimed || !canClaim)
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-vibrant-orange text-white hover:bg-vibrant-orange/90'}`}
+                >
+                  {hasClaimed ? "Claimed" : "Claim This Deal"}
                 </button>
-                <button className="flex-1 border-2 border-vibrant-orange text-vibrant-orange px-8 py-4 rounded-lg font-fredoka font-semibold hover:bg-vibrant-orange hover:text-white transition-colors">
+
+                <button
+                  onClick={toggleShowMore}
+                  className="flex-1 border-2 border-vibrant-orange text-vibrant-orange px-8 py-4 rounded-lg font-fredoka font-semibold hover:bg-vibrant-orange hover:text-white transition-all flex justify-center items-center gap-2"
+                >
                   Learn More
+                  {showMore ? <ChevronUp className="w-5 h-5 transition-transform" /> : <ChevronDown className="w-5 h-5 transition-transform" />}
                 </button>
+
+                <AnimatePresence>
+                  {showMore && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="overflow-hidden bg-white rounded-xl p-6 shadow-sm border border-light-gray"
+                    >
+                      <h3 className="text-xl font-fredoka font-semibold text-charcoal mb-4 flex items-center gap-2">
+                        <Info className="w-5 h-5 text-vibrant-orange" />
+                        Additional Deal Information
+                      </h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 font-fredoka text-charcoal">
+                        <p><span className="font-semibold">Start Date:</span> {new Date(deal.start_date).toLocaleDateString("en-GB")}</p>
+                        <p><span className="font-semibold">End Date:</span> {new Date(deal.end_date).toLocaleDateString("en-GB")}</p>
+                        <p><span className="font-semibold">Discount Value:</span> {deal.sri_lankan_formatting?.discount_display}</p>
+                        <p><span className="font-semibold">Minimum Purchase:</span> {deal.sri_lankan_formatting?.minimum_purchase_display}</p>
+                        <p><span className="font-semibold">Maximum Discount:</span> {deal.sri_lankan_formatting?.maximum_discount_display}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           </div>
 
-          {/* Related Products Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="bg-white rounded-2xl p-8"
-          >
-            <h3 className="text-2xl font-fredoka font-bold text-charcoal mb-6">Products Included in This Deal</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Mock related products */}
-              {[1, 2, 3].map((product) => (
-                <div key={product} className="border border-light-gray rounded-xl p-4 hover:shadow-md transition-shadow">
-                  <div className="bg-off-white rounded-lg h-32 mb-4"></div>
-                  <h4 className="font-fredoka font-semibold text-charcoal mb-2">Premium Dog Food {product}</h4>
-                  <p className="text-charcoal text-sm mb-3 font-fredoka">High-quality nutrition for your furry friend</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-fredoka font-bold text-vibrant-orange">Rs.999</span>
-                    <button className="bg-vibrant-orange text-white px-4 py-2 rounded-lg text-sm font-fredoka hover:bg-vibrant-orange/90 transition-colors">
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+           {/* Related Products Section */} 
+           <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="bg-white rounded-2xl p-8"
+            >
+              <h3 className="text-2xl font-fredoka font-bold text-charcoal mb-6">
+                Products Included in This Deal
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map((product) => {
+                    const discountedPrice =
+                      deal.deal_type === "percentage"
+                        ? product.price - (product.price * parseFloat(deal.discount_value)) / 100
+                        : product.price - parseFloat(deal.discount_value);
+
+                    const handleAddToCart = () => {
+                        const quantity = 1; // default to 1 for now
+                        addItem({ ...product, price: discountedPrice }, quantity);
+                        toast.success(`Added ${product.name} to cart!`);
+                      };
+
+                    return (
+                      <div
+                        key={product.id}
+                        className="border border-light-gray rounded-xl p-4 hover:shadow-md transition-shadow"
+                      >
+                        <img
+                          src={
+                            product.primary_image
+                              ? `${host}${product.primary_image.url}`
+                              : "https://via.placeholder.com/300x200?text=No+Image"
+                          }
+                          alt={product.name}
+                          className="rounded-lg h-32 w-full object-cover mb-4"
+                        />
+                        <h4 className="font-fredoka font-semibold text-charcoal mb-2">
+                          {product.name}
+                        </h4>
+                        <p className="text-charcoal text-sm mb-3 font-fredoka">
+                          {product.description}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-fredoka font-bold text-vibrant-orange">
+                              Rs.{discountedPrice.toFixed(2)}
+                            </span>
+                            <span className="text-sm line-through text-gray-400 font-fredoka">
+                              Rs.{product.price}
+                            </span>
+                          </div>
+
+                          <button onClick={handleAddToCart} className="bg-vibrant-orange text-white px-4 py-2 rounded-lg text-sm font-fredoka hover:bg-vibrant-orange/90 transition-colors">
+                            Add to Cart
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+           </motion.div>
         </motion.div>
+        
       </div>
     </div>
   );

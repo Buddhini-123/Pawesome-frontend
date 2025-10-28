@@ -35,6 +35,41 @@ export interface Deal {
   // Coupon codes
   couponCode?: string;
   couponRequired: boolean;
+  start_date: string;
+  end_date: string;
+  display_title?: string;
+  display_description?: string
+  sri_lankan_formatting?: SriLankanFormatting;
+  is_available: string
+  user_data: UserData;
+  usage_count: number;
+  usage_statistics: UsageStaticstics,
+  applies_to: AppliesTo,
+  deal_type: string
+  discount_value: string
+}
+
+export interface AppliesTo {
+  categories: any;
+  products: any;
+  [key: string]: any;
+}
+export interface UsageStaticstics {
+  total_claims: number;
+  remaining_uses: number;
+  usage_percentage: number;
+}
+
+export interface UserData {
+  can_claim: boolean;
+  has_claimed: any;
+  [key: string]: any; // optional for additional dynamic fields
+}
+
+export interface SriLankanFormatting {
+  discount_display: string;
+  minimum_purchase_display: string;
+  maximum_discount_display: string;
 }
 
 export interface DealSection {
