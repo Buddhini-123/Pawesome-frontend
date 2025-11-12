@@ -48,6 +48,7 @@ import UserList from './components/admin/Users/UserList';
 import SubscriptionList from './components/admin/Subscriptions/SubscriptionList';
 import DealsList from './components/admin/Deals/DealsList';
 import ForgotPassword from './components/pages/Login/ForgotPassword';
+import CategoryDetail from './components/pages/Categories/CategoryDetail';
 
 const App: React.FC = () => {
 
@@ -62,6 +63,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Home />} />
           <Route path="/dogs" element={<Dogs />} />
           <Route path="/cats" element={<Cats />} />
+           <Route path="/products/category/:id/:slug" element={<CategoryDetail />} />
           <Route path="/vet-diet" element={<VetDiet />} />
           <Route path="/birds" element={<Birds />} />
           <Route path="/other-animals" element={<OtherAnimals />} />

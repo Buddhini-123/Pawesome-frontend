@@ -30,36 +30,45 @@ const StandardCategoryPage: React.FC<StandardCategoryPageProps> = ({
 
     // Apply filters
     Object.entries(selectedFilters).forEach(([filterType, values]) => {
-      if (values.length > 0) {
-        filteredProducts = filteredProducts.filter(product => {
-          switch (filterType) {
-            case 'Category':
-              return values.includes(product.subcategory);
-            case 'Subcategory':
-              return values.includes(product.subcategory);
-            case 'Brand':
-              return values.includes(product.brand);
-            case 'Price Range':
-              return values.some(range => {
-                const [min, max] = range.split('-').map(v => v.replace(/[^\d]/g, ''));
-                if (max === '+') {
-                  return product.price >= parseInt(min);
-                }
-                return product.price >= parseInt(min) && product.price <= parseInt(max);
-              });
-            case 'Rating':
-              return product.rating >= parseInt(values[0]);
-            case 'Condition Type':
-              return values.includes(product.subcategory);
-            case 'Pet Type':
-              // This would need additional logic in real app to match products to pet types
-              return true;
-            default:
-              return true;
-          }
-        });
+  if (values.length > 0) {
+    filteredProducts = filteredProducts.filter(product => {
+      switch (filterType) {
+        case 'Category':
+          // Match category_id with selected category values
+          return values.includes(product.category_id.toString());
+
+        case 'Brand':
+          // Match brand_id with selected brand values
+          return values.includes(product.brand_id.toString());
+
+        case 'Price Range':
+          return values.some(range => {
+            const [min, max] = range.split('-').map(v => v.replace(/[^\d]/g, ''));
+            if (max === '+') {
+              return parseFloat(product.price) >= parseInt(min);
+            }
+            return (
+              parseFloat(product.price) >= parseInt(min) &&
+              parseFloat(product.price) <= parseInt(max)
+            );
+          });
+
+        case 'Rating':
+          return parseFloat(product.rating_avg) >= parseInt(values[0]);
+
+        case 'Subcategory':
+        case 'Condition Type':
+        case 'Pet Type':
+          // Adjust these if you have related fields later
+          return true;
+
+        default:
+          return true;
       }
     });
+  }
+});
+
 
     // Apply sorting
     switch (sortBy) {
