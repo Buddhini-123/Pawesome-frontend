@@ -32,7 +32,9 @@ import {
   Star
 } from 'lucide-react';
 import RedemptionSlider from '../../loyalty/RedemptionSlider';
-
+import { useLocation } from "react-router-dom";
+import {api} from "../../../services/api"
+import { toast } from 'react-toastify';
 interface CheckoutForm {
   // Shipping Information
   shippingAddress: {
@@ -92,6 +94,12 @@ const Checkout: React.FC = () => {
     deliveryOption: 'standard',
     isGift: false
   });
+
+  const { state } = useLocation();
+
+  const isSubscription = state?.type === "subscription";
+  const scheduleData = state?.scheduleData;
+  const selectedProducts = state?.selectedProducts;
 
   // Load saved addresses
   useEffect(() => {
@@ -236,16 +244,61 @@ const Checkout: React.FC = () => {
   };
 
   const handlePreviousStep = () => {
-    setError('');
-    if (step === 3) setStep(2);
-    else if (step === 2) setStep(1);
-  };
+      setError('');
+      if (step === 3) setStep(2);
+      else if (step === 2) setStep(1);
+    };
 
-  const handlePlaceOrder = async () => {
+    const handlePlaceOrder = async () => {
     setError('');
     setIsProcessing(true);
-    
+
     try {
+
+      if (isSubscription) {
+
+        const payload = {
+          products: selectedProducts.map((product: any) => ({
+            product_id: product.id,
+            quantity: product.quantity || 1,
+            preferences: product.preferences || {},
+          })),
+          subscription_data: {
+            interval_type: scheduleData.deliveryPeriod,
+            interval_value: 1,
+            start_date: scheduleData.startDate,
+            end_date: scheduleData.endDate,
+            delivery_address_id: 1,
+            payment_method_id: 2,
+            preferences: {
+              gift_wrap: "test",
+              delivery_time: "morning",
+            },
+          },
+        };
+
+        const response = await api.post("/subscriptions/direct-create", payload);
+        const data = (response.data as any);
+
+        if (!data.success) {
+          const errorMsg =
+            data?.message ||
+            (data?.errors
+              ? Object.values(data.errors).flat().join(", ")
+              : "Subscription creation failed");
+          throw new Error(errorMsg);
+        }
+
+        toast.success("Subscription created successfully!");
+
+        navigate("/subscriptions");
+        
+        return;
+      }
+
+
+
+      // 🌟 ELSE → Normal one-time order flow
       const orderData = {
         items: cart.map(item => ({
           productId: item.product.id,
@@ -267,18 +320,18 @@ const Checkout: React.FC = () => {
       };
 
       const order = await orderService.createOrder(orderData);
-      
-      // Clear cart after successful order
+
       clearCart();
-      
-      // Navigate to order confirmation
+
       navigate(`/order-confirmation/${order.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to place order');
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to place order');
     } finally {
       setIsProcessing(false);
     }
   };
+
 
   const applyCoupon = () => {
     // Mock coupon logic

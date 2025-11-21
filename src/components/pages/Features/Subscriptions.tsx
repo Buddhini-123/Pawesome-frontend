@@ -31,6 +31,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
 import {api} from "../../../services/api"
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 interface Subscription {
   id: number;
@@ -120,6 +121,7 @@ interface MappedSubscription {
 
 const Subscriptions = () => {
 
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
@@ -137,6 +139,9 @@ const Subscriptions = () => {
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [activeSubscriptions, setActiveSubscriptions] = useState<MappedSubscription[]>([]);
+
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [deliveryPeriod, setDeliveryPeriod] = useState("");
 
   const fetchSubscriptions = async () => {
     try {
@@ -224,65 +229,82 @@ const Subscriptions = () => {
     })
   }
 
-  const handleConfirmSelection = async () => {
-    if (selectedProducts.length === 0) return;
+  // const handleConfirmSelection = async (scheduleData: {
+  //   deliveryPeriod: string;
+  //   startDate: string;
+  //   endDate: string;
+  // }) => {
 
-    // Prepare payload
-    const payload = {
-      products: selectedProducts.map(product => ({
-        product_id: product.id,
-        quantity: product.quantity || 1,
-        preferences: product.preferences || {},
-      })),
-      subscription_data: {
-        interval_type: "monthly", // or dynamic
-        interval_value: 1, // or dynamic
-        start_date: new Date().toISOString().split("T")[0], // e.g., "2025-10-22"
-        end_date: "2025-12-14", // or dynamic
-        delivery_address_id: 1, // get from user/address selection
-        payment_method_id: 2, // get from user/payment selection
-        preferences: {
-          gift_wrap: "test", // optional
-          delivery_time: "morning", // optional
-        },
+  //   if (selectedProducts.length === 0) return;
+
+  //   // Build API payload
+  //   const payload = {
+  //     products: selectedProducts.map(product => ({
+  //       product_id: product.id,
+  //       quantity: productQuantities[product.id] || 1,
+  //       preferences: product.preferences || {},
+  //     })),
+  //     subscription_data: {
+  //       interval_type: scheduleData.deliveryPeriod,  // weekly / 2weeks / monthly
+  //       interval_value: 1,
+  //       start_date: scheduleData.startDate,
+  //       end_date: scheduleData.endDate,
+  //       delivery_address_id: 1,
+  //       payment_method_id: 2,
+  //       preferences: {
+  //         gift_wrap: "test",
+  //         delivery_time: "morning",
+  //       },
+  //     },
+  //   };
+
+  //   try {
+  //     const response = await api.post("/subscriptions/direct-create", payload);
+
+  //     const data = response.data as {
+  //       success?: boolean;
+  //       data?: any;
+  //       message?: string;
+  //       errors?: Record<string, string[]>;
+  //     };
+
+  //     console.log("API Response:", data);
+
+  //     if (data?.success) {
+  //       setActiveSubscriptions(prev => [...prev, data.data]);
+  //       setIsModalOpen(false);
+  //       setSelectedProducts([]);
+  //       toast.success("Subscription created successfully!");
+  //     } else {
+  //       const errorMsg =
+  //         data?.message ||
+  //         (data?.errors
+  //           ? Object.values(data.errors).flat().join(", ")
+  //           : "Failed to create subscription");
+
+  //       toast.error(errorMsg);
+  //     }
+  //   } catch (error: any) {
+  //     const errorMsg =
+  //       error?.response?.data?.message ||
+  //       (error?.response?.data?.errors
+  //         ? Object.values(error.response.data.errors).flat().join(", ")
+  //         : error.message || "An unexpected error occurred");
+
+  //     toast.error(errorMsg);
+  //   }
+  // };
+
+  const handleConfirmSelection = (scheduleData: any) => {
+    navigate('/checkout', {
+      state: {
+        type: "subscription",
+        scheduleData,
+        selectedProducts
       },
-    };
-
-    try {
-      const response = await api.post("/subscriptions/direct-create", payload);
-
-      const data = response.data as {
-        success?: boolean;
-        data?: any;
-        message?: string;
-        errors?: Record<string, string[]>;
-      };
-      console.log(data);
-      
-      if (data?.success) {
-        setActiveSubscriptions(prev => [...prev, data.data]);
-        setIsModalOpen(false);
-        setSelectedProducts([]);
-        toast.success("Subscription created successfully!");
-      } else {
-        const errorMsg =
-          data?.message ||
-          (data?.errors
-            ? Object.values(data.errors).flat().join(", ")
-            : "Failed to create subscription");
-        toast.error(errorMsg);
-      }
-    } catch (error: any) {
-      // Handle Axios errors safely
-      const errorMsg =
-        error.response?.data?.message ||
-        (error.response?.data?.errors
-          ? Object.values(error.response.data.errors).flat().join(", ")
-          : error.message || "An unexpected error occurred");
-      toast.error(errorMsg);
-    }
-
+    });
   };
+
 
   const handleOpenModal = () => {
     setSelectedProducts(confirmedProducts)
@@ -942,7 +964,7 @@ const Subscriptions = () => {
                       Cancel
                     </button>
                     <button
-                      onClick={handleConfirmSelection}
+                      onClick={() => setIsScheduleModalOpen(true)}
                       disabled={selectedProducts.length === 0}
                       className={`font-medium px-6 py-2 rounded-full transition-colors ${
                         selectedProducts.length > 0
@@ -950,7 +972,7 @@ const Subscriptions = () => {
                           : 'bg-light-gray text-medium-gray cursor-not-allowed'
                       }`}
                     >
-                      Confirm Selection
+                      Next
                     </button>
                   </div>
                 </div>
@@ -960,6 +982,89 @@ const Subscriptions = () => {
           </>
         )}
       </AnimatePresence>
+
+      {/* Schedule Modal */}
+      <AnimatePresence>
+        {isScheduleModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              onClick={() => setIsScheduleModalOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-0 flex items-center justify-center p-4 z-50"
+            >
+              <div className="bg-white w-full max-w-lg p-6 rounded-2xl shadow-2xl">
+
+                <h2 className="text-xl font-bold mb-4">Set Delivery Schedule</h2>
+
+                {/* Delivery Period */}
+                <label className="block font-medium">Delivery Period</label>
+                <select
+                  className="w-full border rounded-lg p-2 mt-1"
+                  value={deliveryPeriod}
+                  onChange={e => setDeliveryPeriod(e.target.value)}
+                >
+                  <option value="">Select</option>
+                  <option value="weekly">Every Week</option>
+                  <option value="2weeks">Every 2 Weeks</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+
+                {/* Start Date */}
+                <label className="block font-medium mt-4">Start Date</label>
+                <input
+                  type="date"
+                  className="w-full border rounded-lg p-2 mt-1"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                />
+
+                {/* End Date */}
+                <label className="block font-medium mt-4">End Date</label>
+                <input
+                  type="date"
+                  className="w-full border rounded-lg p-2 mt-1"
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                />
+
+                {/* Footer */}
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => setIsScheduleModalOpen(false)}
+                    className="bg-light-gray hover:bg-medium-gray px-5 py-2 rounded-full"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsScheduleModalOpen(false);
+                      handleConfirmSelection({
+                        deliveryPeriod,
+                        startDate,
+                        endDate
+                      });
+                    }}
+                    className="bg-vibrant-orange hover:bg-sunny-yellow text-white px-6 py-2 rounded-full"
+                  >
+                    Confirm Selection
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
 
       {/* Subscription Details Modal */}
       <AnimatePresence>

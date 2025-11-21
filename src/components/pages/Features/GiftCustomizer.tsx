@@ -108,14 +108,14 @@ const GiftCustomizer: React.FC = () => {
       minSelection: 1,
       maxSelection: 3,
       products: themes
-        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("toy"))
+        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("c_toy"))
         .map((theme) => ({
           id: String(theme.id),
           name: theme.name,
           price: theme.price_range?.min ?? 0,
           image: `${host}/storage/${theme.image_url}`,
           description: theme.description,
-          category: "toy",
+          category: "c_toy",
         })),
     },
     {

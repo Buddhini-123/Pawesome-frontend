@@ -482,10 +482,10 @@ const Header: React.FC = () => {
               ))}
               
               {/* Divider */}
-              <span className="text-white/50 mx-4 hidden lg:inline">|</span>
+              {/* <span className="text-white/50 mx-4 hidden lg:inline">|</span> */}
               
               {/* Pet Categories */}
-              {petCategories.map((pet, index) => (
+              {/* {petCategories.map((pet, index) => (
                 <Link
                   key={index}
                   to={pet.link}
@@ -494,7 +494,7 @@ const Header: React.FC = () => {
                   <span className="pet-icon-bounce text-2xl">{pet.icon}</span>
                   <span className="hidden md:inline">{pet.name}</span>
                 </Link>
-              ))}
+              ))} */}
             </div>
           </div>
         </div>
