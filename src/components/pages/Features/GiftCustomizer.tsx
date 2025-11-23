@@ -1,10 +1,9 @@
-import React, { useState , useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { useCart } from '../../../hooks/useCart';
 import { useNavigate } from 'react-router-dom';
-import {api, host} from "../../../services/api"
-import Product from '../Products/ProductTabs';
+import { api, host } from "../../../services/api";
 
 interface Product {
   id: string;
@@ -46,43 +45,59 @@ const GiftCustomizer: React.FC = () => {
   const [themes, setThemes] = useState<Theme[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+  const [priorityProducts, setPriorityProducts] = useState<{ [key: number]: any[] }>({
+    1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [],
+  });
+
   const { addItem } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchThemes = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get("/gifts/themes");
-        setThemes((res.data as any).data || []);
-      } catch (err) {
-        console.error("Failed to load themes:", err);
-        setError("Failed to load themes");
+        const themeRes = await api.get("/gifts/themes");
+        setThemes((themeRes.data as any).data || []);
+
+        const priorities = [2, 3, 4, 5, 6, 7];
+        const responses = await Promise.all(
+          priorities.map(p => api.get(`/products?gift_priority=${p}`))
+        );
+
+        const productsByPriority: { [key: number]: any[] } = {};
+        priorities.forEach((p, index) => {
+          productsByPriority[p] = (responses[index].data as any).data || [];
+        });
+
+        setPriorityProducts(productsByPriority);
+      } catch (e) {
+        console.error("Error fetching data:", e);
+        setError("Failed to load gift customization data");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchThemes();
+    fetchData();
   }, []);
 
-  const steps: Step[] = [
+  // ---------------------------------------------------------------------------
+  // FIX 1: Ensure Unique IDs for every product to prevent merging (Collision)
+  // We prefix IDs with 'theme-' or 'prod-' so Theme ID 1 doesn't merge with Product ID 1
+  // ---------------------------------------------------------------------------
+  const getSteps = (): Step[] => [
     {
       id: 1,
       title: "Choose a Theme Card",
       shortTitle: "Theme Card",
       minSelection: 1,
       maxSelection: 1,
-      products: themes
-        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("theme"))
-        .map((theme) => ({
-          id: String(theme.id),
-          name: theme.name,
-          price: theme.price_range?.min ?? 0,
-          image: `${host}/storage/${theme.image_url}`,
-          description: theme.description,
-          category: "theme",
-        })),
+      products: themes.map((theme) => ({
+        id: `theme-${theme.id}`, // <--- Prefixed ID
+        name: theme.name,
+        price: theme.price_range?.min ?? 0,
+        image: `${host}/storage/${theme.image_url}`,
+        description: theme.description,
+        category: "theme",
+      })),
     },
     {
       id: 2,
@@ -90,16 +105,14 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Main Toy",
       minSelection: 1,
       maxSelection: 1,
-      products: themes
-        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("toy"))
-        .map((theme) => ({
-          id: String(theme.id),
-          name: theme.name,
-          price: theme.price_range?.min ?? 0,
-          image: `${host}/storage/${theme.image_url}`,
-          description: theme.description,
-          category: "toy",
-        })),
+      products: priorityProducts[2].map(p => ({
+        id: `prod-${p.id}`, // <--- Prefixed ID
+        name: p.name,
+        price: p.price,
+        image: `${host}/storage/${p.image}`,
+        description: p.description,
+        category: "main_toy",
+      })),
     },
     {
       id: 3,
@@ -107,16 +120,14 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Extra Toys",
       minSelection: 1,
       maxSelection: 3,
-      products: themes
-        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("c_toy"))
-        .map((theme) => ({
-          id: String(theme.id),
-          name: theme.name,
-          price: theme.price_range?.min ?? 0,
-          image: `${host}/storage/${theme.image_url}`,
-          description: theme.description,
-          category: "c_toy",
-        })),
+      products: priorityProducts[3].map(p => ({
+        id: `prod-${p.id}`, // <--- Prefixed ID
+        name: p.name,
+        price: p.price,
+        image: `${host}/storage/${p.image}`,
+        description: p.description,
+        category: "extra_toys",
+      })),
     },
     {
       id: 4,
@@ -124,16 +135,14 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Treats",
       minSelection: 1,
       maxSelection: 3,
-      products: themes
-        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("treat"))
-        .map((theme) => ({
-          id: String(theme.id),
-          name: theme.name,
-          price: theme.price_range?.min ?? 0,
-          image: `${host}/storage/${theme.image_url}`,
-          description: theme.description,
-          category: "treat",
-        })),
+      products: priorityProducts[4].map(p => ({
+        id: `prod-${p.id}`, // <--- Prefixed ID
+        name: p.name,
+        price: p.price,
+        image: `${host}/storage/${p.image}`,
+        description: p.description,
+        category: "treats",
+      })),
     },
     {
       id: 5,
@@ -141,33 +150,29 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Care Products",
       minSelection: 1,
       maxSelection: 2,
-      products: themes
-        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("care"))
-        .map((theme) => ({
-          id: String(theme.id),
-          name: theme.name,
-          price: theme.price_range?.min ?? 0,
-          image: `${host}/storage/${theme.image_url}`,
-          description: theme.description,
-          category: "care",
-        })),
+      products: priorityProducts[5].map(p => ({
+        id: `prod-${p.id}`, // <--- Prefixed ID
+        name: p.name,
+        price: p.price,
+        image: `${host}/storage/${p.image}`,
+        description: p.description,
+        category: "care_products",
+      })),
     },
     {
       id: 6,
-      title: "Select Pet Accessories & Clothings",
+      title: "Select Pet Accessories & Clothing",
       shortTitle: "Accessories",
       minSelection: 1,
       maxSelection: 2,
-      products: themes
-        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("accessory"))
-        .map((theme) => ({
-          id: String(theme.id),
-          name: theme.name,
-          price: theme.price_range?.min ?? 0,
-          image: `${host}/storage/${theme.image_url}`,
-          description: theme.description,
-          category: "accessory",
-        })),
+      products: priorityProducts[6].map(p => ({
+        id: `prod-${p.id}`, // <--- Prefixed ID
+        name: p.name,
+        price: p.price,
+        image: `${host}/storage/${p.image}`,
+        description: p.description,
+        category: "accessories",
+      })),
     },
     {
       id: 7,
@@ -175,18 +180,19 @@ const GiftCustomizer: React.FC = () => {
       shortTitle: "Greeting Card",
       minSelection: 1,
       maxSelection: 1,
-      products: themes
-        .filter((theme) => Array.isArray(theme.target_categories) && theme.target_categories.includes("card"))
-        .map((theme) => ({
-          id: String(theme.id),
-          name: theme.name,
-          price: theme.price_range?.min ?? 0,
-          image: `${host}/storage/${theme.image_url}`,
-          description: theme.description,
-          category: "card",
-        })),
+      products: priorityProducts[7].map(p => ({
+        id: `prod-${p.id}`, // <--- Prefixed ID
+        name: p.name,
+        price: p.price,
+        image: `${host}/storage/${p.image}`,
+        description: p.description,
+        category: "greeting_card",
+      })),
     }
   ];
+
+  const steps = getSteps();
+
   const handleProductSelect = (stepId: number, productId: string) => {
     const step = steps.find(s => s.id === stepId);
     if (!step) return;
@@ -217,66 +223,86 @@ const GiftCustomizer: React.FC = () => {
   const goToNextStep = () => { if (canProceedToNext() && currentStep < steps.length) setCurrentStep(currentStep + 1); };
   const goToPreviousStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
 
-  const getTotalPrice = () => {
-    let total = 0;
-    Object.entries(selections).forEach(([stepId, productIds]) => {
-      const step = steps.find(s => s.id === parseInt(stepId));
-      if (step) {
-        productIds.forEach(productId => {
-          const product = step.products.find(p => p.id === productId);
-          if (product) total += product.price;
-        });
-      }
-    });
-    return total;
-  };
-
   const handleAddToCart = async () => {
     if (!canProceedToNext()) return; 
 
     setIsAddingToCart(true);
 
     try {
-      // Flatten all selections into actual product objects
-      const selectedProducts: any[] = [];
+      // Collect all products
+      const selectedProductsMap: { [id: string]: any } = {};
+
       Object.entries(selections).forEach(([stepId, productIds]) => {
         const step = steps.find(s => s.id === parseInt(stepId));
         if (!step) return;
 
         productIds.forEach((productId) => {
           const product = step.products.find(p => p.id === productId);
-          if (product) {
-            selectedProducts.push({
-              id: `gift-${product.id}-${Date.now()}`,
-              name: product.name,
-              price: product.price,
-              image: product.image,
-              category: product.category,
-              description: product.description,
+          if (!product) return;
+
+          // Because IDs are now unique (prefixed), this checks for true duplicates only
+          if (selectedProductsMap[product.id]) {
+            selectedProductsMap[product.id].quantity += 1;
+          } else {
+            selectedProductsMap[product.id] = {
+              ...product, // Pass the whole product object including the new unique ID
               quantity: 1,
-            });
+            };
           }
         });
       });
+
+      const selectedProducts = Object.values(selectedProductsMap);
 
       if (selectedProducts.length === 0) {
         setIsAddingToCart(false);
         return;
       }
 
-      // Add each selected product to cart
-      selectedProducts.forEach(product => addItem(product));
+      // FIX 2: Use sequential await loop to prevent state batching issues
+      for (const product of selectedProducts) {
+        await addItem(product);
+        // Small delay to allow React Context/State to settle
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
 
-      // Wait a short moment, then navigate to cart
-      setTimeout(() => {
-        setIsAddingToCart(false);
-        navigate("/cart");
-      }, 1000);
+      setIsAddingToCart(false);
+      navigate("/cart");
+
     } catch (error) {
       console.error("Error adding to cart:", error);
       setIsAddingToCart(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-amber-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-vibrant-orange mx-auto mb-4"></div>
+          <p className="text-xl text-charcoal">Loading gift customizer...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-amber-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-6 py-3 bg-vibrant-orange text-white rounded-xl font-semibold"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentStepData = steps[currentStep - 1];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-amber-50">
@@ -303,8 +329,6 @@ const GiftCustomizer: React.FC = () => {
                   step.id === 1 || isStepCompleted[step.id - 1] ? 'bg-vibrant-orange text-white hover:bg-sunny-yellow shadow-md' :
                   'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
-                whileHover={step.id === 1 || isStepCompleted[step.id - 1] ? { scale: 1.05 } : {}}
-                whileTap={step.id === 1 || isStepCompleted[step.id - 1] ? { scale: 0.95 } : {}}
               >
                 <div className="flex items-center space-x-2">
                   {isStepCompleted[step.id] && <Check className="h-4 w-4" />}
@@ -329,136 +353,137 @@ const GiftCustomizer: React.FC = () => {
             >
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-charcoal mb-4">
-                {steps[currentStep - 1].title}
+                {currentStepData.title}
               </h2>
               <p className="text-lg text-gray-600">
-                {steps[currentStep - 1].maxSelection === 1 ? "Choose one option" : `Select ${steps[currentStep - 1].minSelection}-${steps[currentStep - 1].maxSelection || 'unlimited'} options`}
+                {currentStepData.maxSelection === 1 
+                  ? "Choose one option" 
+                  : `Select ${currentStepData.minSelection}-${currentStepData.maxSelection || 'unlimited'} options`
+                }
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {steps[currentStep - 1].products.map((product) => {
-                const isSelected = (selections[currentStep] || []).includes(product.id);
-                
-                return (
-                  <motion.div 
-                    key={product.id} 
-                    className={`relative bg-white rounded-2xl p-6 shadow-lg cursor-pointer transition-all duration-300 ${
-                      isSelected ? 'ring-4 ring-vibrant-orange bg-gradient-to-br from-vibrant-orange/5 to-sunny-yellow/5' : 'hover:shadow-xl hover:scale-105'
-                    }`} 
-                    onClick={() => handleProductSelect(currentStep, product.id)} 
-                    whileHover={{ y: -5 }} 
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {isSelected && (
-                      <motion.div 
-                        initial={{ scale: 0 }} 
-                        animate={{ scale: 1 }} 
-                        className="absolute -top-2 -right-2 bg-vibrant-orange text-white rounded-full p-2 shadow-lg z-10"
-                      >
-                        <Check className="h-4 w-4" />
-                      </motion.div>
-                    )}
-                    
-                    <div className="text-center mb-4">
-                      <img 
-                        src={product.image} 
-                        alt={product.name} 
-                        className="w-full h-48 object-cover rounded-xl mb-4"
-                        onError={(e) => { 
-                          e.currentTarget.src = "https://via.placeholder.com/300x300/f0f0f0/999999?text=Product+Image"; 
-                        }} 
-                      />
-                      <h3 className="text-xl font-bold text-charcoal mb-2">{product.name}</h3>
-                      <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-                      <div className="text-2xl font-bold text-vibrant-orange">Rs.{product.price}</div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
-                        isSelected ? 'bg-vibrant-orange text-white' : 'bg-gray-100 text-charcoal hover:bg-vibrant-orange hover:text-white'
-                      }`}>
-                        {isSelected ? 'Selected' : 'Select'}
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            <div className="flex justify-between items-center">
-              <button 
-                onClick={goToPreviousStep} 
-                disabled={currentStep === 1} 
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  currentStep === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-charcoal hover:bg-gray-200'
-                }`}
-              >
-                <ArrowLeft className="h-5 w-5" />
-                <span>Previous</span>
-              </button>
-
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Selected: {(selections[currentStep] || []).length} of {steps[currentStep - 1].maxSelection || '∞'}</p>
-                {!canProceedToNext() && <p className="text-sm text-red-500 mt-1">Please select at least {steps[currentStep - 1].minSelection} option(s)</p>}
+            {currentStepData.products.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No products available for this step.</p>
               </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  {currentStepData.products.map((product) => {
+                    const isSelected = (selections[currentStep] || []).includes(product.id);
+                    
+                    return (
+                      <motion.div 
+                        key={product.id} 
+                        className={`relative bg-white rounded-2xl p-6 shadow-lg cursor-pointer transition-all duration-300 ${
+                          isSelected ? 'ring-4 ring-vibrant-orange bg-gradient-to-br from-vibrant-orange/5 to-sunny-yellow/5' : 'hover:shadow-xl hover:scale-105'
+                        }`} 
+                        onClick={() => handleProductSelect(currentStep, product.id)} 
+                        whileHover={{ y: -5 }} 
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {isSelected && (
+                          <motion.div 
+                            initial={{ scale: 0 }} 
+                            animate={{ scale: 1 }} 
+                            className="absolute -top-2 -right-2 bg-vibrant-orange text-white rounded-full p-2 shadow-lg z-10"
+                          >
+                            <Check className="h-4 w-4" />
+                          </motion.div>
+                        )}
+                        
+                        <div className="text-center mb-4">
+                          <img 
+                            src={product.image} 
+                            alt={product.name} 
+                            className="w-full h-48 object-cover rounded-xl mb-4"
+                            onError={(e) => { 
+                              e.currentTarget.src = "https://via.placeholder.com/300x300/f0f0f0/999999?text=Product+Image"; 
+                            }} 
+                          />
+                          <h3 className="text-xl font-bold text-charcoal mb-2">{product.name}</h3>
+                          <p className="text-gray-600 text-sm mb-3">{product.description}</p>
+                          <div className="text-2xl font-bold text-vibrant-orange">Rs.{product.price}</div>
+                        </div>
+                        
+                        <div className="text-center">
+                          <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+                            isSelected ? 'bg-vibrant-orange text-white' : 'bg-gray-100 text-charcoal hover:bg-vibrant-orange hover:text-white'
+                          }`}>
+                            {isSelected ? 'Selected' : 'Select'}
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
 
-              {currentStep < steps.length ? (
-                <button 
-                  onClick={goToNextStep} 
-                  disabled={!canProceedToNext()} 
-                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                    canProceedToNext() ? 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <span>Next</span>
-                  <ArrowRight className="h-5 w-5" />
-                </button>
-              ) : (
-                <button 
-                  onClick={handleAddToCart} 
-                  disabled={!canProceedToNext() || isAddingToCart} 
-                  className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-bold text-lg transition-all duration-300 ${
-                    canProceedToNext() && !isAddingToCart ? 'bg-gradient-to-r from-mint to-emerald-500 text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {isAddingToCart ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Adding to Cart...</span>
-                    </>
+                <div className="flex justify-between items-center">
+                  <button 
+                    onClick={goToPreviousStep} 
+                    disabled={currentStep === 1} 
+                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                      currentStep === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-charcoal hover:bg-gray-200'
+                    }`}
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                    <span>Previous</span>
+                  </button>
+
+                  {currentStep < steps.length ? (
+                    <button 
+                      onClick={goToNextStep} 
+                      disabled={!canProceedToNext()} 
+                      className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                        canProceedToNext() ? 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      <span>Next</span>
+                      <ArrowRight className="h-5 w-5" />
+                    </button>
                   ) : (
-                    <>
-                      <ShoppingCart className="h-5 w-5" />
-                      <span>Add to Cart - Rs.{getTotalPrice()}</span>
-                    </>
+                    <button 
+                      onClick={handleAddToCart} 
+                      disabled={!canProceedToNext() || isAddingToCart} 
+                      className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-bold text-lg transition-all duration-300 ${
+                        canProceedToNext() && !isAddingToCart ? 'bg-gradient-to-r from-mint to-emerald-500 text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {isAddingToCart ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          <span>Adding to Cart...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="h-5 w-5" />
+                          <span>Add to Cart</span>
+                        </>
+                      )}
+                    </button>
                   )}
-                </button>
-              )}
-            </div>
+                </div>
+              </>
+            )}
             </motion.div>
           </AnimatePresence>
         </div>
       </section>
 
-      {/* Summary Sidebar (Fixed) */}
+      {/* Summary Sidebar (Hidden on Mobile) */}
       <div className="fixed top-1/2 right-4 transform -translate-y-1/2 bg-white rounded-2xl p-6 shadow-xl border border-gray-200 w-80 hidden xl:block z-50">
         <h3 className="text-xl font-bold text-charcoal mb-4">Your Custom Box</h3>
-        
         <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
           {Object.entries(selections).map(([stepId, productIds]) => {
             const step = steps.find(s => s.id === parseInt(stepId));
             if (!step || productIds.length === 0) return null;
-            
             return (
               <div key={stepId} className="border-b border-gray-100 pb-2">
-                <h4 className="font-semibold text-sm text-gray-700 mb-1">
-                  {step.shortTitle}
-                </h4>
+                <h4 className="font-semibold text-sm text-gray-700 mb-1">{step.shortTitle}</h4>
                 {productIds.map(productId => {
                   const product = step.products.find(p => p.id === productId);
                   if (!product) return null;
-                  
                   return (
                     <div key={productId} className="flex justify-between items-center text-sm">
                       <span className="text-gray-600 truncate">{product.name}</span>
@@ -470,18 +495,6 @@ const GiftCustomizer: React.FC = () => {
             );
           })}
         </div>
-        
-        {getTotalPrice() > 0 && (
-          <div className="border-t border-gray-200 pt-4">
-            <div className="flex justify-between items-center text-lg font-bold">
-              <span>Total:</span>
-              <span className="text-vibrant-orange">Rs.{getTotalPrice()}</span>
-            </div>
-            {getTotalPrice() >= 2000 && (
-              <p className="text-green-600 text-sm mt-2">🚚 Free shipping included!</p>
-            )}
-          </div>
-        )}
       </div>
 
       {isAddingToCart && (
@@ -497,7 +510,7 @@ const GiftCustomizer: React.FC = () => {
           >
             <div className="text-6xl mb-4">🎁</div>
             <h3 className="text-2xl font-bold text-charcoal mb-2">Gift Box Created!</h3>
-            <p className="text-gray-600 mb-4">Your custom pet gift box is being added to cart...</p>
+            <p className="text-gray-600 mb-4">Adding all 7 items to your cart...</p>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-vibrant-orange mx-auto"></div>
           </motion.div>
         </motion.div>
