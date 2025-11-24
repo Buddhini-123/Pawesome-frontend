@@ -133,8 +133,8 @@ const Checkout: React.FC = () => {
   const deliveryCount = calculateDeliveryCount(
     scheduleData.startDate,
     scheduleData.endDate,
-    scheduleData.deliveryPeriod,   // weekly, monthly, 2weeks
-    1                               // interval_value (your API uses 1)
+    scheduleData.deliveryPeriod,
+    1                               // interval_value (API uses 1)
   );
 
   const subscriptionSubtotal = isSubscription
@@ -304,13 +304,11 @@ const Checkout: React.FC = () => {
     try {
 
       if (isSubscription) {
-
-        console.log(selectedProducts);
         
         const payload = {
           products: selectedProducts.map((product: any) => ({
             product_id: product.id,
-            quantity: product.quantity || 1,
+            quantity: deliveryCount,
             preferences: product.preferences || {},
           })),
           subscription_data: {
