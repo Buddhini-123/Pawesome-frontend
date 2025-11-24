@@ -356,7 +356,7 @@ const Subscriptions = () => {
     if (data.success) {
       setShowSubscriptionModal(false);
       setSelectedSubscription(null); 
-      
+
       toast.success("Subscription cancelled successfully");
       setActiveSubscriptions(prev => prev.filter(sub => sub.id !== subscriptionId));
     } else {
@@ -1019,7 +1019,6 @@ const Subscriptions = () => {
                 >
                   <option value="">Select</option>
                   <option value="weekly">Every Week</option>
-                  <option value="2weeks">Every 2 Weeks</option>
                   <option value="monthly">Monthly</option>
                 </select>
 

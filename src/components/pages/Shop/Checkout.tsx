@@ -100,15 +100,53 @@ const Checkout: React.FC = () => {
   const isSubscription = state?.type === "subscription";
   const scheduleData = state?.scheduleData;
   const selectedProducts = state?.selectedProducts;
-
-  console.log(selectedProducts);
   
+  const calculateDeliveryCount = (startDate: string, endDate: string, intervalType: string, intervalValue: number = 1) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+
+    let count = 0;
+    let next = new Date(start);
+
+    while (next <= end) {
+      count++;
+
+      if (intervalType === "weekly") {
+        next.setDate(next.getDate() + 7 * intervalValue);
+      } 
+      else if (intervalType === "days") {
+        next.setDate(next.getDate() + intervalValue);
+      }
+      else if (intervalType === "monthly") {
+        next.setMonth(next.getMonth() + intervalValue);
+      } 
+      else {
+        break;
+      }
+    }
+
+    return count;
+  };
+  
+  const deliveryCount = calculateDeliveryCount(
+    scheduleData.startDate,
+    scheduleData.endDate,
+    scheduleData.deliveryPeriod,   // weekly, monthly, 2weeks
+    1                               // interval_value (your API uses 1)
+  );
+
   const subscriptionSubtotal = isSubscription
-  ? selectedProducts.reduce((sum: number, p: any) => {
-      return sum + (p.subscription_price * (p.quantity || 1));
-    }, 0)
+    ? selectedProducts.reduce((sum: number, p: any) => {
+    const price = Number(p.subscription_price || 0);
+    const quantity = p.quantity || 1;
+
+    return sum + price * quantity * deliveryCount;
+      }, 0)
   : totalPrice;
 
+  const currency = selectedProducts[0]?.currency || "LKR";
 
   // Load saved addresses
   useEffect(() => {
@@ -259,7 +297,7 @@ const Checkout: React.FC = () => {
       else if (step === 2) setStep(1);
     };
 
-    const handlePlaceOrder = async () => {
+  const handlePlaceOrder = async () => {
     setError('');
     setIsProcessing(true);
 
@@ -286,6 +324,7 @@ const Checkout: React.FC = () => {
               gift_wrap: "test",
               delivery_time: "morning",
             },
+            subtotal: subscriptionSubtotal
           },
         };
 
@@ -307,8 +346,7 @@ const Checkout: React.FC = () => {
         
         return;
       }
-
-
+      
 
       // 🌟 ELSE → Normal one-time order flow
       const orderData = {
@@ -1324,12 +1362,16 @@ const Checkout: React.FC = () => {
                         <div className="flex-1">
                           <p className="font-fredoka font-medium text-charcoal">{product.name}</p>
                           <p className="text-medium-gray">
-                            Qty: 1 × {formatters.currency(product.subscription_price )}
+                            {/* Qty: 1 × {formatters.currency(product.subscription_price )} */}
+                            Qty: {deliveryCount} × {product.currency} {product.subscription_price }
+                          </p>
+                          <p className="text-medium-gray">
+                            (Quantity for the time period is {deliveryCount})
                           </p>
                         </div>
 
                         <p className="font-fredoka font-semibold text-charcoal ml-2">
-                          {formatters.currency(product.subscription_price)}
+                          {product.currency} {product.subscription_price}
                         </p>
                       </div>
                     ))
@@ -1353,7 +1395,7 @@ const Checkout: React.FC = () => {
               <div className="border-t-2 border-light-gray pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-medium-gray">Subtotal</span>
-                  <span className="font-fredoka font-medium">{formatters.currency(subscriptionSubtotal)}</span>
+                  <span className="font-fredoka font-medium"> {currency} {subscriptionSubtotal}</span>
                 </div>
                 
                 {couponDiscount > 0 && (
@@ -1363,7 +1405,7 @@ const Checkout: React.FC = () => {
                       Coupon Discount
                     </span>
                     <span className="font-fredoka font-medium text-mint-green">
-                      -{formatters.currency(couponDiscount)}
+                       -{currency} {couponDiscount}
                     </span>
                   </div>
                 )}
@@ -1375,7 +1417,7 @@ const Checkout: React.FC = () => {
                       Loyalty Points
                     </span>
                     <span className="font-fredoka font-medium text-lavender">
-                      -{formatters.currency(loyaltyRedemption.value)}
+                     -{currency} {loyaltyRedemption.value}
                     </span>
                   </div>
                 )}
@@ -1389,7 +1431,7 @@ const Checkout: React.FC = () => {
                     {shippingCost === 0 ? (
                       <span className="text-mint-green">FREE</span>
                     ) : (
-                      formatters.currency(shippingCost)
+                      `${currency} ${shippingCost}`
                     )}
                   </span>
                 </div>
@@ -1397,14 +1439,14 @@ const Checkout: React.FC = () => {
                 {formData.paymentMethod === 'cod' && (
                   <div className="flex justify-between text-sm">
                     <span className="text-medium-gray">COD Charges</span>
-                    <span className="font-fredoka font-medium">{formatters.currency(50)}</span>
+                    <span className="font-fredoka font-medium">{currency} 50</span>
                   </div>
                 )}
                 
                 <div className="border-t-2 border-light-gray pt-3 flex justify-between">
                   <span className="font-fredoka font-bold text-lg text-charcoal">Total</span>
                   <span className="font-fredoka font-bold text-xl text-charcoal">
-                    {formatters.currency(finalTotal)}
+                   {currency} {finalTotal}
                   </span>
                 </div>
               </div>
