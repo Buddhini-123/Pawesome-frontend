@@ -101,6 +101,15 @@ const Checkout: React.FC = () => {
   const scheduleData = state?.scheduleData;
   const selectedProducts = state?.selectedProducts;
 
+  console.log(selectedProducts);
+  
+  const subscriptionSubtotal = isSubscription
+  ? selectedProducts.reduce((sum: number, p: any) => {
+      return sum + (p.subscription_price * (p.quantity || 1));
+    }, 0)
+  : totalPrice;
+
+
   // Load saved addresses
   useEffect(() => {
     if (user?.addresses) {
@@ -131,19 +140,20 @@ const Checkout: React.FC = () => {
     navigate('/login', { state: { from: { pathname: '/checkout' } } });
     return null;
   }
+  
 
   // Redirect to cart if empty
-  if (cart.length === 0) {
+  if (!isSubscription && cart.length === 0) {
     navigate('/cart');
     return null;
   }
 
   // Calculate pricing
-  const baseShippingCost = totalPrice >= 2000 ? 0 : 150;
+  const baseShippingCost = subscriptionSubtotal >= 2000 ? 0 : 150;
   const deliveryCharge = formData.deliveryOption === 'express' ? 100 : 0;
   const codCharge = formData.paymentMethod === 'cod' ? 50 : 0;
   const shippingCost = baseShippingCost + deliveryCharge;
-  const subtotalAfterCoupon = totalPrice - couponDiscount;
+  const subtotalAfterCoupon = subscriptionSubtotal - couponDiscount;
   const subtotalAfterLoyalty = subtotalAfterCoupon - loyaltyRedemption.value;
   const finalTotal = subtotalAfterLoyalty + shippingCost + codCharge;
 
@@ -257,6 +267,8 @@ const Checkout: React.FC = () => {
 
       if (isSubscription) {
 
+        console.log(selectedProducts);
+        
         const payload = {
           products: selectedProducts.map((product: any) => ({
             product_id: product.id,
@@ -307,7 +319,7 @@ const Checkout: React.FC = () => {
         })),
         shippingAddress: formData.shippingAddress,
         paymentMethod: formData.paymentMethod,
-        subtotal: totalPrice,
+        subtotal: subscriptionSubtotal,
         shippingCost,
         totalAmount: finalTotal,
         loyaltyPointsUsed: loyaltyRedemption.points,
@@ -336,9 +348,9 @@ const Checkout: React.FC = () => {
   const applyCoupon = () => {
     // Mock coupon logic
     if (appliedCoupon.toUpperCase() === 'SAVE10') {
-      setCouponDiscount(totalPrice * 0.1);
+      setCouponDiscount(subscriptionSubtotal * 0.1);
     } else if (appliedCoupon.toUpperCase() === 'FIRST20') {
-      setCouponDiscount(totalPrice * 0.2);
+      setCouponDiscount(subscriptionSubtotal * 0.2);
     } else {
       setError('Invalid coupon code');
       setCouponDiscount(0);
@@ -1306,24 +1318,42 @@ const Checkout: React.FC = () => {
               
               {/* Items */}
               <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                {cart.map((item) => (
-                  <div key={item.id} className="flex justify-between items-start text-sm">
-                    <div className="flex-1">
-                      <p className="font-fredoka font-medium text-charcoal">{item.product.name}</p>
-                      <p className="text-medium-gray">Qty: {item.quantity} × {formatters.currency(item.product.price)}</p>
-                    </div>
-                    <p className="font-fredoka font-semibold text-charcoal ml-2">
-                      {formatters.currency(item.product.price * item.quantity)}
-                    </p>
-                  </div>
-                ))}
+                {isSubscription
+                  ? selectedProducts?.map((product: any) => (
+                      <div key={product.id} className="flex justify-between items-start text-sm">
+                        <div className="flex-1">
+                          <p className="font-fredoka font-medium text-charcoal">{product.name}</p>
+                          <p className="text-medium-gray">
+                            Qty: 1 × {formatters.currency(product.subscription_price )}
+                          </p>
+                        </div>
+
+                        <p className="font-fredoka font-semibold text-charcoal ml-2">
+                          {formatters.currency(product.subscription_price)}
+                        </p>
+                      </div>
+                    ))
+                  : cart.map((item) => (
+                      <div key={item.id} className="flex justify-between items-start text-sm">
+                        <div className="flex-1">
+                          <p className="font-fredoka font-medium text-charcoal">{item.product.name}</p>
+                          <p className="text-medium-gray">
+                            Qty: {item.quantity} × {formatters.currency(item.product.price)}
+                          </p>
+                        </div>
+                        <p className="font-fredoka font-semibold text-charcoal ml-2">
+                          {formatters.currency(item.product.price * item.quantity)}
+                        </p>
+                      </div>
+                    ))
+                }
               </div>
 
               {/* Price Breakdown */}
               <div className="border-t-2 border-light-gray pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-medium-gray">Subtotal</span>
-                  <span className="font-fredoka font-medium">{formatters.currency(totalPrice)}</span>
+                  <span className="font-fredoka font-medium">{formatters.currency(subscriptionSubtotal)}</span>
                 </div>
                 
                 {couponDiscount > 0 && (

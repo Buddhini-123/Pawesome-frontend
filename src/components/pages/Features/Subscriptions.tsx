@@ -152,14 +152,16 @@ const Subscriptions = () => {
         pagination: any;
       };
 
+      console.log("Mapped subscriptions2:", data.data); // Debug log
 
       if (data && Array.isArray(data.data)) {
         const mappedSubscriptions: MappedSubscription[] = data.data.map((item: any) => {
-          const firstItem = item.items?.[0]; 
+          // Map all product names for display
+          const productNames = item.items?.map((subItem: any) => subItem.product?.name) || [];
 
           return {
             id: item.id,
-            name: firstItem?.product?.name || "Unknown Product",
+            name: productNames.join(", ") || "Unknown Product", // Join all product names
             products: item.total_items || 0,
             frequency: item.schedule?.interval_description || "N/A",
             nextDelivery: item.schedule?.next_delivery_date || null,
@@ -169,16 +171,16 @@ const Subscriptions = () => {
             deliveryAddress: item.delivery?.address_id
               ? `Address ID: ${item.delivery.address_id}`
               : "Default Address",
-            savedAmount: firstItem?.pricing?.total_savings || 0,
-            items: item.items.map((subItem: any) => ({
+            savedAmount: item.items?.reduce((sum: number, subItem: any) => sum + (subItem.pricing?.total_savings || 0), 0) || 0,
+            items: item.items?.map((subItem: any) => ({
               name: subItem.product?.name || "Unknown Product",
               quantity: subItem.quantity || 1,
               price: subItem.pricing?.unit_price || 0,
-            })),
+            })) || [],
           };
         });
 
-        console.log("Mapped subscriptions:", mappedSubscriptions); // Add this line
+        console.log("Mapped subscriptions:", mappedSubscriptions); // Debug log
         setActiveSubscriptions(mappedSubscriptions);
       }
     } catch (error: any) {
@@ -352,6 +354,9 @@ const Subscriptions = () => {
     const data = response.data as any;
 
     if (data.success) {
+      setShowSubscriptionModal(false);
+      setSelectedSubscription(null); 
+      
       toast.success("Subscription cancelled successfully");
       setActiveSubscriptions(prev => prev.filter(sub => sub.id !== subscriptionId));
     } else {
