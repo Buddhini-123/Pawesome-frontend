@@ -77,6 +77,9 @@ const Checkout: React.FC = () => {
   const [loyaltyRedemption, setLoyaltyRedemption] = useState({ points: 0, value: 0 });
   const [appliedCoupon, setAppliedCoupon] = useState<string>('');
   const [couponDiscount, setCouponDiscount] = useState(0);
+
+  const [addressOption, setAddressOption] = useState<'select' | 'custom'>('select');
+  const [addresses, setAddresses] = useState<any[]>([]);
   
   const [formData, setFormData] = useState<CheckoutForm>({
     shippingAddress: {
@@ -173,6 +176,19 @@ const Checkout: React.FC = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const res = await api.get('/users/addresses');
+        setAddresses((res.data as any).data);
+        if ((res.data as any).data.length) setSelectedAddressId((res.data as any).data[0].id);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchAddresses();
+  }, []);
+
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     navigate('/login', { state: { from: { pathname: '/checkout' } } });
@@ -236,21 +252,53 @@ const Checkout: React.FC = () => {
   };
 
   const validateShipping = () => {
-    const { fullName, phone, address, city, state, pincode } = formData.shippingAddress;
+    // user can choose: select-address OR custom-address
+    if (addressOption === "select") {
+      if (!selectedAddressId) {
+        setError("Please select an address");
+        return false;
+      }
+      return true; // address is valid
+    }
+
+    // CUSTOM ADDRESS VALIDATION
+    const {
+      fullName,
+      phone,
+      address,
+      city,
+      state,
+      pincode,
+      addressType
+    } = formData.shippingAddress;
+
+    // Required fields
     if (!fullName || !phone || !address || !city || !state || !pincode) {
-      setError('Please fill all required shipping details');
+      setError("Please fill all required shipping details");
       return false;
     }
-    if (!/^\d{10}$/.test(phone.replace(/\s/g, ''))) {
-      setError('Please enter a valid 10-digit phone number');
+
+    // Phone number must be 10 digits
+    if (!/^\d{10}$/.test(phone.replace(/\s/g, ""))) {
+      setError("Please enter a valid 10-digit phone number");
       return false;
     }
-    if (!/^\d{6}$/.test(pincode)) {
-      setError('Please enter a valid 6-digit pincode');
+
+    // Pincode 5 digits
+    if (!/^\d{5}$/.test(pincode)) {
+      setError("Please enter a valid 5-digit pincode");
       return false;
     }
+
+    // Address type required
+    if (!addressType) {
+      setError("Please select address type (Home / Work / Other)");
+      return false;
+    }
+
     return true;
   };
+
 
   const validatePayment = () => {
     if (formData.paymentMethod === 'card') {
@@ -297,6 +345,25 @@ const Checkout: React.FC = () => {
       else if (step === 2) setStep(1);
     };
 
+  const getDeliveryAddressId = async () => {
+    if (addressOption === 'select') {
+      return selectedAddressId;
+    } else {
+      const res = await api.post('/users/addresses', {
+        type: formData.shippingAddress.addressType,
+        full_name: formData.shippingAddress.fullName,
+        phone: formData.shippingAddress.phone,
+        address_line1: formData.shippingAddress.address,
+        city: formData.shippingAddress.city,
+        district: formData.shippingAddress.state,
+        postal_code: formData.shippingAddress.pincode
+      });
+      
+      console.log(res);
+      
+      return (res.data as any).data.address.id;
+    }
+  };
   const handlePlaceOrder = async () => {
     setError('');
     setIsProcessing(true);
@@ -305,6 +372,10 @@ const Checkout: React.FC = () => {
 
       if (isSubscription) {
         
+        const deliveryAddressId = await getDeliveryAddressId();
+        console.log(deliveryAddressId, 'deliveryAddressId');
+        
+
         const payload = {
           products: selectedProducts.map((product: any) => ({
             product_id: product.id,
@@ -316,7 +387,7 @@ const Checkout: React.FC = () => {
             interval_value: 1,
             start_date: scheduleData.startDate,
             end_date: scheduleData.endDate,
-            delivery_address_id: 1,
+            delivery_address_id: deliveryAddressId,
             payment_method_id: 2,
             preferences: {
               gift_wrap: "test",
@@ -521,122 +592,183 @@ const Checkout: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                    <Home className="inline h-4 w-4 mr-2" />
-                    Address *
-                  </label>
-                  <textarea
-                    value={formData.shippingAddress.address}
-                    onChange={(e) => handleShippingChange('address', e.target.value)}
+                <div className="mb-4">
+                  <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Delivery Address</label>
+                  <select
+                    value={addressOption}
+                    onChange={(e) => setAddressOption(e.target.value as 'select' | 'custom')}
                     className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                    rows={3}
-                    placeholder="House no., Building, Street, Area"
-                    required
-                  />
+                  >
+                    <option value="select">Select Existing Address</option>
+                    <option value="custom">Custom Address</option>
+                  </select>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {addressOption === 'select' && (
                   <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      <Navigation className="inline h-4 w-4 mr-2" />
-                      Landmark (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.shippingAddress.landmark}
-                      onChange={(e) => handleShippingChange('landmark', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      placeholder="Near landmark"
-                    />
+                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Choose Address</label>
+                    <select
+                      value={selectedAddressId || ''}
+                      onChange={(e) => setSelectedAddressId(Number(e.target.value))}
+                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all mb-2"
+                    >
+                      {addresses.map(addr => (
+                        <option key={addr.id} value={addr.id}>
+                          {addr.display_name} - {addr.formatted_address}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      <Building className="inline h-4 w-4 mr-2" />
-                      City *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.shippingAddress.city}
-                      onChange={(e) => handleShippingChange('city', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      required
-                    />
-                  </div>
-                </div>
+                )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      <MapPin className="inline h-4 w-4 mr-2" />
-                      State *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.shippingAddress.state}
-                      onChange={(e) => handleShippingChange('state', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      <Hash className="inline h-4 w-4 mr-2" />
-                      Pincode *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.shippingAddress.pincode}
-                      onChange={(e) => handleShippingChange('pincode', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      placeholder="6-digit pincode"
-                      maxLength={6}
-                      required
-                    />
-                  </div>
-                </div>
+                {addressOption === 'custom' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                        <Home className="inline h-4 w-4 mr-2" />
+                        Address *
+                      </label>
+                      <textarea
+                        value={formData.shippingAddress.address}
+                        // onChange={(e) => handleShippingChange('address', e.target.value)}
+                        onChange={e => setFormData({
+                        ...formData,
+                        shippingAddress: {...formData.shippingAddress, address: e.target.value}
+                      })}
+                        className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                        rows={3}
+                        placeholder="House no., Building, Street, Area"
+                        required
+                      />
+                    </div>
 
-                {/* Address Type */}
-                <div>
-                  <label className="block text-sm font-fredoka font-medium text-charcoal mb-3">
-                    Address Type
-                  </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="addressType"
-                        value="home"
-                        checked={formData.shippingAddress.addressType === 'home'}
-                        onChange={(e) => handleShippingChange('addressType', e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="font-fredoka">Home</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="addressType"
-                        value="work"
-                        checked={formData.shippingAddress.addressType === 'work'}
-                        onChange={(e) => handleShippingChange('addressType', e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="font-fredoka">Work</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="addressType"
-                        value="other"
-                        checked={formData.shippingAddress.addressType === 'other'}
-                        onChange={(e) => handleShippingChange('addressType', e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="font-fredoka">Other</span>
-                    </label>
-                  </div>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                          <Navigation className="inline h-4 w-4 mr-2" />
+                          Landmark (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.shippingAddress.landmark}
+                          onChange={(e) => handleShippingChange('landmark', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                          placeholder="Near landmark"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                          <Building className="inline h-4 w-4 mr-2" />
+                          City *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.shippingAddress.city}
+                          onChange={e => setFormData({
+                              ...formData,
+                              shippingAddress: {...formData.shippingAddress, city: e.target.value}
+                            })}
+                                className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                          <MapPin className="inline h-4 w-4 mr-2" />
+                          State *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.shippingAddress.state}
+                          // onChange={(e) => handleShippingChange('state', e.target.value)}
+                          onChange={e => setFormData({
+                            ...formData,
+                            shippingAddress: {...formData.shippingAddress, state: e.target.value}
+                          })}
+                          className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                          <Hash className="inline h-4 w-4 mr-2" />
+                          Pincode *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.shippingAddress.pincode}
+                          // onChange={(e) => handleShippingChange('pincode', e.target.value)}
+                          onChange={e => setFormData({
+                            ...formData,
+                            shippingAddress: {...formData.shippingAddress, pincode: e.target.value}
+                          })}
+                          className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                          placeholder="5-digit pincode"
+                          maxLength={5}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Address Type */}
+                    <div>
+                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-3">
+                        Address Type
+                      </label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="addressType"
+                            value="home"
+                            checked={formData.shippingAddress.addressType === 'home'}
+                            // onChange={(e) => handleShippingChange('addressType', e.target.value)}
+                            onChange={e => setFormData({
+                              ...formData,
+                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
+                            })}
+                            className="mr-2"
+                          />
+                          <span className="font-fredoka">Home</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="addressType"
+                            value="work"
+                            checked={formData.shippingAddress.addressType === 'work'}
+                            // onChange={(e) => handleShippingChange('addressType', e.target.value)}
+                            onChange={e => setFormData({
+                              ...formData,
+                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
+                            })}
+                            className="mr-2"
+                          />
+                          <span className="font-fredoka">Work</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="addressType"
+                            value="other"
+                            checked={formData.shippingAddress.addressType === 'other'}
+                            // onChange={(e) => handleShippingChange('addressType', e.target.value)}
+                            onChange={e => setFormData({
+                              ...formData,
+                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
+                            })}
+                            className="mr-2"
+                          />
+                          <span className="font-fredoka">Other</span>
+                        </label>
+                      </div>
+                    </div>
+                  </>
+                )}
+
               </div>
             )}
 
