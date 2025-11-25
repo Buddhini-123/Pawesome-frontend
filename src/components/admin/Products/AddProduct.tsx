@@ -164,7 +164,7 @@ const AddProduct: React.FC = () => {
       {/* Error Message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg flex items-center justify-between">
-          <span>{error}</span>
+          <span className="font-fredoka text-red-500">{error}</span>
           <button onClick={() => setError('')} className="text-red-500 hover:text-red-700">
             <X className="h-4 w-4" />
           </button>

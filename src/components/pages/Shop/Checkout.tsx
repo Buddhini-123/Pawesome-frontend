@@ -1291,10 +1291,10 @@ const Checkout: React.FC = () => {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-coral-red/10 border-2 border-coral-red/20 text-coral-red rounded-xl flex items-center max-w-4xl mx-auto"
+            className="border-red-500 mb-6 p-4 bg-coral-red/10 border-2 border-coral-red/20 text-coral-red rounded-xl flex items-center max-w-4xl mx-auto"
           >
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <span className="font-fredoka">{error}</span>
+            <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
+            <span className="font-fredoka text-red-500">{error}</span>
           </motion.div>
         )}
 

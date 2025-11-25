@@ -52,8 +52,8 @@ const ForgotPassword: React.FC = () => {
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <span className="text-sm">{error}</span>
+            <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
+            <span className="text-sm text-red-500">{error}</span>
           </div>
         )}
 
