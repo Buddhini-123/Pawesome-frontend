@@ -327,17 +327,12 @@ const Checkout: React.FC = () => {
         };
 
         const response = await api.post("/subscriptions/direct-create", payload);
-        const data = (response.data as any);
+        if (response.success == false) {
+          const errorMsg = response.error || response.message || "Subscription creation failed";
 
-        if (!data.success) {
-          const errorMsg =
-            data?.message ||
-            (data?.errors
-              ? Object.values(data.errors).flat().join(", ")
-              : "Subscription creation failed");
+          toast.error(errorMsg);
           throw new Error(errorMsg);
         }
-
         toast.success("Subscription created successfully!");
 
         navigate("/subscriptions");
@@ -374,8 +369,28 @@ const Checkout: React.FC = () => {
       navigate(`/order-confirmation/${order.id}`);
 
     } catch (err: any) {
-      setError(err.message || 'Failed to place order');
-    } finally {
+      
+        let errorMessage = "Failed to place order";
+
+        if (err.response?.status === 422) {
+          // Laravel validation errors
+          const errors = err.response.data.errors;
+
+          if (errors) {
+            // Convert { field: ["error1", "error2"] } → array of messages
+            const messages = Object.values(errors).flat();
+
+            // Join with line breaks or commas
+            errorMessage = messages.join(", "); 
+          } else if (err.response.data.message) {
+            errorMessage = err.response.data.message;
+          }
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+
+        setError(errorMessage);
+      } finally {
       setIsProcessing(false);
     }
   };

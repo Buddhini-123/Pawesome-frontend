@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
-import {api} from "../../../services/api"
+import {api, host} from "../../../services/api"
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
@@ -298,6 +298,15 @@ const Subscriptions = () => {
   // };
 
   const handleConfirmSelection = (scheduleData: any) => {
+    if (!scheduleData.startDate || !scheduleData.endDate) {
+      toast.error("Please select both start and end dates");
+      return;
+    }
+
+    if (new Date(scheduleData.endDate) <= new Date(scheduleData.startDate)) {
+      toast.error("End date must be after start date");
+      return;
+    }
     navigate('/checkout', {
       state: {
         type: "subscription",
@@ -1028,6 +1037,7 @@ const Subscriptions = () => {
                   type="date"
                   className="w-full border rounded-lg p-2 mt-1"
                   value={startDate}
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={e => setStartDate(e.target.value)}
                 />
 
@@ -1036,6 +1046,7 @@ const Subscriptions = () => {
                 <input
                   type="date"
                   className="w-full border rounded-lg p-2 mt-1"
+                  min={new Date().toISOString().split("T")[0]}
                   value={endDate}
                   onChange={e => setEndDate(e.target.value)}
                 />
@@ -1492,6 +1503,7 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle, onViewDetails }) => {
+  
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -1512,10 +1524,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         className="aspect-square overflow-hidden rounded-t-lg bg-soft-gray cursor-pointer"
         onClick={() => onToggle(product)}
       >
-        <img
+       <img
           src={
-            product.primary_image
-              ? `http://127.0.0.1:8000${product.primary_image.url}`
+            product.primary_image?.url
+              ? product.primary_image.url.startsWith('http')
+                ? product.primary_image.url
+                : `${host}${product.primary_image.url}`
               : "https://via.placeholder.com/300x200?text=No+Image"
           }
           alt={product.name}
@@ -1581,11 +1595,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         </div>
 
         {/* Subscription Price */}
-        <div className="mt-3 pt-2 border-t border-light-gray">
+        {/* <div className="mt-3 pt-2 border-t border-light-gray">
           <p className="text-xs text-mint-green font-fredoka font-medium text-center">
             Subscription: ₹{Math.floor(product.price * 0.9)} (Save 10%)
           </p>
-        </div>
+        </div> */}
       </div>
     </motion.div>
   )
