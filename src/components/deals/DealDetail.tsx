@@ -207,6 +207,12 @@ const DealDetail: React.FC = () => {
                     <Heart className="w-5 h-5 mr-3 text-vibrant-orange" />
                     <span className="font-fredoka">Perfect for all dog breeds and sizes</span>
                   </div>
+                  {deal.deal_type == 'bogo' && (
+                    <div className="flex items-center text-charcoal">
+                      <Info className="w-5 h-5 mr-3 text-vibrant-orange" />
+                      <span className="font-fredoka"> Buy {deal.buy_qty} Get {deal.get_qty}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

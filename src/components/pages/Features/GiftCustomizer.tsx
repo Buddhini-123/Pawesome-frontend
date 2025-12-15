@@ -79,10 +79,6 @@ const GiftCustomizer: React.FC = () => {
     fetchData();
   }, []);
 
-  // ---------------------------------------------------------------------------
-  // FIX 1: Ensure Unique IDs for every product to prevent merging (Collision)
-  // We prefix IDs with 'theme-' or 'prod-' so Theme ID 1 doesn't merge with Product ID 1
-  // ---------------------------------------------------------------------------
   const getSteps = (): Step[] => [
     {
       id: 1,
