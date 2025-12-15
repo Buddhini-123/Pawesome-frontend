@@ -56,15 +56,52 @@ const DealDetail: React.FC = () => {
     fetchDeal();
   }, [slug]);
 
+  console.log(deal, 'llllll');
+  
+
   useEffect(() => {
-    if (!deal?.applies_to?.products?.length) return;
+    if (!deal?.applies_to) return;
+
     const fetchProducts = async () => {
       try {
-        const ids = deal.applies_to.products.join(',');
-        const res = await api.get(`/products?ids=${ids}`);
-        setProducts((res.data as any).data);
+        const requests = [];
+
+        if (deal.applies_to.products?.length) {
+          const ids = deal.applies_to.products.join(",");
+          requests.push(api.get(`/products?ids=${ids}`));
+        }
+
+        if (deal.applies_to.categories?.length) {
+          deal.applies_to.categories.forEach((categoryId: string) => {
+            requests.push(api.get(`/products?category_id=${categoryId}`));
+          });
+        }
+
+        if (deal.applies_to.brands?.length) {
+          deal.applies_to.brands.forEach((brandId: string) => {
+            requests.push(api.get(`/products?brand_id=${brandId}`));
+          });
+        }
+
+        if (deal.applies_to.is_universal) {
+          requests.push(api.get(`/products`));
+        }
+
+        const responses = await Promise.all(requests);
+
+        // 🔥 Merge & de-duplicate products
+        const mergedProducts = responses
+          .flatMap((res) => res.data.data)
+          .reduce((acc: any[], product: any) => {
+            if (!acc.find((p) => p.id === product.id)) {
+              acc.push(product);
+            }
+            return acc;
+          }, []);
+
+        setProducts(mergedProducts);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch deal products", err);
       }
     };
 
@@ -218,7 +255,7 @@ const DealDetail: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button
+                {/* <button
                   onClick={handleClaim}
                   disabled={hasClaimed || !canClaim}
                   className={`flex-1 px-8 py-4 rounded-lg font-fredoka font-semibold transition-colors
@@ -227,7 +264,7 @@ const DealDetail: React.FC = () => {
                       : 'bg-vibrant-orange text-white hover:bg-vibrant-orange/90'}`}
                 >
                   {hasClaimed ? "Claimed" : "Claim This Deal"}
-                </button>
+                </button> */}
 
                 <button
                   onClick={toggleShowMore}
@@ -279,7 +316,7 @@ const DealDetail: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => {
                     const discountedPrice =
-                      deal.deal_type === "percentage"
+                      deal.discount_type === "percentage"
                         ? product.price - (product.price * parseFloat(deal.discount_value)) / 100
                         : product.price - parseFloat(deal.discount_value);
 
