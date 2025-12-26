@@ -1338,13 +1338,13 @@ const Subscriptions = () => {
                       <div className="bg-blue-50 rounded-2xl p-6 mb-6">
                         <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-3">Why Choose Subscription?</h3>
                         <div className="space-y-3">
-                          <div className="flex items-center gap-3">
+                          {/* <div className="flex items-center gap-3">
                             <PercentIcon className="h-5 w-5 text-vibrant-orange" />
                             <span className="text-gray-700">Save 10% on every order</span>
-                          </div>
+                          </div> */}
                           <div className="flex items-center gap-3">
                             <TruckIcon className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Free delivery on all orders</span>
+                            <span className="text-gray-700">Products to your doorstep</span>
                           </div>
                           <div className="flex items-center gap-3">
                             <Calendar className="h-5 w-5 text-vibrant-orange" />
