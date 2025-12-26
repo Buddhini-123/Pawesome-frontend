@@ -83,10 +83,6 @@ const DealDetail: React.FC = () => {
           });
         }
 
-        if (deal.applies_to.is_universal) {
-          requests.push(api.get(`/products`));
-        }
-
         const responses = await Promise.all(requests);
 
         // 🔥 Merge & de-duplicate products
