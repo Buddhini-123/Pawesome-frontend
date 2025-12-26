@@ -34,13 +34,13 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) =>
       <div className="absolute inset-0 bg-gradient-to-r from-sunny-yellow via-sunny-yellow to-sunny-yellow/60" />
 
       <div className="relative z-20 h-full w-1/2 p-4 flex flex-col">
-        <div className="mb-3">
+        {/* <div className="mb-3">
           <div className="bg-black/10 text-black text-xs px-3 py-1 rounded-full font-fredoka inline-block">
             {deal.discountType === 'percentage'
               ? `${deal.discount}% Off`
               : `${deal.discount} Off`}
           </div>
-        </div>
+        </div> */}
 
         <div className="flex-1 flex flex-col justify-center">
           <h3 className="text-black font-fredoka font-bold text-lg mb-2">
