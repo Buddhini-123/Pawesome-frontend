@@ -1293,29 +1293,29 @@ const Subscriptions = () => {
                         <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-4">Pricing Options</h3>
                         
                         {/* One-time Purchase */}
-                        <div className="mb-4 p-4 bg-white rounded-xl">
-                          <div className="flex items-center justify-between mb-2">
+                        {/* <div className="mb-4 p-4 bg-white rounded-xl"> */}
+                          {/* <div className="flex items-center justify-between mb-2">
                             <span className="text-gray-700 font-fredoka font-medium">One-time Purchase</span>
                             {selectedProduct.discount_percentage && (
                               <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                                 {selectedProduct.discount_percentage}% OFF
                               </span>
                             )}
-                          </div>
+                          </div> */}
                           <div className="flex items-baseline gap-2">
                             <span className="text-3xl font-fredoka font-bold text-charcoal">
                               {selectedProduct.currency} {selectedProduct.price}
                             </span>
-                            {selectedProduct.price && (
+                            {/* {selectedProduct.price && (
                               <span className="text-lg text-gray-400 line-through">
                                 {selectedProduct.currency} {selectedProduct.price}
                               </span>
-                            )}
-                          </div>
+                            )} */}
+                          {/* </div> */}
                         </div>
 
                         {/* Subscription Option */}
-                        <div className="p-4 bg-mint-green/20 rounded-xl border-2 border-mint-green">
+                        {/* <div className="p-4 bg-mint-green/20 rounded-xl border-2 border-mint-green">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-gray-700 font-fredoka font-medium">Subscribe & Save</span>
                             <span className="bg-mint-green text-white text-xs px-2 py-1 rounded-full">
@@ -1331,7 +1331,7 @@ const Subscriptions = () => {
                           <p className="text-xs text-medium-gray mt-2">
                             + Free shipping on all subscription orders
                           </p>
-                        </div>
+                        </div> */}
                       </div>
 
                       {/* Benefits */}
