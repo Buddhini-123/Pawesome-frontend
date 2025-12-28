@@ -105,7 +105,7 @@ const GiftCustomizer: React.FC = () => {
         id: `prod-${p.id}`, // <--- Prefixed ID
         name: p.name,
         price: p.price,
-        image: `${host}/storage/${p.image}`,
+        image: `${host}/storage/${p.primary_image.path}`,
         description: p.description,
         category: "main_toy",
       })),
@@ -120,7 +120,7 @@ const GiftCustomizer: React.FC = () => {
         id: `prod-${p.id}`, // <--- Prefixed ID
         name: p.name,
         price: p.price,
-        image: `${host}/storage/${p.image}`,
+        image: `${host}/storage/${p.primary_image.path}`,
         description: p.description,
         category: "extra_toys",
       })),
@@ -135,7 +135,7 @@ const GiftCustomizer: React.FC = () => {
         id: `prod-${p.id}`, // <--- Prefixed ID
         name: p.name,
         price: p.price,
-        image: `${host}/storage/${p.image}`,
+        image: `${host}/storage/${p.primary_image.path}`,
         description: p.description,
         category: "treats",
       })),
@@ -150,7 +150,7 @@ const GiftCustomizer: React.FC = () => {
         id: `prod-${p.id}`, // <--- Prefixed ID
         name: p.name,
         price: p.price,
-        image: `${host}/storage/${p.image}`,
+        image: `${host}/storage/${p.primary_image.path}`,
         description: p.description,
         category: "care_products",
       })),
@@ -165,7 +165,7 @@ const GiftCustomizer: React.FC = () => {
         id: `prod-${p.id}`, // <--- Prefixed ID
         name: p.name,
         price: p.price,
-        image: `${host}/storage/${p.image}`,
+        image: `${host}/storage/${p.primary_image.path}`,
         description: p.description,
         category: "accessories",
       })),
@@ -180,7 +180,7 @@ const GiftCustomizer: React.FC = () => {
         id: `prod-${p.id}`, // <--- Prefixed ID
         name: p.name,
         price: p.price,
-        image: `${host}/storage/${p.image}`,
+        image: `${host}/storage/${p.primary_image.path}`,
         description: p.description,
         category: "greeting_card",
       })),
