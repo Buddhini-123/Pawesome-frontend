@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import RedemptionSlider from '../../loyalty/RedemptionSlider';
 import { useLocation } from "react-router-dom";
-import {api} from "../../../services/api"
+import {api, host} from "../../../services/api"
 import { toast } from 'react-toastify';
 import { normalizeCartItem } from '../../../utils/cartNormalizer';
 interface CheckoutForm {
@@ -1427,7 +1427,27 @@ const Checkout: React.FC = () => {
                 Order Items ({cart.length})
               </h3>
               <div className="space-y-3">
-                {normalizedCart.map((item) => (
+                {isSubscription ? (
+                  selectedProducts?.map((product: any) => (
+                    <div key={product.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
+                      <div className="flex items-center space-x-4">
+                        <img 
+                          src={ `${host}${product.primary_image.url}`}
+                          alt={product.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                        <div>
+                          <p className="font-fredoka font-semibold text-charcoal">{String(product.name)}</p>
+                          <p className="text-sm text-medium-gray">Qty: {deliveryCount} </p>
+                        </div>
+                      </div>
+                      <p className="font-fredoka font-semibold text-charcoal">
+                        {getCurrencyDisplay(product.currency)} {safeDisplayPrice(product.subscription_price * deliveryCount)}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                normalizedCart.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
                     <div className="flex items-center space-x-4">
                       <img 
@@ -1444,7 +1464,8 @@ const Checkout: React.FC = () => {
                       {currentCurrency} {safeDisplayPrice(item.product.price * item.quantity)}
                     </p>
                   </div>
-                ))}
+                ))
+                )}
               </div>
             </div>
 
@@ -1468,6 +1489,8 @@ const Checkout: React.FC = () => {
     }
   };
 
+  console.log(selectedProducts);
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-soft-gray to-off-white">
       <div className="container mx-auto px-4 py-8">
