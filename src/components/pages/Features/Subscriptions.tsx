@@ -679,10 +679,10 @@ const Subscriptions = () => {
                           <div className="flex items-center justify-between mb-4">
                             <div>
                               <span className="text-lg font-fredoka font-bold text-vibrant-orange">
-                                {product.currency} {Math.floor(product.price * 0.9)}
+                                {product?.currency} {Math.floor(product.price * 0.9)}
                               </span>
                               <span className="text-sm text-light-gray line-through ml-2">
-                                {product.currency} {product.price}
+                                {product?.currency} {product.price}
                               </span>
                             </div>
                             <div className="text-xs text-green-600 font-fredoka font-medium">
@@ -734,7 +734,7 @@ const Subscriptions = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-medium-gray">Products Total</span>
                           <span className="font-medium">
-                            ₹{confirmedProducts.reduce((total, product) => {
+                            {product?.currency} {confirmedProducts.reduce((total, product) => {
                               const qty = productQuantities[product.id] || 1
                               return total + (product.price * qty)
                             }, 0)}
@@ -897,7 +897,7 @@ const Subscriptions = () => {
                     </p>
                     {selectedProducts.length > 0 && (
                       <p className="text-sm text-mint-green font-medium">
-                        Monthly Total: {selectedProduct.currency} {selectedProducts.reduce((total, product) => {
+                        Monthly Total: {selectedProduct?.currency} {selectedProducts.reduce((total, product) => {
                           const qty = productQuantities[product.id] || 1
                           return total + Math.floor(product.price * 0.9 * qty)
                         }, 0)}
@@ -1099,7 +1099,7 @@ const Subscriptions = () => {
                             <p className="font-medium text-charcoal">{item.name}</p>
                             <p className="text-sm text-medium-gray">Quantity: {item.quantity}</p>
                           </div>
-                          <p className="font-semibold text-vibrant-orange">₹{item.price * item.quantity}</p>
+                          <p className="font-semibold text-vibrant-orange">{item?.currency} {item.price * item.quantity}</p>
                         </div>
                       ))}
                     </div>
@@ -1110,15 +1110,15 @@ const Subscriptions = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-medium-gray">Subtotal</span>
-                        <span>{selectedProduct.currency} {selectedSubscription.total + selectedSubscription.savedAmount}</span>
+                        <span>{selectedProduct?.currency} {selectedSubscription.total + selectedSubscription.savedAmount}</span>
                       </div>
                       <div className="flex justify-between text-green-600">
                         <span>Subscription Discount (10%)</span>
-                        <span>-{selectedProduct.currency} {selectedSubscription.savedAmount}</span>
+                        <span>-{selectedProduct?.currency} {selectedSubscription.savedAmount}</span>
                       </div>
                       <div className="flex justify-between pt-2 border-t border-yellow-400">
                         <span className="font-semibold">Total per {selectedSubscription.frequency}</span>
-                        <span className="font-bold text-lg text-vibrant-orange">{selectedProduct.currency}{selectedSubscription.total}</span>
+                        <span className="font-bold text-lg text-vibrant-orange">{selectedProduct?.currency}{selectedSubscription.total}</span>
                       </div>
                     </div>
                   </div>
@@ -1304,7 +1304,7 @@ const Subscriptions = () => {
                           </div> */}
                           <div className="flex items-baseline gap-2">
                             <span className="text-3xl font-fredoka font-bold text-charcoal">
-                              {selectedProduct.currency} {selectedProduct.price}
+                              {selectedProduct?.currency} {selectedProduct.price}
                             </span>
                             {/* {selectedProduct.price && (
                               <span className="text-lg text-gray-400 line-through">
@@ -1486,11 +1486,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
           <div>
             {product.originalPrice && (
               <span className="text-xs text-gray-400 line-through mr-2">
-                {product.currency} {product.originalPrice}
+                {product?.currency} {product.originalPrice}
               </span>
             )}
             <span className="font-fredoka font-bold text-vibrant-orange">
-              {product.currency} {product.price}
+              {product?.currency} {product.price}
             </span>
           </div>
           

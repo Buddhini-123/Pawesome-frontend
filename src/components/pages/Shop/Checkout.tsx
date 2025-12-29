@@ -35,6 +35,7 @@ import RedemptionSlider from '../../loyalty/RedemptionSlider';
 import { useLocation } from "react-router-dom";
 import {api} from "../../../services/api"
 import { toast } from 'react-toastify';
+import { normalizeCartItem } from '../../../utils/cartNormalizer';
 interface CheckoutForm {
   // Shipping Information
   shippingAddress: {
@@ -62,6 +63,30 @@ interface CheckoutForm {
   // Gift Options
   isGift: boolean;
   giftMessage?: string;
+}
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component<{children: React.ReactNode, fallback: React.ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: React.ReactNode, fallback: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_: Error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
 }
 
 const Checkout: React.FC = () => {
@@ -101,8 +126,8 @@ const Checkout: React.FC = () => {
   const { state } = useLocation();
 
   const isSubscription = state?.type === "subscription";
-  const scheduleData = state?.scheduleData;
-  const selectedProducts = state?.selectedProducts;
+  const scheduleData = isSubscription ? state?.scheduleData : null;
+  const selectedProducts = isSubscription ? state?.selectedProducts : cart;
   
   const calculateDeliveryCount = (startDate: string, endDate: string, intervalType: string, intervalValue: number = 1) => {
     const start = new Date(startDate);
@@ -133,23 +158,59 @@ const Checkout: React.FC = () => {
     return count;
   };
   
-  const deliveryCount = calculateDeliveryCount(
-    scheduleData.startDate,
-    scheduleData.endDate,
-    scheduleData.deliveryPeriod,
-    1                               // interval_value (API uses 1)
-  );
+  const deliveryCount = isSubscription && scheduleData
+    ? calculateDeliveryCount(
+        scheduleData.startDate,
+        scheduleData.endDate,
+        scheduleData.deliveryPeriod,
+        1
+      )
+    : 1;
 
   const subscriptionSubtotal = isSubscription
     ? selectedProducts.reduce((sum: number, p: any) => {
-    const price = Number(p.subscription_price || 0);
-    const quantity = p.quantity || 1;
-
-    return sum + price * quantity * deliveryCount;
+        const price = Number(p.subscription_price || 0);
+        const quantity = p.quantity || 1;
+        return sum + price * quantity * deliveryCount;
       }, 0)
-  : totalPrice;
+    : totalPrice;
 
-  const currency = selectedProducts[0]?.currency || "LKR";
+  // Helper function to get currency display
+  const getCurrencyDisplay = (currencyObj: any): string => {
+    if (!currencyObj) return "LKR";
+    if (typeof currencyObj === 'string') return currencyObj;
+    if (currencyObj.code) return String(currencyObj.code);
+    if (currencyObj.name) return String(currencyObj.name);
+    return "LKR";
+  };
+
+  // Get currency from either subscription or cart
+  const getCurrentCurrency = (): string => {
+    if (isSubscription && selectedProducts?.[0]?.currency) {
+      return getCurrencyDisplay(selectedProducts[0].currency);
+    } else if (cart?.[0]?.product?.currency) {
+      return getCurrencyDisplay(cart[0].product.currency);
+    }
+    return "LKR";
+  };
+
+  const currentCurrency = getCurrentCurrency();
+
+  // Helper function to safely display price
+  const safeDisplayPrice = (price: any): string => {
+    if (typeof price === 'number') return price.toFixed(2);
+    if (typeof price === 'string') {
+      const num = parseFloat(price);
+      return isNaN(num) ? "0.00" : num.toFixed(2);
+    }
+    if (price && typeof price === 'object') {
+      // Try to extract price from object
+      const extracted = price.value || price.amount || price.price || price.subscription_price || 0;
+      const num = parseFloat(String(extracted));
+      return isNaN(num) ? "0.00" : num.toFixed(2);
+    }
+    return "0.00";
+  };
 
   // Load saved addresses
   useEffect(() => {
@@ -188,6 +249,18 @@ const Checkout: React.FC = () => {
     };
     fetchAddresses();
   }, []);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Checkout debug:", {
+      isSubscription,
+      step,
+      currentCurrency,
+      cartLength: cart?.length,
+      selectedProductsLength: selectedProducts?.length,
+      formDataPaymentMethod: formData.paymentMethod
+    });
+  }, [isSubscription, step, currentCurrency, cart, selectedProducts, formData.paymentMethod]);
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
@@ -364,7 +437,40 @@ const Checkout: React.FC = () => {
       return (res.data as any).data.address.id;
     }
   };
+  const buildShippingAddress = () => {
+    // If user selected saved address
+    if (addressOption === 'select' && selectedAddressId) {
+      const selected = addresses.find(a => a.id === selectedAddressId);
+
+      return {
+        fullName: formData.shippingAddress.fullName,
+        phone: formData.shippingAddress.phone,
+        address: selected?.formatted_address ?? null,
+        street: selected?.street ?? null,
+        city: selected?.city ?? null,
+        state: selected?.state ?? null,
+        pincode: selected?.pincode ?? null,
+        landmark: selected?.landmark ?? null,
+        addressType: selected?.address_type ?? 'home',
+      };
+    }
+
+    // Custom address OR empty fields
+    return {
+      fullName: formData.shippingAddress.fullName,
+      phone: formData.shippingAddress.phone,
+      address: formData.shippingAddress.address || null,
+      street: formData.shippingAddress.street || null,
+      city: formData.shippingAddress.city || null,
+      state: formData.shippingAddress.state || null,
+      pincode: formData.shippingAddress.pincode || null,
+      landmark: formData.shippingAddress.landmark || null,
+      addressType: formData.shippingAddress.addressType || 'home',
+    };
+  };
+
   const handlePlaceOrder = async () => {
+    
     setError('');
     setIsProcessing(true);
 
@@ -419,7 +525,8 @@ const Checkout: React.FC = () => {
           quantity: item.quantity,
           price: item.product.price
         })),
-        shippingAddress: formData.shippingAddress,
+        // shippingAddress: formData.shippingAddress,
+        shippingAddress: buildShippingAddress(),
         paymentMethod: formData.paymentMethod,
         subtotal: subscriptionSubtotal,
         shippingCost,
@@ -434,7 +541,8 @@ const Checkout: React.FC = () => {
       };
 
       const order = await orderService.createOrder(orderData);
-
+      toast.success("Order placed successfully!");
+      
       clearCart();
 
       navigate(`/order-confirmation/${order.id}`);
@@ -465,6 +573,7 @@ const Checkout: React.FC = () => {
       setIsProcessing(false);
     }
   };
+  const normalizedCart = cart.map(normalizeCartItem);
 
 
   const applyCoupon = () => {
@@ -630,7 +739,6 @@ const Checkout: React.FC = () => {
                       </label>
                       <textarea
                         value={formData.shippingAddress.address}
-                        // onChange={(e) => handleShippingChange('address', e.target.value)}
                         onChange={e => setFormData({
                         ...formData,
                         shippingAddress: {...formData.shippingAddress, address: e.target.value}
@@ -683,7 +791,6 @@ const Checkout: React.FC = () => {
                         <input
                           type="text"
                           value={formData.shippingAddress.state}
-                          // onChange={(e) => handleShippingChange('state', e.target.value)}
                           onChange={e => setFormData({
                             ...formData,
                             shippingAddress: {...formData.shippingAddress, state: e.target.value}
@@ -700,7 +807,6 @@ const Checkout: React.FC = () => {
                         <input
                           type="text"
                           value={formData.shippingAddress.pincode}
-                          // onChange={(e) => handleShippingChange('pincode', e.target.value)}
                           onChange={e => setFormData({
                             ...formData,
                             shippingAddress: {...formData.shippingAddress, pincode: e.target.value}
@@ -725,7 +831,6 @@ const Checkout: React.FC = () => {
                             name="addressType"
                             value="home"
                             checked={formData.shippingAddress.addressType === 'home'}
-                            // onChange={(e) => handleShippingChange('addressType', e.target.value)}
                             onChange={e => setFormData({
                               ...formData,
                               shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
@@ -740,7 +845,6 @@ const Checkout: React.FC = () => {
                             name="addressType"
                             value="work"
                             checked={formData.shippingAddress.addressType === 'work'}
-                            // onChange={(e) => handleShippingChange('addressType', e.target.value)}
                             onChange={e => setFormData({
                               ...formData,
                               shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
@@ -755,7 +859,6 @@ const Checkout: React.FC = () => {
                             name="addressType"
                             value="other"
                             checked={formData.shippingAddress.addressType === 'other'}
-                            // onChange={(e) => handleShippingChange('addressType', e.target.value)}
                             onChange={e => setFormData({
                               ...formData,
                               shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
@@ -1246,7 +1349,7 @@ const Checkout: React.FC = () => {
               </div>
               {couponDiscount > 0 && (
                 <p className="text-sm text-mint-green mt-2 font-fredoka">
-                  ✓ Coupon applied! You saved ₹{couponDiscount.toFixed(2)}
+                  ✓ Coupon applied! You saved ₹{safeDisplayPrice(couponDiscount)}
                 </p>
               )}
               <div className="mt-2 text-sm text-medium-gray">
@@ -1284,12 +1387,12 @@ const Checkout: React.FC = () => {
                 Delivery Address
               </h3>
               <div className="p-4 bg-soft-gray rounded-xl">
-                <p className="font-fredoka font-semibold">{formData.shippingAddress.fullName}</p>
-                <p className="text-sm text-medium-gray">{formData.shippingAddress.address}</p>
+                <p className="font-fredoka font-semibold">{String(formData.shippingAddress.fullName)}</p>
+                <p className="text-sm text-medium-gray">{String(formData.shippingAddress.address)}</p>
                 <p className="text-sm text-medium-gray">
-                  {formData.shippingAddress.city}, {formData.shippingAddress.state} - {formData.shippingAddress.pincode}
+                  {String(formData.shippingAddress.city)}, {String(formData.shippingAddress.state)} - {String(formData.shippingAddress.pincode)}
                 </p>
-                <p className="text-sm text-medium-gray">{formData.shippingAddress.phone}</p>
+                <p className="text-sm text-medium-gray">{String(formData.shippingAddress.phone)}</p>
               </div>
             </div>
 
@@ -1308,11 +1411,11 @@ const Checkout: React.FC = () => {
                 </p>
                 {formData.paymentMethod === 'card' && formData.cardDetails && (
                   <p className="text-sm text-medium-gray">
-                    •••• •••• •••• {formData.cardDetails.number.slice(-4)}
+                    •••• •••• •••• {String(formData.cardDetails.number.slice(-4))}
                   </p>
                 )}
                 {formData.paymentMethod === 'upi' && formData.upiId && (
-                  <p className="text-sm text-medium-gray">{formData.upiId}</p>
+                  <p className="text-sm text-medium-gray">{String(formData.upiId)}</p>
                 )}
               </div>
             </div>
@@ -1324,7 +1427,7 @@ const Checkout: React.FC = () => {
                 Order Items ({cart.length})
               </h3>
               <div className="space-y-3">
-                {cart.map((item) => (
+                {normalizedCart.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
                     <div className="flex items-center space-x-4">
                       <img 
@@ -1333,14 +1436,12 @@ const Checkout: React.FC = () => {
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                       <div>
-                        <p className="font-fredoka font-semibold text-charcoal">{item.product.name}</p>
-                        <p className="text-sm text-medium-gray">
-                          {item.product.brand} • Qty: {item.quantity}
-                        </p>
+                        <p className="font-fredoka font-semibold text-charcoal">{String(item.product.name)}</p>
+                        <p className="text-sm text-medium-gray">Qty: {item.quantity} </p>
                       </div>
                     </div>
                     <p className="font-fredoka font-semibold text-charcoal">
-                      {formatters.currency(item.product.price * item.quantity)}
+                      {currentCurrency} {safeDisplayPrice(item.product.price * item.quantity)}
                     </p>
                   </div>
                 ))}
@@ -1354,7 +1455,7 @@ const Checkout: React.FC = () => {
                   <Gift className="h-5 w-5 text-coral-red mr-2 mt-0.5" />
                   <div>
                     <p className="font-fredoka font-semibold text-charcoal mb-1">Gift Message</p>
-                    <p className="text-sm text-medium-gray">{formData.giftMessage}</p>
+                    <p className="text-sm text-medium-gray">{String(formData.giftMessage)}</p>
                   </div>
                 </div>
               </div>
@@ -1492,151 +1593,158 @@ const Checkout: React.FC = () => {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-2xl shadow-xl p-6 sticky top-6"
-            >
-              <h3 className="text-xl font-fredoka font-bold text-charcoal mb-6">Order Summary</h3>
-              
-              {/* Items */}
-              <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                {isSubscription
-                  ? selectedProducts?.map((product: any) => (
-                      <div key={product.id} className="flex justify-between items-start text-sm">
-                        <div className="flex-1">
-                          <p className="font-fredoka font-medium text-charcoal">{product.name}</p>
-                          <p className="text-medium-gray">
-                            {/* Qty: 1 × {formatters.currency(product.subscription_price )} */}
-                            Qty: {deliveryCount} × {product.currency} {product.subscription_price }
-                          </p>
-                          <p className="text-medium-gray">
-                            (Quantity for the time period is {deliveryCount})
+            <ErrorBoundary fallback={<div className="bg-white rounded-2xl shadow-xl p-6 text-red-500">Error loading order summary</div>}>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-white rounded-2xl shadow-xl p-6 sticky top-6"
+              >
+                <h3 className="text-xl font-fredoka font-bold text-charcoal mb-6">Order Summary</h3>
+                
+                {/* Items */}
+                <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
+                  {isSubscription
+                    ? selectedProducts?.map((product: any) => {
+                        const currencyDisplay = getCurrencyDisplay(product.currency);
+                        const priceDisplay = safeDisplayPrice(product.subscription_price);
+                        
+                        return (
+                          <div key={product.id} className="flex justify-between items-start text-sm">
+                            <div className="flex-1">
+                              <p className="font-fredoka font-medium text-charcoal">{String(product.name)}</p>
+                              <p className="text-medium-gray">
+                                Qty: {deliveryCount} × {String(currencyDisplay)} {priceDisplay}
+                              </p>
+                              <p className="text-medium-gray">
+                                (Quantity for the time period is {deliveryCount})
+                              </p>
+                            </div>
+                            <p className="font-fredoka font-semibold text-charcoal ml-2">
+                              {String(currencyDisplay)} {priceDisplay}
+                            </p>
+                          </div>
+                        );
+                      })
+                    : cart.map((item) => (
+                        <div key={item.id} className="flex justify-between items-start text-sm">
+                          <div className="flex-1">
+                            <p className="font-fredoka font-medium text-charcoal">{String(item.product.name)}</p>
+                            <p className="text-medium-gray">
+                              Qty: {item.quantity} × {currentCurrency} {safeDisplayPrice(item.product.price)}
+                            </p>
+                          </div>
+                          <p className="font-fredoka font-semibold text-charcoal ml-2">
+                            {currentCurrency} {safeDisplayPrice(item.product.price * item.quantity)}
                           </p>
                         </div>
-
-                        <p className="font-fredoka font-semibold text-charcoal ml-2">
-                          {product.currency} {product.subscription_price}
-                        </p>
-                      </div>
-                    ))
-                  : cart.map((item) => (
-                      <div key={item.id} className="flex justify-between items-start text-sm">
-                        <div className="flex-1">
-                          <p className="font-fredoka font-medium text-charcoal">{item.product.name}</p>
-                          <p className="text-medium-gray">
-                            Qty: {item.quantity} × {formatters.currency(item.product.price)}
-                          </p>
-                        </div>
-                        <p className="font-fredoka font-semibold text-charcoal ml-2">
-                          {formatters.currency(item.product.price * item.quantity)}
-                        </p>
-                      </div>
-                    ))
-                }
-              </div>
-
-              {/* Price Breakdown */}
-              <div className="border-t-2 border-light-gray pt-4 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-medium-gray">Subtotal</span>
-                  <span className="font-fredoka font-medium"> {currency} {subscriptionSubtotal}</span>
-                </div>
-                
-                {couponDiscount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-medium-gray flex items-center">
-                      <Tag className="h-4 w-4 mr-1" />
-                      Coupon Discount
-                    </span>
-                    <span className="font-fredoka font-medium text-mint-green">
-                       -{currency} {couponDiscount}
-                    </span>
-                  </div>
-                )}
-                
-                {loyaltyRedemption.value > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-medium-gray flex items-center">
-                      <Star className="h-4 w-4 mr-1" />
-                      Loyalty Points
-                    </span>
-                    <span className="font-fredoka font-medium text-lavender">
-                     -{currency} {loyaltyRedemption.value}
-                    </span>
-                  </div>
-                )}
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-medium-gray flex items-center">
-                    <Truck className="h-4 w-4 mr-1" />
-                    Shipping
-                  </span>
-                  <span className="font-fredoka font-medium">
-                    {shippingCost === 0 ? (
-                      <span className="text-mint-green">FREE</span>
-                    ) : (
-                      `${currency} ${shippingCost}`
-                    )}
-                  </span>
-                </div>
-                
-                {formData.paymentMethod === 'cod' && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-medium-gray">COD Charges</span>
-                    <span className="font-fredoka font-medium">{currency} 50</span>
-                  </div>
-                )}
-                
-                <div className="border-t-2 border-light-gray pt-3 flex justify-between">
-                  <span className="font-fredoka font-bold text-lg text-charcoal">Total</span>
-                  <span className="font-fredoka font-bold text-xl text-charcoal">
-                   {currency} {finalTotal}
-                  </span>
-                </div>
-              </div>
-
-              {/* Loyalty Points Earning */}
-              {loyaltyCard && (
-                <div className="mt-6 p-4 bg-lavender/10 rounded-xl">
-                  <div className="flex items-center text-lavender">
-                    <Star className="h-5 w-5 mr-2" />
-                    <span className="text-sm font-fredoka">
-                      You'll earn {Math.floor(finalTotal * 0.1)} points from this order!
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Security Badge */}
-              <div className="mt-6 p-4 bg-mint-green/10 rounded-xl">
-                <div className="flex items-center text-mint-green">
-                  <Shield className="h-5 w-5 mr-2" />
-                  <span className="text-sm font-fredoka font-medium">100% Secure Checkout</span>
-                </div>
-              </div>
-
-              {/* Delivery Estimate */}
-              <div className="mt-4 text-center">
-                <p className="text-sm text-medium-gray">
-                  Estimated delivery by
-                </p>
-                <p className="font-fredoka font-semibold text-charcoal">
-                  {formData.deliveryOption === 'express' 
-                    ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { 
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })
-                    : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { 
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })
+                      ))
                   }
-                </p>
-              </div>
-            </motion.div>
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="border-t-2 border-light-gray pt-4 space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-medium-gray">Subtotal</span>
+                    <span className="font-fredoka font-medium">
+                      {currentCurrency} {safeDisplayPrice(subscriptionSubtotal)}
+                    </span>
+                  </div>
+                  
+                  {couponDiscount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-medium-gray flex items-center">
+                        <Tag className="h-4 w-4 mr-1" />
+                        Coupon Discount
+                      </span>
+                      <span className="font-fredoka font-medium text-mint-green">
+                        -{currentCurrency} {safeDisplayPrice(couponDiscount)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {loyaltyRedemption.value > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-medium-gray flex items-center">
+                        <Star className="h-4 w-4 mr-1" />
+                        Loyalty Points
+                      </span>
+                      <span className="font-fredoka font-medium text-lavender">
+                        -{currentCurrency} {safeDisplayPrice(loyaltyRedemption.value)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between text-sm">
+                    <span className="text-medium-gray flex items-center">
+                      <Truck className="h-4 w-4 mr-1" />
+                      Shipping
+                    </span>
+                    <span className="font-fredoka font-medium">
+                      {shippingCost === 0 ? (
+                        <span className="text-mint-green">FREE</span>
+                      ) : (
+                        `${currentCurrency} ${safeDisplayPrice(shippingCost)}`
+                      )}
+                    </span>
+                  </div>
+                  
+                  {formData.paymentMethod === 'cod' && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-medium-gray">COD Charges</span>
+                      <span className="font-fredoka font-medium">{currentCurrency} 50</span>
+                    </div>
+                  )}
+                  
+                  <div className="border-t-2 border-light-gray pt-3 flex justify-between">
+                    <span className="font-fredoka font-bold text-lg text-charcoal">Total</span>
+                    <span className="font-fredoka font-bold text-xl text-charcoal">
+                      {currentCurrency} {safeDisplayPrice(finalTotal)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Loyalty Points Earning */}
+                {loyaltyCard && (
+                  <div className="mt-6 p-4 bg-lavender/10 rounded-xl">
+                    <div className="flex items-center text-lavender">
+                      <Star className="h-5 w-5 mr-2" />
+                      <span className="text-sm font-fredoka">
+                        You'll earn {Math.floor(finalTotal * 0.1)} points from this order!
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Security Badge */}
+                <div className="mt-6 p-4 bg-mint-green/10 rounded-xl">
+                  <div className="flex items-center text-mint-green">
+                    <Shield className="h-5 w-5 mr-2" />
+                    <span className="text-sm font-fredoka font-medium">100% Secure Checkout</span>
+                  </div>
+                </div>
+
+                {/* Delivery Estimate */}
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-medium-gray">
+                    Estimated delivery by
+                  </p>
+                  <p className="font-fredoka font-semibold text-charcoal">
+                    {formData.deliveryOption === 'express' 
+                      ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { 
+                          weekday: 'short', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })
+                      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { 
+                          weekday: 'short', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })
+                    }
+                  </p>
+                </div>
+              </motion.div>
+            </ErrorBoundary>
           </div>
         </div>
       </div>

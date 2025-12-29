@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../../hooks/useCart';
 import { formatters } from '../../../utils/formatters';
+import { normalizeCartItem } from '../../../utils/cartNormalizer';
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
@@ -73,6 +74,7 @@ const Cart: React.FC = () => {
       ease: easeInOut
     }
   };
+  const normalizedCart = cart.map(normalizeCartItem);
 
   if (cart.length === 0) {
     return (
@@ -194,7 +196,7 @@ const Cart: React.FC = () => {
               
               <div className="divide-y divide-light-gray">
                 <AnimatePresence>
-                  {cart.map((item, index) => (
+                  {normalizedCart.map((item, index) => (
                     <motion.div 
                       key={item.id} 
                       className="p-6 hover:bg-soft-gray/30 transition-colors"
