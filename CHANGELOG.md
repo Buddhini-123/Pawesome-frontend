@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-01-21
+
+### Changed
+- Reordered top navigation: Daily Deals, Gift Boxes, Rewards, Subscriptions
+- Updated navigation labels: 'Subscription' → 'Subscriptions', 'Gift Box' → 'Gift Boxes', 'Paw Rewards' → 'Rewards'
+
 ## [0.1.1] - 2026-01-21
 
 ### Changed
