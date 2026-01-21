@@ -280,7 +280,7 @@ const Home: React.FC = () => {
   // Pet-themed main service buttons
   const mainButtons = [
     {
-      title: 'Pet Subscriptions',
+      title: 'Subscriptions',
       description: 'Never run out of your pet\'s favorites with smart, personalized deliveries tailored to your pet\'s unique needs and preferences.',
       icon: Calendar,
       // color: 'from-amber-400 via-amber-500 to-yellow-600',

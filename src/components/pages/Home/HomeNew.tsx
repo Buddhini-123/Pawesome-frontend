@@ -72,7 +72,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, col
 const Home: React.FC = () => {
   const services = [
     {
-      title: 'Pet Subscriptions',
+      title: 'Subscriptions',
       description: 'Never run out of essentials with automated deliveries tailored to your pet.',
       icon: <Calendar className="w-10 h-10 text-white" />,
       color: 'bg-vibrant-orange',

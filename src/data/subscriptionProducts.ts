@@ -328,7 +328,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     ]
   },
 
-  // Mixed/Multi-Pet Subscriptions
+  // Mixed/Multi-Animal Subscriptions
   {
     id: 'sub-multi-pet',
     name: 'Multi-Pet Family Plan',

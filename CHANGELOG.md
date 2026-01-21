@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-01-21
+
+### Changed
+- Renamed 'Pet Subscriptions' to 'Subscriptions' across UI components and data files
+- Updated navigation links, homepage feature titles, and code comments
+
 ### Added
 - **Comprehensive Pet Management System**: Complete CRUD operations for pet management in user accounts
   - Add new pets with detailed information (name, type, breed, age, weight, gender, color, etc.)
