@@ -1,0 +1,232 @@
+# Tiny PRB Template - Simple Changes (3-5 points)
+# For single-file modifications and straightforward features
+
+git_privacy: false
+id: "PRB-002-reorder-top-navigation-2026-01-21"
+type: tiny-prb
+complexity: simple
+priority: "MEDIUM"
+title: "@Developer Reorder and rename top navigation items"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend)"
+  project_overview: "E-commerce platform for premium pet care products with subscription service, gift customization, shopping cart, and checkout functionality"
+  work_location: "Frontend codebase - Header navigation component"
+  key_context: "Reorder navigation items and update text labels in Header.tsx"
+  system_features: "Subscriptions, Gift Customization, Shopping Cart, Checkout, Loyalty Program, Product Catalog"
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/common/Header.tsx"
+      purpose: "Main header component with top navigation links"
+      sample: "categories array defining navigation order: Subscription, Gift Box, Daily Deals, Paw Rewards"
+  user_requirements:
+    original_request: "Reorder top nav Daily Deals > Gift Boxes > Rewards > Subscriptions"
+    success_criteria:
+      - "Navigation order changed to: Daily Deals, Gift Boxes, Rewards, Subscriptions"
+      - "Text updated: 'Subscription' → 'Subscriptions', 'Gift Box' → 'Gift Boxes', 'Paw Rewards' → 'Rewards'"
+      - "Navigation links and icons remain functional"
+      - "UI displays updated order and labels correctly"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, Frontend UI Navigation"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Reorder categories array in Header.tsx (lines 27-32)"
+    - "Update navigation item names: 'Subscription' → 'Subscriptions', 'Gift Box' → 'Gift Boxes', 'Paw Rewards' → 'Rewards'"
+    - "Maintain all icon associations and link paths"
+    - "Preserve array structure and TypeScript types"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Single file modification scope"
+  technical:
+    - "Under 10 lines of changes"
+    - "Simple array reordering and text updates"
+    - "No logic changes required"
+
+# ========================================
+# EXECUTION PROCESS: 7 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: MANDATORY git_privacy validation BEFORE ALL git operations:
+  1. Load git_privacy setting from configuration (NEVER assume)
+  2. When git_privacy=true, strip ALL AI mentions from:
+     - Commit messages (remove "AI", "Claude", "agent", "Generated with Claude Code", etc.)
+     - PR descriptions and titles
+     - Release notes and changelogs
+     - Any git-visible text including co-author attributions
+  3. Use clean, professional language in all git operations
+  4. Block git operations if privacy setting not validated
+
+  Current Setting: git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: "No relevant patterns found - straightforward array reordering"
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_file: "src/components/common/Header.tsx"
+  changes_needed:
+    - change: "Reorder categories array (lines 27-32)"
+      from: |
+        const categories = useMemo<Category[]>(() => [
+          { name: 'Subscription', link: '/subscriptions', icon: <Heart className="w-5 h-5" /> },
+          { name: 'Gift Box', link: '/gifts', icon: <Gift className="w-5 h-5" /> },
+          { name: 'Daily Deals', link: '/deals', icon: <Percent className="w-5 h-5" /> },
+          { name: 'Paw Rewards', link: '/loyalty-cards', icon: <Trophy className="w-5 h-5" /> },
+        ], []);
+      to: |
+        const categories = useMemo<Category[]>(() => [
+          { name: 'Daily Deals', link: '/deals', icon: <Percent className="w-5 h-5" /> },
+          { name: 'Gift Boxes', link: '/gifts', icon: <Gift className="w-5 h-5" /> },
+          { name: 'Rewards', link: '/loyalty-cards', icon: <Trophy className="w-5 h-5" /> },
+          { name: 'Subscriptions', link: '/subscriptions', icon: <Heart className="w-5 h-5" /> },
+        ], []);
+  validation: "Verify navigation renders correctly in UI with new order and names"
+
+## STEP 3: REVIEW
+review_checklist:
+  - "Functional requirements met - navigation reordered and renamed"
+  - "All links and icons preserved correctly"
+  - "TypeScript types maintained"
+  - "No unintended side effects"
+
+## STEP 4: VERSION
+version_bump:
+  type: "patch"
+  action: "Bump version number in package.json (0.1.1 → 0.1.2)"
+
+## STEP 5: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Changed
+      - Reordered top navigation: Daily Deals, Gift Boxes, Rewards, Subscriptions
+      - Updated navigation labels: 'Subscription' → 'Subscriptions', 'Gift Box' → 'Gift Boxes', 'Paw Rewards' → 'Rewards'
+    required: true
+  additional: "No additional documentation affected - UI navigation change only"
+  comments: "No complex logic - simple array reordering and text updates"
+
+## STEP 6: GIT COMMIT
+git_commit:
+  commit_message: "PRB-002: Reorder and rename top navigation items\n\nNew order: Daily Deals > Gift Boxes > Rewards > Subscriptions\n\nUpdated labels:\n- 'Subscription' → 'Subscriptions'\n- 'Gift Box' → 'Gift Boxes'\n- 'Paw Rewards' → 'Rewards'\n\nImproves navigation clarity and user experience."
+  privacy_filter: false
+  action: "Commit changes with descriptive message"
+
+## STEP 7: GIT PUSH
+git_push:
+  action: "Push to remote repository on branch bugx/issue-fix"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive message following PRB-002: [DESCRIPTION] format"
+      - "Git push to remote with proper branch handling"
+      - "Privacy filter applied per configuration (git_privacy=false)"
+      blocked_patterns:
+        - "No git operations needed"
+        - "Skip git workflow"
+        - "Direct commit to main"
+        - "No branching required"
+        - "Simple change, no git process"
+      error_message: "❌ BLOCKED: Git operations are mandatory. Branch protection and commit standards must be followed."
+
+    sme_review:
+      - "Self-review checklist completion with all items checked"
+      - "Navigation order and labels validation"
+      - "Functional requirements verification"
+      - "UI rendering validation"
+      blocked_patterns:
+        - "No review needed"
+        - "Skip validation steps"
+        - "Obvious changes"
+        - "Too small for review"
+        - "Self-evident implementation"
+      error_message: "❌ BLOCKED: SME review processes are mandatory for all PRBs regardless of size."
+
+    documentation:
+      - "CHANGELOG entry required for all changes"
+      - "Version bump completed in package.json"
+      blocked_patterns:
+        - "No documentation needed"
+        - "Self-documenting code"
+        - "Skip CHANGELOG"
+        - "No docs affected"
+        - "Too simple to document"
+      error_message: "❌ BLOCKED: Documentation updates are mandatory. CHANGELOG and version updates required."
+
+    version_management:
+      - "Version bump completed appropriately (patch level)"
+      - "package.json version updated (0.1.1 → 0.1.2)"
+      blocked_patterns:
+        - "No version change needed"
+        - "Skip versioning"
+        - "Version not applicable"
+      error_message: "❌ BLOCKED: Version management is mandatory for all changes."
+
+  workflow:
+    version_bump: true
+    version_type: "patch"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+    release_automation: false
+    auto_merge: false
+    coordination_required: false
+    breaking_change_assessment: false
+
+  enforcement_rules:
+    - "ALL 7 execution steps must be completed in order"
+    - "NO bypass language or skip patterns allowed"
+    - "MANDATORY git workflow compliance per project configuration"
+    - "REQUIRED documentation updates for every change"
+    - "VERSION bump mandatory for all modifications"
+
+# MCP Operations Extension Points
+mcp_operations:
+  memory:
+    condition: false
+    provider: "file-based"
+    operations:
+      - action: store_learning
+        topic: "ui-navigation-changes"
+        content: "Navigation reordering and label updates in React Header component"
+    fallback: "file-based"
+
+  issue_tracking:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+  documentation:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: Memory searched (none exists) and patterns identified (none applicable)
+  ☐ Step 2 - Implementation: Categories array reordered and labels updated
+  ☐ Step 3 - Review: Self-review checklist completed with UI validation
+  ☐ Step 4 - Version: package.json version bumped (0.1.1 → 0.1.2)
+  ☐ Step 5 - Documentation: CHANGELOG updated with navigation changes
+  ☐ Step 6 - Git Commit: Changes committed with descriptive message
+  ☐ Step 7 - Git Push: Changes pushed to remote branch bugx/issue-fix
