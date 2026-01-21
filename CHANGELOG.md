@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-01-22
+
+### Added
+- **Backend Pricing Calculation API Integration**: Integrated POST /api/pricing/calculate for server-side pricing logic
+  - Automatic birthday discount detection via backend (10% on user's birthday)
+  - Loyalty points preview from backend calculation (100 LKR = 1 point)
+  - Birthday celebration message when discount applies
+  - `PricingCalculation` TypeScript interface for API response structure
+  - Loading and error states for pricing API calls with retry functionality
+
+### Changed
+- **Checkout Pricing Logic**: Moved from frontend to backend calculation
+  - Birthday discount now detected server-side using authenticated user's JWT token (more secure)
+  - Points calculation handled by backend for accuracy and consistency
+  - Pricing updates reactively when cart contents change
+  - Debounced API calls to avoid excessive requests (500ms delay)
+
+### Technical Improvements
+- Added comprehensive JSDoc documentation to PricingCalculation interface
+- Implemented debounced API calls for performance optimization
+- Enhanced error handling with user-friendly retry mechanism
+- Birthday celebration UI with gradient background and celebration emoji
+- Points preview showing current balance, points to earn, and new balance
+
 ## [0.1.2] - 2026-01-21
 
 ### Changed

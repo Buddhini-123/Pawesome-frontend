@@ -6,6 +6,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useLoyalty } from '../../../hooks/useLoyalty';
 import { formatters } from '../../../utils/formatters';
 import { orderService } from '../../../services/order.service';
+import { PricingCalculation } from '../../../types';
 import { 
   CheckCircle, 
   AlertCircle, 
@@ -105,6 +106,11 @@ const Checkout: React.FC = () => {
 
   const [addressOption, setAddressOption] = useState<'select' | 'custom'>('select');
   const [addresses, setAddresses] = useState<any[]>([]);
+
+  // Pricing API integration states
+  const [pricing, setPricing] = useState<PricingCalculation | null>(null);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState<CheckoutForm>({
     shippingAddress: {
@@ -250,6 +256,41 @@ const Checkout: React.FC = () => {
     fetchAddresses();
   }, []);
 
+  // Fetch pricing from backend API
+  const fetchPricing = async (subtotal: number) => {
+    if (subtotal <= 0) return;
+
+    setPricingLoading(true);
+    setPricingError(null);
+
+    try {
+      const response = await api.request<PricingCalculation>('/pricing/calculate', {
+        method: 'POST',
+        body: { subtotal }
+      });
+
+      if (response.success && response.data) {
+        setPricing(response.data);
+      }
+    } catch (error: any) {
+      console.error('Pricing API error:', error);
+      setPricingError('Failed to calculate pricing. Please try again.');
+    } finally {
+      setPricingLoading(false);
+    }
+  };
+
+  // Debounced pricing API call when subtotal changes
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (subscriptionSubtotal > 0) {
+        fetchPricing(subscriptionSubtotal);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [subscriptionSubtotal]);
+
   // Debug logging
   useEffect(() => {
     console.log("Checkout debug:", {
@@ -275,14 +316,21 @@ const Checkout: React.FC = () => {
     return null;
   }
 
-  // Calculate pricing
+  // Calculate pricing - use backend API when available
   const baseShippingCost = subscriptionSubtotal >= 2000 ? 0 : 150;
   const deliveryCharge = formData.deliveryOption === 'express' ? 100 : 0;
   const codCharge = formData.paymentMethod === 'cod' ? 50 : 0;
   const shippingCost = baseShippingCost + deliveryCharge;
-  const subtotalAfterCoupon = subscriptionSubtotal - couponDiscount;
+
+  // Use backend pricing calculation for birthday discount and total
+  const birthdayDiscount = pricing?.birthday_discount?.applies ? pricing.birthday_discount.amount : 0;
+  const subtotalAfterBirthdayDiscount = pricing?.total ?? subscriptionSubtotal;
+  const subtotalAfterCoupon = subtotalAfterBirthdayDiscount - couponDiscount;
   const subtotalAfterLoyalty = subtotalAfterCoupon - loyaltyRedemption.value;
   const finalTotal = subtotalAfterLoyalty + shippingCost + codCharge;
+
+  // Points to earn from backend API
+  const pointsToEarn = pricing?.loyalty_points?.points_to_earn ?? Math.floor(finalTotal / 100);
 
   const handleShippingChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -1544,13 +1592,32 @@ const Checkout: React.FC = () => {
         </div>
 
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="border-red-500 mb-6 p-4 bg-coral-red/10 border-2 border-coral-red/20 text-coral-red rounded-xl flex items-center max-w-4xl mx-auto"
           >
             <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
             <span className="font-fredoka text-red-500">{error}</span>
+          </motion.div>
+        )}
+
+        {pricingError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-vibrant-orange/10 border-2 border-vibrant-orange/20 text-vibrant-orange rounded-xl flex items-center justify-between max-w-4xl mx-auto"
+          >
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span className="font-fredoka">{pricingError}</span>
+            </div>
+            <button
+              onClick={() => fetchPricing(subscriptionSubtotal)}
+              className="px-4 py-2 bg-vibrant-orange text-white rounded-lg hover:bg-vibrant-orange/90 transition-colors font-fredoka text-sm"
+            >
+              Retry
+            </button>
           </motion.div>
         )}
 
@@ -1672,7 +1739,32 @@ const Checkout: React.FC = () => {
                       {currentCurrency} {safeDisplayPrice(subscriptionSubtotal)}
                     </span>
                   </div>
-                  
+
+                  {/* Birthday Discount from Backend API */}
+                  {pricingLoading && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-medium-gray">Checking for discounts...</span>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-blue" />
+                    </div>
+                  )}
+
+                  {pricing?.birthday_discount?.applies && (
+                    <div className="p-3 bg-gradient-to-r from-coral-red/10 to-sunny-yellow/10 rounded-xl border-2 border-coral-red/20">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center">
+                          <span className="text-2xl mr-2">🎂</span>
+                          <span className="font-fredoka font-semibold text-coral-red">Birthday Special!</span>
+                        </div>
+                        <span className="font-fredoka font-bold text-coral-red">
+                          -{currentCurrency} {safeDisplayPrice(pricing.birthday_discount.amount)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-medium-gray ml-10">
+                        {pricing.birthday_discount.message}
+                      </p>
+                    </div>
+                  )}
+
                   {couponDiscount > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-medium-gray flex items-center">
@@ -1726,15 +1818,23 @@ const Checkout: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Loyalty Points Earning */}
+                {/* Loyalty Points Earning - Backend API Preview */}
                 {loyaltyCard && (
                   <div className="mt-6 p-4 bg-lavender/10 rounded-xl">
-                    <div className="flex items-center text-lavender">
-                      <Star className="h-5 w-5 mr-2" />
-                      <span className="text-sm font-fredoka">
-                        You'll earn {Math.floor(finalTotal * 0.1)} points from this order!
-                      </span>
+                    <div className="flex items-center justify-between text-lavender">
+                      <div className="flex items-center">
+                        <Star className="h-5 w-5 mr-2" />
+                        <span className="text-sm font-fredoka">
+                          You will earn {pointsToEarn} points with this order!
+                        </span>
+                      </div>
                     </div>
+                    {pricing?.loyalty_points && (
+                      <div className="mt-2 text-xs text-medium-gray">
+                        <p>Current balance: {pricing.loyalty_points.current_balance} points</p>
+                        <p>New balance: {pricing.loyalty_points.new_balance} points</p>
+                      </div>
+                    )}
                   </div>
                 )}
 

@@ -53,6 +53,21 @@ export interface User {
   pets?: Pet[];
 }
 
+// Admin Customer type with loyalty data (from backend API)
+export interface AdminCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: 'user' | 'admin';
+  created_at: string;
+  loyalty_balance?: {
+    balance: number;
+    card_number: string | null;
+    tier: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
+  };
+}
+
 export interface Address {
   id: string;
   type: 'home' | 'work' | 'other';
@@ -465,4 +480,25 @@ export interface Notification {
   title: string;
   message?: string;
   duration?: number;
+}
+
+/**
+ * Pricing calculation response from backend pricing API
+ * POST /api/pricing/calculate
+ * Backend handles birthday detection, discount calculation, and loyalty points
+ */
+export interface PricingCalculation {
+  subtotal: number;
+  birthday_discount: {
+    applies: boolean;
+    amount: number;
+    percentage: number;
+    message: string;
+  } | null;
+  total: number;
+  loyalty_points: {
+    current_balance: number;
+    points_to_earn: number;
+    new_balance: number;
+  };
 }
