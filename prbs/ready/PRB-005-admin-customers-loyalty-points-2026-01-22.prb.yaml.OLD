@@ -1,0 +1,314 @@
+# Tiny PRB Template - Simple Changes (3-5 points)
+# For single-file modifications and straightforward features
+
+git_privacy: false
+id: "PRB-005-admin-customers-loyalty-points-2026-01-22"
+type: tiny-prb
+complexity: simple
+priority: "MEDIUM"
+title: "@Developer Add loyalty points column to Admin Customers screen"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend)"
+  project_overview: "E-commerce platform for premium pet care products with admin panel. Enhancing admin customer management with loyalty program visibility"
+  work_location: "Frontend codebase - Admin Users component"
+  key_context: "Add loyalty points, card number, and tier columns to existing Admin UserList component table"
+  system_features: "Admin Panel (Users, Orders, Products, Subscriptions, Deals), Loyalty System"
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/admin/Users/UserList.tsx"
+      purpose: "Admin component displaying list of all users in tabular format"
+      sample: "User table with columns: Name, Email, Phone, Role, Actions. Uses DataTable component for rendering"
+    - path: "src/services/loyalty.service.ts"
+      purpose: "Loyalty service providing getLoyaltyCard method to fetch loyalty data by userId"
+      sample: "loyaltyService.getLoyaltyCard(userId) returns LoyaltyCard with points, tier, cardNumber"
+    - path: "src/types/loyalty.ts"
+      purpose: "Loyalty type definitions"
+      sample: "LoyaltyCard interface, LoyaltyTier enum, tier benefits"
+  user_requirements:
+    original_request: "Admin should view customers + loyalty points. Show loyalty card number, points balance, and tier in customer table"
+    success_criteria:
+      - "Loyalty Points column added to admin user table"
+      - "Loyalty Card Number column added to admin user table"
+      - "Tier badge/indicator column added to admin user table"
+      - "Data fetched from loyalty service for each user"
+      - "Loading state while fetching loyalty data"
+      - "Empty state for users without loyalty cards (show '-' or 'No Card')"
+      - "Tier badges styled with appropriate colors (Bronze/Silver/Gold/Platinum)"
+      - "Points displayed with thousand separators (e.g., 1,250)"
+      - "Table sortable by points column"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, Admin Panel, Data Tables, Loyalty Integration"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Fetch loyalty card data for each user using loyaltyService.getLoyaltyCard(userId)"
+    - "Add 'Loyalty Card' column showing card number or 'No Card'"
+    - "Add 'Points' column showing points balance with formatting"
+    - "Add 'Tier' column showing tier badge (BRONZE/SILVER/GOLD/PLATINUM)"
+    - "Handle loading state while fetching loyalty data"
+    - "Handle users without loyalty cards gracefully"
+    - "Enable sorting by points column"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Single file modification scope (UserList.tsx)"
+  technical:
+    - "Under 80 lines of changes"
+    - "TypeScript strict mode compliance"
+    - "Use existing DataTable component patterns"
+    - "Async data fetching with useEffect"
+    - "State management for loyalty data (useState)"
+    - "Error handling for failed loyalty data fetch"
+
+# ========================================
+# EXECUTION PROCESS: 7 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: MANDATORY git_privacy validation BEFORE ALL git operations:
+  1. Load git_privacy setting from configuration (NEVER assume)
+  2. When git_privacy=true, strip ALL AI mentions from:
+     - Commit messages (remove "AI", "Claude", "agent", "Generated with Claude Code", etc.)
+     - PR descriptions and titles
+     - Release notes and changelogs
+     - Any git-visible text including co-author attributions
+  3. Use clean, professional language in all git operations
+  4. Block git operations if privacy setting not validated
+
+  Current Setting: git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: |
+    Existing admin patterns found:
+    - Admin components use DataTable component for tabular data
+    - State management: useState for data arrays and loading states
+    - Data fetching: useEffect with async/await patterns
+    - Badge styling: existing Badge component in admin/ui/Badge.tsx
+    - Loading states: Show skeleton/spinner during data fetch
+    - Empty states: Show appropriate message when no data
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_file: "src/components/admin/Users/UserList.tsx"
+  changes_needed:
+    - change_1: "Import loyaltyService from services/loyalty.service"
+    - change_2: "Import LoyaltyCard, LoyaltyTier from types/loyalty"
+    - change_3: "Add useState for loyalty data: const [loyaltyData, setLoyaltyData] = useState<Map<string, LoyaltyCard | null>>(new Map())"
+    - change_4: "Add useState for loading: const [loyaltyLoading, setLoyaltyLoading] = useState(true)"
+    - change_5: "Add useEffect to fetch loyalty data for all users"
+    - change_6: "Create fetchLoyaltyData async function that loops through users and calls loyaltyService.getLoyaltyCard(userId)"
+    - change_7: "Add Loyalty Card Number column to table columns array"
+    - change_8: "Add Points column to table columns array (formatted with toLocaleString)"
+    - change_9: "Add Tier column to table columns array with tier badge styling"
+    - change_10: "Add helper function getTierBadgeColor(tier: LoyaltyTier) for badge styling"
+    - change_11: "Add loading indicator for loyalty data column if still fetching"
+    - change_12: "Handle null/undefined loyalty data with 'No Card' or '-' display"
+  validation: "Test admin user list displays loyalty data correctly, verify loading states, test sorting by points, verify tier badges styled correctly"
+
+## STEP 3: REVIEW
+review_checklist:
+  - "Functional requirements met - loyalty columns added and working"
+  - "Data fetching logic correct and efficient"
+  - "Loading states displayed appropriately"
+  - "Empty states handled for users without loyalty cards"
+  - "Tier badges styled with correct colors"
+  - "Points formatted with thousand separators"
+  - "Table sorting by points works correctly"
+  - "TypeScript compilation passes with no errors"
+  - "No performance issues with data fetching"
+
+## STEP 4: VERSION
+version_bump:
+  type: "minor"
+  action: "Bump version number in package.json (0.2.0 → 0.3.0) - admin feature addition"
+
+## STEP 5: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Added
+      - Loyalty program visibility in Admin Customers screen
+      - Loyalty Card Number column in admin user table
+      - Points Balance column in admin user table (sortable)
+      - Tier Badge column showing customer loyalty tier
+      - Loading states for loyalty data fetching
+      - Empty states for users without loyalty cards
+
+      ### Changed
+      - Enhanced admin user table with loyalty program columns
+      - Improved customer data visibility for admin users
+    required: true
+  additional: "Update admin documentation if exists"
+  comments: "Add inline comments explaining loyalty data fetching logic"
+
+## STEP 6: GIT COMMIT
+git_commit:
+  commit_message: |
+    PRB-005: Add loyalty points to Admin Customers screen
+
+    Admin User Table Enhancements:
+    - Added Loyalty Card Number column
+    - Added Points Balance column (sortable, formatted with commas)
+    - Added Tier Badge column (Bronze/Silver/Gold/Platinum)
+
+    Data Fetching:
+    - Fetch loyalty data for all users on component mount
+    - Handle users without loyalty cards (display "No Card")
+    - Loading states during data fetch
+    - Error handling for failed loyalty data retrieval
+
+    UI Improvements:
+    - Tier badges styled with appropriate colors
+    - Points displayed with thousand separators
+    - Table sortable by points column
+
+    Improves admin visibility into customer loyalty program participation.
+  privacy_filter: false
+  action: "Commit changes with descriptive message"
+
+## STEP 7: GIT PUSH
+git_push:
+  action: "Push to remote repository on branch bugx/issue-fix"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive message following PRB-005: [DESCRIPTION] format"
+      - "Git push to remote with proper branch handling"
+      - "Privacy filter applied per configuration (git_privacy=false)"
+      blocked_patterns:
+        - "No git operations needed"
+        - "Skip git workflow"
+      error_message: "❌ BLOCKED: Git operations are mandatory."
+
+    sme_review:
+      - "Self-review checklist completion with all items checked"
+      - "Admin table rendering validated in browser"
+      - "Loyalty data fetching verified with multiple users"
+      - "TypeScript compilation validation (no errors)"
+      - "Sorting functionality tested"
+      blocked_patterns:
+        - "No review needed"
+        - "Skip validation steps"
+      error_message: "❌ BLOCKED: SME review and testing are mandatory."
+
+    documentation:
+      - "CHANGELOG entry required documenting admin enhancements"
+      - "Version bump completed in package.json (0.2.0 → 0.3.0)"
+      - "Inline code comments for loyalty data fetching"
+      blocked_patterns:
+        - "No documentation needed"
+        - "Skip CHANGELOG"
+      error_message: "❌ BLOCKED: Documentation updates are mandatory."
+
+    version_management:
+      - "Minor version bump completed (new admin feature)"
+      - "package.json version updated (0.2.0 → 0.3.0)"
+      blocked_patterns:
+        - "No version change needed"
+        - "Patch is sufficient"
+      error_message: "❌ BLOCKED: Minor version bump required for new features."
+
+  workflow:
+    version_bump: true
+    version_type: "minor"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+    release_automation: false
+    auto_merge: false
+    coordination_required: false
+    breaking_change_assessment: false
+
+  enforcement_rules:
+    - "ALL 7 execution steps must be completed in order"
+    - "NO bypass language or skip patterns allowed"
+    - "MANDATORY git workflow compliance per project configuration"
+    - "REQUIRED documentation updates for every change"
+    - "VERSION bump mandatory for all modifications"
+    - "TypeScript compilation must pass before commit"
+    - "Manual testing of admin table with loyalty data required"
+
+# MCP Operations Extension Points
+mcp_operations:
+  memory:
+    condition: false
+    provider: "file-based"
+    operations:
+      - action: store_learning
+        topic: "admin-enhancements"
+        content: "Adding loyalty program visibility to admin customer management tables"
+    fallback: "file-based"
+
+  issue_tracking:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+  documentation:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: Admin patterns identified (DataTable, Badge component)
+  ☐ Step 2 - Implementation: Loyalty columns added, data fetching implemented
+  ☐ Step 3 - Review: Admin table validated, sorting tested, TypeScript passed
+  ☐ Step 4 - Version: package.json version bumped (0.2.0 → 0.3.0)
+  ☐ Step 5 - Documentation: CHANGELOG updated, inline comments added
+  ☐ Step 6 - Git Commit: Changes committed with descriptive message
+  ☐ Step 7 - Git Push: Changes pushed to remote branch bugx/issue-fix
+
+# ACCEPTANCE CRITERIA
+acceptance_criteria:
+  admin_table_columns:
+    - loyalty_card: "Loyalty Card Number column displays card number or 'No Card'"
+    - points: "Points column displays formatted points with thousand separators"
+    - tier: "Tier column displays color-coded badge (Bronze/Silver/Gold/Platinum)"
+    - sorting: "Table can be sorted by points column (ascending/descending)"
+
+  data_fetching:
+    - fetch_all: "Loyalty data fetched for all users on component mount"
+    - async_handling: "Async data fetch handled properly with async/await"
+    - error_handling: "Failed loyalty fetch doesn't break admin table"
+    - performance: "Data fetching doesn't cause performance issues with many users"
+
+  tier_badges:
+    - bronze: "Bronze tier badge styled with orange/brown colors"
+    - silver: "Silver tier badge styled with gray/silver colors"
+    - gold: "Gold tier badge styled with yellow/gold colors"
+    - platinum: "Platinum tier badge styled with purple/indigo colors"
+
+  ui_states:
+    - loading: "Loading indicator shown while fetching loyalty data"
+    - no_card: "Users without loyalty cards show 'No Card' or '-'"
+    - formatting: "Points displayed with commas (e.g., 5,250 not 5250)"
+    - responsive: "Loyalty columns display correctly on different screen sizes"
+
+  empty_states:
+    - no_loyalty_users: "Table displays correctly when no users have loyalty cards"
+    - data_fetch_fail: "Graceful handling if loyalty service is unavailable"
+
+  validation_rules:
+    - non_negative: "Points displayed are never negative"
+    - valid_tiers: "Only valid tier values (BRONZE/SILVER/GOLD/PLATINUM) displayed"
+    - card_format: "Loyalty card numbers displayed in consistent format"

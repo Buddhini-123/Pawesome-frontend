@@ -1,19 +1,44 @@
-import React, { type JSX } from 'react';
+import React, { useState, useEffect, type JSX } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Trophy, 
-  TrendingUp, 
-  Gift, 
-  Users, 
+import {
+  Trophy,
+  TrendingUp,
+  Gift,
+  Users,
   Calendar,
   Star,
-  ChevronRight
+  ChevronRight,
+  AlertCircle,
+  Loader
 } from 'lucide-react';
 import { useLoyalty } from '../../hooks/useLoyalty';
-import { TIER_BENEFITS, LoyaltyTier } from '../../types/loyalty';
+import { TIER_BENEFITS, LoyaltyTier, LoyaltyBalance } from '../../types/loyalty';
+import { loyaltyService } from '../../services/loyalty.service';
 
 const LoyaltyDashboard: React.FC = () => {
   const { loyaltyCard, tierBenefits, badges } = useLoyalty();
+  const [balanceData, setBalanceData] = useState<LoyaltyBalance | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
+
+  // Fetch loyalty balance from backend API
+  useEffect(() => {
+    const fetchBalance = async () => {
+      setBalanceLoading(true);
+      setBalanceError(null);
+      try {
+        const balance = await loyaltyService.getLoyaltyBalance();
+        setBalanceData(balance);
+      } catch (error) {
+        console.error('Failed to fetch loyalty balance:', error);
+        setBalanceError('Failed to load balance. Please try again.');
+      } finally {
+        setBalanceLoading(false);
+      }
+    };
+
+    fetchBalance();
+  }, []);
 
   if (!loyaltyCard) {
     return null;
@@ -30,8 +55,90 @@ const LoyaltyDashboard: React.FC = () => {
     .sort((a, b) => (b.unlockedAt?.getTime() || 0) - (a.unlockedAt?.getTime() || 0))
     .slice(0, 3);
 
+  // Format expiry date for display
+  const formatExpiryDate = (expiryDate: string): string => {
+    try {
+      return new Date(expiryDate).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return expiryDate;
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Expiry Notice Banner */}
+      {balanceLoading && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-soft-gray rounded-xl p-4 flex items-center space-x-3"
+        >
+          <Loader className="h-5 w-5 text-medium-gray animate-spin" />
+          <p className="text-sm font-fredoka text-medium-gray">Loading balance...</p>
+        </motion.div>
+      )}
+
+      {balanceError && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-coral-red/10 border border-coral-red/30 rounded-xl p-4 flex items-start space-x-3"
+        >
+          <AlertCircle className="h-5 w-5 text-coral-red flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-fredoka text-coral-red">{balanceError}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-xs font-fredoka text-coral-red underline mt-1 hover:text-coral-red/80"
+            >
+              Retry
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {balanceData && !balanceLoading && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`rounded-xl p-4 ${
+            balanceData.expiring_soon > 0
+              ? 'bg-sunny-yellow/20 border border-sunny-yellow/40'
+              : 'bg-mint-green/10 border border-mint-green/30'
+          }`}
+        >
+          <div className="flex items-start space-x-3">
+            <AlertCircle
+              className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
+                balanceData.expiring_soon > 0 ? 'text-vibrant-orange' : 'text-mint-green'
+              }`}
+            />
+            <div className="flex-1">
+              {balanceData.expiring_soon > 0 ? (
+                <>
+                  <p className="text-sm font-fredoka font-semibold text-charcoal">
+                    {balanceData.expiring_soon} points expiring soon!
+                  </p>
+                  <p className="text-xs font-fredoka text-medium-gray mt-1">
+                    Points expire on {formatExpiryDate(balanceData.expiry_date)}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm font-fredoka text-charcoal">
+                  Points expire on {formatExpiryDate(balanceData.expiry_date)}
+                </p>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Credit Card Style Loyalty Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

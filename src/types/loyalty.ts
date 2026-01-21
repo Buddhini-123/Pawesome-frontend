@@ -81,6 +81,16 @@ export interface ReferralBonus {
   completedAt?: Date;
 }
 
+/**
+ * Loyalty balance response from backend API
+ * GET /api/loyalty/balance
+ */
+export interface LoyaltyBalance {
+  balance: number;
+  expiring_soon: number;
+  expiry_date: string;
+}
+
 export interface MarketingPreferences {
   emailNotifications: boolean;
   smsNotifications: boolean;

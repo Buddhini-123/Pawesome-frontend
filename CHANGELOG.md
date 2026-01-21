@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-01-22
+
+### Added
+- **Admin Customer Loyalty Integration**: Complete integration with backend API for customer loyalty data
+  - New `AdminCustomer` TypeScript interface with embedded loyalty balance information
+  - Single optimized API call to `/api/admin/customers?include=loyalty`
+  - Loyalty Card column displaying card numbers or "No Card" status
+  - Points column with thousand separator formatting and sortable functionality
+  - Tier column with color-coded badges (BRONZE, SILVER, GOLD, PLATINUM)
+  - Click-to-sort functionality for loyalty points (ascending/descending)
+  - Award icon for tier badges with appropriate color coding
+- Backend API integration for loyalty balance (GET /api/loyalty/balance)
+- Dynamic points expiry date display from backend
+- Expiring soon warning when points are about to expire
+- `LoyaltyBalance` TypeScript interface for API response
+- Loading and error states for balance API calls
+
+### Enhanced
+- **User Management Table**: Comprehensive loyalty data display
+  - Points displayed with green highlighting for better visibility
+  - Responsive error handling with retry functionality
+  - Loading states with informative messages
+  - Error display banner for failed API requests
+- Loyalty Dashboard now fetches expiry date from backend API (was hardcoded)
+- Expiry notice displays dynamic date from server
+- Enhanced user experience with loading skeleton and error retry functionality
+
+### Technical Improvements
+- **Type Safety**: Full TypeScript support for admin customer data structures
+- **API Integration**: Direct axios integration with backend loyalty endpoints
+- **State Management**: Enhanced React state for sorting and error handling
+- **Data Transformation**: Proper conversion between AdminCustomer and User types for modal compatibility
+- Added JSDoc comments to `LoyaltyBalance` interface and `getLoyaltyBalance()` method
+- Implemented authenticated API call with bearer token for balance retrieval
+- User-friendly date formatting (e.g., "Dec 31, 2027, 11:59 PM")
+- Conditional styling for expiry warnings based on `expiring_soon` count
+
+### Fixed
+- Backend API integration replacing mock user service for admin customer list
+- Type compatibility between AdminCustomer and User interfaces
+- Column header alignment for sortable points column
+
 ## [0.3.0] - 2026-01-22
 
 ### Added

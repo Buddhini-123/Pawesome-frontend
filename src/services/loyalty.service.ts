@@ -1,12 +1,13 @@
-import { 
-  LoyaltyCard, 
-  PointTransaction, 
-  LoyaltyRule, 
-  Badge, 
-  LoyaltyTier, 
-  LOYALTY_CONSTANTS, 
+import {
+  LoyaltyCard,
+  PointTransaction,
+  LoyaltyRule,
+  Badge,
+  LoyaltyTier,
+  LOYALTY_CONSTANTS,
   TIER_BENEFITS,
-  ReferralBonus
+  ReferralBonus,
+  LoyaltyBalance
 } from '../types/loyalty';
 import { User } from '../types';
 import { api } from './api';
@@ -153,11 +154,27 @@ class LoyaltyService {
     }
   }
 
+  /**
+   * Get loyalty balance with expiry information from backend API
+   * GET /api/loyalty/balance
+   * Requires authentication (bearer token)
+   */
+  async getLoyaltyBalance(): Promise<LoyaltyBalance> {
+    const response = await api.request<LoyaltyBalance>('/loyalty/balance', {
+      method: 'GET'
+    });
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    throw new Error('Failed to fetch loyalty balance');
+  }
+
   // Get points balance
   async getPointsBalance(loyaltyCardId: string): Promise<number> {
     try {
       const response = await api.request<{ balance: number }>(`/loyalty/balance/${loyaltyCardId}`);
-      
+
       if (response.success && response.data) {
         return response.data.balance;
       }

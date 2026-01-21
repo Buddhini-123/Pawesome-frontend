@@ -1,0 +1,284 @@
+# Tiny PRB Template - Simple Changes (3-5 points)
+# For single-file modifications and straightforward features
+
+git_privacy: false
+id: "PRB-003-loyalty-dashboard-expiry-and-interfaces-2026-01-22"
+type: tiny-prb
+complexity: simple
+priority: "HIGH"
+title: "@Developer Add expiry notice to Loyalty Dashboard and create TypeScript interfaces"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend)"
+  project_overview: "E-commerce platform for premium pet care products. Building enhanced Loyalty system UI with expiry notices, birthday discounts, and admin customer management"
+  work_location: "Frontend codebase - Loyalty components and TypeScript interfaces"
+  key_context: "Add expiry notice banner to existing LoyaltyDashboard component and create missing TypeScript interfaces for checkout pricing and admin customer data"
+  system_features: "Loyalty System (Dashboard, Points History, Badges, Tiers), Subscriptions, Gift Customization, Shopping Cart, Checkout"
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/loyalty/LoyaltyDashboard.tsx"
+      purpose: "Main loyalty dashboard showing card, balance, tier progress, badges, benefits"
+      sample: "Credit card style loyalty card with points balance, tier progress bar, stats cards, quick actions"
+    - path: "src/types/index.ts"
+      purpose: "Main TypeScript type definitions file"
+      sample: "Export interfaces for User, Product, Order, Cart, etc."
+    - path: "src/types/loyalty.ts"
+      purpose: "Loyalty-specific TypeScript interfaces"
+      sample: "LoyaltyCard, PointTransaction, Badge, LoyaltyTier, TIER_BENEFITS"
+  user_requirements:
+    original_request: "Show expiry notice: 'All points expire on Dec 31, 11:59 PM' in Loyalty Dashboard. Create TypeScript interfaces for PricingBreakdown and CustomerAdminRow"
+    success_criteria:
+      - "Expiry notice banner displayed prominently in Loyalty Dashboard"
+      - "Banner shows: 'All points expire on Dec 31, 11:59 PM'"
+      - "PricingBreakdown interface created with subtotal, discounts, tax, total fields"
+      - "CustomerAdminRow interface created for admin customer table with loyalty data"
+      - "Interfaces properly exported and typed"
+      - "UI displays banner with appropriate styling (warning/info theme)"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, Loyalty System UI, Type Safety"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Add expiry notice banner to LoyaltyDashboard component"
+    - "Display text: 'All points expire on Dec 31, 11:59 PM'"
+    - "Create PricingBreakdown TypeScript interface with: subtotal, birthdayDiscount, loyaltyDiscount, couponDiscount, tax, shipping, total, pointsEarned"
+    - "Create CustomerAdminRow TypeScript interface with: id, name, email, loyaltyCardNumber, points, tier, totalOrders, lastActivity"
+    - "Export new interfaces from appropriate type files"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Multi-file modification scope (3 files)"
+  technical:
+    - "Under 50 lines of changes total"
+    - "TypeScript strict mode compliance"
+    - "React component pattern consistency"
+    - "Tailwind CSS styling matching existing design system"
+
+# ========================================
+# EXECUTION PROCESS: 7 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: MANDATORY git_privacy validation BEFORE ALL git operations:
+  1. Load git_privacy setting from configuration (NEVER assume)
+  2. When git_privacy=true, strip ALL AI mentions from:
+     - Commit messages (remove "AI", "Claude", "agent", "Generated with Claude Code", etc.)
+     - PR descriptions and titles
+     - Release notes and changelogs
+     - Any git-visible text including co-author attributions
+  3. Use clean, professional language in all git operations
+  4. Block git operations if privacy setting not validated
+
+  Current Setting: git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: |
+    Existing patterns found:
+    - LoyaltyDashboard uses motion.div for animations with staggered delays
+    - Banner/notice components use rounded-2xl, p-6, shadow-lg
+    - Warning/info banners typically use bg-coral-red/10 or bg-primary-blue/10
+    - Font styling: font-fredoka for headings, text-charcoal for dark text
+    - Icon + text layout pattern already used in quick actions section
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_files:
+    - path: "src/components/loyalty/LoyaltyDashboard.tsx"
+      changes:
+        - "Add expiry notice banner after loyalty card (around line 95)"
+        - "Use motion.div with appropriate animation delay"
+        - "Style: bg-coral-red/10 border-l-4 border-coral-red rounded-2xl p-6"
+        - "Include Clock/AlertCircle icon from lucide-react"
+        - "Text: 'All points expire on Dec 31, 11:59 PM'"
+    - path: "src/types/index.ts"
+      changes:
+        - "Add PricingBreakdown interface export"
+        - "Add CustomerAdminRow interface export"
+    - path: "src/types/loyalty.ts"
+      changes:
+        - "Create PricingBreakdown interface with comprehensive pricing fields"
+        - "Create CustomerAdminRow interface for admin table data"
+  validation: "Check TypeScript compilation passes with no errors, UI renders banner correctly in loyalty dashboard"
+
+## STEP 3: REVIEW
+review_checklist:
+  - "Functional requirements met - expiry banner displayed, interfaces created"
+  - "Banner styling matches design system (Tailwind classes, Fredoka font)"
+  - "TypeScript interfaces properly typed with all required fields"
+  - "Interfaces exported correctly from type files"
+  - "No TypeScript compilation errors"
+  - "Banner animation consistent with existing dashboard animations"
+
+## STEP 4: VERSION
+version_bump:
+  type: "patch"
+  action: "Bump version number in package.json (0.1.2 → 0.1.3)"
+
+## STEP 5: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Added
+      - Points expiry notice banner in Loyalty Dashboard: "All points expire on Dec 31, 11:59 PM"
+      - `PricingBreakdown` TypeScript interface for comprehensive checkout pricing
+      - `CustomerAdminRow` TypeScript interface for admin customer loyalty data
+
+      ### Changed
+      - Enhanced Loyalty Dashboard with prominent expiry warning
+    required: true
+  additional: "Update type documentation if types/README.md exists"
+  comments: "Add JSDoc comments to new TypeScript interfaces describing each field"
+
+## STEP 6: GIT COMMIT
+git_commit:
+  commit_message: |
+    PRB-003: Add loyalty points expiry notice and TypeScript interfaces
+
+    Loyalty Dashboard enhancements:
+    - Added expiry notice banner: "All points expire on Dec 31, 11:59 PM"
+    - Styled with warning theme (coral-red accent)
+    - Positioned prominently after loyalty card display
+
+    New TypeScript interfaces:
+    - PricingBreakdown: Comprehensive checkout pricing with all discount types
+    - CustomerAdminRow: Admin customer table data with loyalty information
+
+    Improves user awareness of point expiration and type safety.
+  privacy_filter: false
+  action: "Commit changes with descriptive message"
+
+## STEP 7: GIT PUSH
+git_push:
+  action: "Push to remote repository on branch bugx/issue-fix"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive message following PRB-003: [DESCRIPTION] format"
+      - "Git push to remote with proper branch handling"
+      - "Privacy filter applied per configuration (git_privacy=false)"
+      blocked_patterns:
+        - "No git operations needed"
+        - "Skip git workflow"
+        - "Simple change, no git process"
+      error_message: "❌ BLOCKED: Git operations are mandatory. Branch protection and commit standards must be followed."
+
+    sme_review:
+      - "Self-review checklist completion with all items checked"
+      - "TypeScript compilation validation (no errors)"
+      - "UI rendering validation in browser"
+      - "Interface export validation"
+      blocked_patterns:
+        - "No review needed"
+        - "Skip validation steps"
+        - "TypeScript checks not needed"
+      error_message: "❌ BLOCKED: SME review processes are mandatory for all PRBs regardless of size."
+
+    documentation:
+      - "CHANGELOG entry required for all changes"
+      - "Version bump completed in package.json (0.1.2 → 0.1.3)"
+      - "JSDoc comments added to new TypeScript interfaces"
+      blocked_patterns:
+        - "No documentation needed"
+        - "Skip CHANGELOG"
+        - "Interfaces are self-documenting"
+      error_message: "❌ BLOCKED: Documentation updates are mandatory. CHANGELOG and JSDoc comments required."
+
+    version_management:
+      - "Version bump completed appropriately (patch level)"
+      - "package.json version updated (0.1.2 → 0.1.3)"
+      blocked_patterns:
+        - "No version change needed"
+        - "Skip versioning"
+      error_message: "❌ BLOCKED: Version management is mandatory for all changes."
+
+  workflow:
+    version_bump: true
+    version_type: "patch"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+    release_automation: false
+    auto_merge: false
+    coordination_required: false
+    breaking_change_assessment: false
+
+  enforcement_rules:
+    - "ALL 7 execution steps must be completed in order"
+    - "NO bypass language or skip patterns allowed"
+    - "MANDATORY git workflow compliance per project configuration"
+    - "REQUIRED documentation updates for every change"
+    - "VERSION bump mandatory for all modifications"
+    - "TypeScript compilation must pass before commit"
+
+# MCP Operations Extension Points
+mcp_operations:
+  memory:
+    condition: false
+    provider: "file-based"
+    operations:
+      - action: store_learning
+        topic: "loyalty-ui-enhancements"
+        content: "Adding expiry notice banners to loyalty dashboards with warning styling"
+    fallback: "file-based"
+
+  issue_tracking:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+  documentation:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: Existing patterns identified (banner styling, animation delays)
+  ☐ Step 2 - Implementation: Expiry banner added to LoyaltyDashboard, TypeScript interfaces created
+  ☐ Step 3 - Review: UI validated, TypeScript compilation passed, exports verified
+  ☐ Step 4 - Version: package.json version bumped (0.1.2 → 0.1.3)
+  ☐ Step 5 - Documentation: CHANGELOG updated, JSDoc comments added to interfaces
+  ☐ Step 6 - Git Commit: Changes committed with descriptive message
+  ☐ Step 7 - Git Push: Changes pushed to remote branch bugx/issue-fix
+
+# ACCEPTANCE CRITERIA
+acceptance_criteria:
+  loyalty_dashboard:
+    - banner_display: "Expiry notice banner visible after loyalty card"
+    - banner_text: "Displays exact text: 'All points expire on Dec 31, 11:59 PM'"
+    - banner_styling: "Warning theme with coral-red accent, rounded corners, shadow"
+    - animation: "Fade-in animation consistent with other dashboard elements"
+    - responsive: "Banner adapts to mobile/tablet/desktop viewports"
+
+  typescript_interfaces:
+    - pricing_breakdown: "Interface includes: subtotal, birthdayDiscount, loyaltyDiscount, couponDiscount, tax, shipping, total, pointsEarned (all number type)"
+    - customer_admin_row: "Interface includes: id (string), name (string), email (string), loyaltyCardNumber (string), points (number), tier (LoyaltyTier), totalOrders (number), lastActivity (Date)"
+    - exports: "Both interfaces properly exported from type files"
+    - compilation: "TypeScript compiles with no errors"
+    - jsdoc: "JSDoc comments document each interface and field"
+
+  ui_validation:
+    - no_loyalty_card: "Banner not displayed if user has no loyalty card"
+    - loading_state: "No layout shift during data loading"
+    - error_handling: "Graceful handling if loyalty data fails to load"
+
+  empty_states:
+    - not_applicable: "No empty states needed for this PRB (banner always shows same content if loyalty card exists)"
