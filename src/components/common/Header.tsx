@@ -25,10 +25,10 @@ const Header: React.FC = () => {
 
   // Memoize categories to prevent recreation on every render
   const categories = useMemo<Category[]>(() => [
-    { name: 'Subscription', link: '/subscriptions', icon: <Heart className="w-5 h-5" /> },
-    { name: 'Gift Box', link: '/gifts', icon: <Gift className="w-5 h-5" /> },
     { name: 'Daily Deals', link: '/deals', icon: <Percent className="w-5 h-5" /> },
-    { name: 'Paw Rewards', link: '/loyalty-cards', icon: <Trophy className="w-5 h-5" /> },
+    { name: 'Gift Boxes', link: '/gifts', icon: <Gift className="w-5 h-5" /> },
+    { name: 'Rewards', link: '/loyalty-cards', icon: <Trophy className="w-5 h-5" /> },
+    { name: 'Subscriptions', link: '/subscriptions', icon: <Heart className="w-5 h-5" /> },
   ], []);
 
   const petCategories = useMemo(() => [

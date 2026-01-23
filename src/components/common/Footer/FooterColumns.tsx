@@ -16,7 +16,7 @@ const FooterColumns: React.FC = () => {
     {
       title: 'Services',
       items: [
-        { text: 'Pet Subscriptions', icon: null },
+        { text: 'Subscriptions', icon: null },
         { text: 'Gift Boxes', icon: null },
         { text: 'Deals', icon: null },
         { text: 'Loyalty Rewards', icon: null },
