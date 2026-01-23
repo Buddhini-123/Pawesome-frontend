@@ -188,7 +188,7 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
                               <div className="text-right">
                                 <p className="text-xs text-medium-gray">Total</p>
                                 <p className="font-fredoka font-bold text-lg text-primary-blue">
-                                  ₹{subscription.total}
+                                  LKR {subscription.total}
                                 </p>
                               </div>
                             </div>
