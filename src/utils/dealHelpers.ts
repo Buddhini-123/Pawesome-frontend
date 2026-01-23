@@ -16,7 +16,7 @@ export const enhanceDeal = (legacyDeal: Partial<Deal>): Deal => {
     slug: legacyDeal.slug || '',
     category: legacyDeal.category || [],
     product_id: legacyDeal.product_id || legacyDeal.products?.[0] || 'default-product-id',
-    
+
     // Enhanced fields with defaults
     createdAt: legacyDeal.createdAt || now,
     updatedAt: legacyDeal.updatedAt || now,
@@ -25,16 +25,16 @@ export const enhanceDeal = (legacyDeal: Partial<Deal>): Deal => {
     currentUses: legacyDeal.currentUses || 0,
     tags: legacyDeal.tags || [],
     targetAudience: legacyDeal.targetAudience || 'all',
-    
+
     // Performance tracking with defaults
     views: legacyDeal.views || Math.floor(Math.random() * 1000) + 100,
     clicks: legacyDeal.clicks || Math.floor(Math.random() * 200) + 20,
     conversions: legacyDeal.conversions || Math.floor(Math.random() * 50) + 5,
     revenue: legacyDeal.revenue || Math.floor(Math.random() * 50000) + 5000,
-    
+
     // Coupon fields
     couponRequired: legacyDeal.couponRequired || false,
-    
+
     // Optional fields
     discount: legacyDeal.discount,
     discountType: legacyDeal.discountType,
@@ -45,7 +45,28 @@ export const enhanceDeal = (legacyDeal: Partial<Deal>): Deal => {
     maxUses: legacyDeal.maxUses,
     minOrderAmount: legacyDeal.minOrderAmount,
     maxDiscountAmount: legacyDeal.maxDiscountAmount,
-    couponCode: legacyDeal.couponCode
+    couponCode: legacyDeal.couponCode,
+
+    // Required Deal interface fields
+    start_date: legacyDeal.start_date || now.toISOString(),
+    end_date: legacyDeal.end_date || now.toISOString(),
+    is_available: legacyDeal.is_available || 'yes',
+    user_data: legacyDeal.user_data || {
+      can_claim: true,
+      has_claimed: null
+    },
+    usage_count: legacyDeal.usage_count || 0,
+    usage_statistics: legacyDeal.usage_statistics || {
+      total_claims: 0,
+      remaining_uses: legacyDeal.maxUses || 0,
+      usage_percentage: 0
+    },
+    applies_to: legacyDeal.applies_to || {
+      categories: legacyDeal.category || [],
+      products: legacyDeal.products || []
+    },
+    deal_type: legacyDeal.deal_type || legacyDeal.offerType || 'discount',
+    discount_value: legacyDeal.discount_value || legacyDeal.discount?.toString() || '0'
   };
 };
 

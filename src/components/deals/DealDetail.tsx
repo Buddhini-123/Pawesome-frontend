@@ -3,11 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Clock, Tag, Star, Heart, ChevronDown, ChevronUp, Info } from "lucide-react";
 import { Deal } from "../../types/deals";
+import { Product } from "../../types";
 import { api, host } from "../../services/api";
 import { toast } from 'react-toastify';
 import { useCart } from "../../hooks/useCart";
 
-interface Product {
+interface LocalProduct {
   id: number;
   name: string;
   image: string;
@@ -15,7 +16,13 @@ interface Product {
   salePrice?: number;
   primary_image: Image;
   price: number;
-  description: string
+  description: string;
+  brand?: string;
+  rating?: number;
+  reviews?: number;
+  category?: string;
+  subcategory?: string;
+  inStock?: boolean;
 }
 
 interface Image {
@@ -35,7 +42,7 @@ const DealDetail: React.FC = () => {
 
   const canClaim = deal?.user_data?.can_claim ?? true;
   const hasClaimed = deal?.user_data?.has_claimed ?? false;
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<LocalProduct[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -87,7 +94,7 @@ const DealDetail: React.FC = () => {
 
         // 🔥 Merge & de-duplicate products
         const mergedProducts = responses
-          .flatMap((res) => res.data.data)
+          .flatMap((res) => (res.data as any).data)
           .reduce((acc: any[], product: any) => {
             if (!acc.find((p) => p.id === product.id)) {
               acc.push(product);
@@ -243,7 +250,7 @@ const DealDetail: React.FC = () => {
                   {deal.deal_type == 'bogo' && (
                     <div className="flex items-center text-charcoal">
                       <Info className="w-5 h-5 mr-3 text-vibrant-orange" />
-                      <span className="font-fredoka"> Buy {deal.buy_qty} Get {deal.get_qty}</span>
+                      <span className="font-fredoka"> Buy {(deal as any).buy_qty || 1} Get {(deal as any).get_qty || 1}</span>
                     </div>
                   )}
                 </div>
@@ -312,13 +319,25 @@ const DealDetail: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => {
                     const discountedPrice =
-                      deal.discount_type === "percentage"
+                      deal.discountType === "percentage"
                         ? product.price - (product.price * parseFloat(deal.discount_value)) / 100
                         : product.price - parseFloat(deal.discount_value);
 
                     const handleAddToCart = () => {
                         const quantity = 1; // default to 1 for now
-                        addItem({ ...product, price: discountedPrice }, quantity);
+                        const cartProduct: Product = {
+                          id: product.id.toString(),
+                          name: product.name,
+                          image: product.image,
+                          price: discountedPrice,
+                          brand: product.brand || 'Unknown',
+                          rating: product.rating || 0,
+                          reviews: product.reviews || 0,
+                          category: product.category || 'General',
+                          subcategory: product.subcategory || 'General',
+                          inStock: product.inStock ?? true
+                        };
+                        addItem(cartProduct, quantity);
                         toast.success(`Added ${product.name} to cart!`);
                       };
 

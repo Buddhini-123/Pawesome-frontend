@@ -192,11 +192,7 @@ const Checkout: React.FC = () => {
 
   // Get currency from either subscription or cart
   const getCurrentCurrency = (): string => {
-    if (isSubscription && selectedProducts?.[0]?.currency) {
-      return getCurrencyDisplay(selectedProducts[0].currency);
-    } else if (cart?.[0]?.product?.currency) {
-      return getCurrencyDisplay(cart[0].product.currency);
-    }
+    // Product interface doesn't have currency field, always use LKR
     return "LKR";
   };
 
@@ -600,9 +596,7 @@ const Checkout: React.FC = () => {
         items: cart
         .filter(item => !String(item.product.id).startsWith('theme-'))
         .map(item => ({
-          productId: Number(
-            String(item.product.id).replace('prod-', '')
-          ),
+          productId: item.product.id, // Keep as string
           quantity: item.quantity,
           price: item.product.price
         })),
@@ -799,7 +793,7 @@ const Checkout: React.FC = () => {
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Choose Address</label>
                     <select
                       value={selectedAddressId || ''}
-                      onChange={(e) => setSelectedAddressId(Number(e.target.value))}
+                      onChange={(e) => setSelectedAddressId(e.target.value)}
                       className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all mb-2"
                     >
                       {addresses.map(addr => (
@@ -914,7 +908,7 @@ const Checkout: React.FC = () => {
                             checked={formData.shippingAddress.addressType === 'home'}
                             onChange={e => setFormData({
                               ...formData,
-                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
+                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value as 'home' | 'work' | 'other'}
                             })}
                             className="mr-2"
                           />
@@ -928,7 +922,7 @@ const Checkout: React.FC = () => {
                             checked={formData.shippingAddress.addressType === 'work'}
                             onChange={e => setFormData({
                               ...formData,
-                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
+                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value as 'home' | 'work' | 'other'}
                             })}
                             className="mr-2"
                           />
@@ -942,7 +936,7 @@ const Checkout: React.FC = () => {
                             checked={formData.shippingAddress.addressType === 'other'}
                             onChange={e => setFormData({
                               ...formData,
-                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value}
+                              shippingAddress: {...formData.shippingAddress, addressType: e.target.value as 'home' | 'work' | 'other'}
                             })}
                             className="mr-2"
                           />

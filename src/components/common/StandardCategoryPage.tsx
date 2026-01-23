@@ -34,27 +34,27 @@ const StandardCategoryPage: React.FC<StandardCategoryPageProps> = ({
     filteredProducts = filteredProducts.filter(product => {
       switch (filterType) {
         case 'Category':
-          // Match category_id with selected category values
-          return values.includes(product.category_id.toString());
+          // Match category with selected category values
+          return values.includes(product.category);
 
         case 'Brand':
-          // Match brand_id with selected brand values
-          return values.includes(product.brand_id.toString());
+          // Match brand with selected brand values
+          return values.includes(product.brand);
 
         case 'Price Range':
           return values.some(range => {
             const [min, max] = range.split('-').map(v => v.replace(/[^\d]/g, ''));
             if (max === '+') {
-              return parseFloat(product.price) >= parseInt(min);
+              return product.price >= parseInt(min);
             }
             return (
-              parseFloat(product.price) >= parseInt(min) &&
-              parseFloat(product.price) <= parseInt(max)
+              product.price >= parseInt(min) &&
+              product.price <= parseInt(max)
             );
           });
 
         case 'Rating':
-          return parseFloat(product.rating_avg) >= parseInt(values[0]);
+          return product.rating >= parseInt(values[0]);
 
         case 'Subcategory':
         case 'Condition Type':

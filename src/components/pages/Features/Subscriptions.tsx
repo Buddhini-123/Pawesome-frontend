@@ -256,14 +256,14 @@ const Subscriptions = () => {
     setIsModalOpen(true)
   }
 
-  const handleSubscriptionClick = (subscription: Subscription) => {
-    setSelectedSubscription(subscription)
+  const handleSubscriptionClick = (subscription: MappedSubscription) => {
+    setSelectedSubscription(subscription as any)
     setShowSubscriptionModal(true)
   }
 
-  const handleManageSubscription = (e: React.MouseEvent, subscription: Subscription) => {
+  const handleManageSubscription = (e: React.MouseEvent, subscription: MappedSubscription) => {
     e.stopPropagation() // Prevent card click
-    setSelectedSubscription(subscription)
+    setSelectedSubscription(subscription as any)
     setShowSubscriptionModal(true)
   }
 
@@ -734,7 +734,7 @@ const Subscriptions = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-medium-gray">Products Total</span>
                           <span className="font-medium">
-                            {product?.currency} {confirmedProducts.reduce((total, product) => {
+                            LKR {confirmedProducts.reduce((total, product) => {
                               const qty = productQuantities[product.id] || 1
                               return total + (product.price * qty)
                             }, 0)}
@@ -1213,7 +1213,7 @@ const Subscriptions = () => {
                           {selectedProduct.name}
                         </h2>
                         <p className="text-lg text-medium-gray flex items-center gap-2">
-                          by <span className="font-fredoka font-semibold text-vibrant-orange">{selectedProduct.brand.name}</span>
+                          by <span className="font-fredoka font-semibold text-vibrant-orange">{selectedProduct.brand}</span>
                         </p>
                       </div>
 
@@ -1224,14 +1224,14 @@ const Subscriptions = () => {
                             <Star
                               key={i}
                               className={`h-5 w-5 ${
-                                i < Math.floor(selectedProduct.rating_avg)
+                                i < Math.floor(selectedProduct.rating || 0)
                                   ? 'fill-yellow-400 text-yellow-400'
                                   : 'fill-gray-200 text-gray-200'
                               }`}
                             />
                           ))}
                           <span className="ml-2 font-fredoka font-semibold text-charcoal">
-                            {selectedProduct.rating_avg}
+                            {selectedProduct.rating}
                           </span>
                         </div>
                         <span className="text-medium-gray">
@@ -1250,7 +1250,7 @@ const Subscriptions = () => {
                       <div className="mb-6">
                         <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-2">Description</h3>
                         <p className="text-medium-gray leading-relaxed">
-                          {selectedProduct.description || `Premium ${selectedProduct.category.name} for your beloved pet. This high-quality product from ${selectedProduct.brand.name} is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
+                          {selectedProduct.description || `Premium ${selectedProduct.category} for your beloved pet. This high-quality product from ${selectedProduct.brand} is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
                         </p>
                       </div>
 
@@ -1479,7 +1479,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         >
           {product.name}
         </h3>
-        <p className="text-xs text-medium-gray mb-2">{product.brand?.name}</p>
+        <p className="text-xs text-medium-gray mb-2">{product.brand}</p>
         
         {/* Price */}
         <div className="flex items-center justify-between mb-3">
@@ -1506,7 +1506,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onViewDetails(product?.slug);
+              onViewDetails(product);
             }}
             className="flex-1 bg-primary-blue hover:bg-blue-700 text-white text-xs font-fredoka font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
           >

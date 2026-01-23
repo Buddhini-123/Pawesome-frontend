@@ -233,8 +233,37 @@ const DealForm: React.FC<DealFormProps> = ({
         ...formData,
         validFrom: new Date(formData.validFrom),
         validUntil: formData.validUntil ? new Date(formData.validUntil) : undefined,
-        createdBy: 'admin-user-1' // This should come from auth context
-      };
+        createdBy: 'admin-user-1', // This should come from auth context
+        start_date: formData.validFrom,
+        end_date: formData.validUntil || formData.validFrom,
+        is_available: 'yes',
+        user_data: {
+          can_claim: true,
+          has_claimed: null
+        },
+        usage_count: 0,
+        usage_statistics: {
+          total_claims: 0,
+          remaining_uses: formData.maxUses || 0,
+          usage_percentage: 0
+        },
+        applies_to: {
+          categories: formData.category,
+          products: formData.products || []
+        },
+        deal_type: formData.offerType,
+        discount_value: formData.discount?.toString() || '0',
+        // Ensure required fields are present
+        offerType: formData.offerType || 'discount',
+        isActive: formData.isActive ?? true,
+        slug: formData.slug || '',
+        category: formData.category || [],
+        product_id: (formData.products && formData.products[0]) || 'default-product-id',
+        priority: formData.priority || 5,
+        tags: formData.tags || [],
+        targetAudience: formData.targetAudience || 'all',
+        couponRequired: formData.couponRequired || false
+      } as Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'currentUses' | 'views' | 'clicks' | 'conversions' | 'revenue'>;
 
       if (deal) {
         await adminDealsService.updateDeal(deal.id, dealData);

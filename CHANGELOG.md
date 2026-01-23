@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-01-23
+
+### Fixed
+- **TypeScript Compilation Errors**: Resolved 25 TypeScript errors blocking app compilation
+  - Fixed Product interface field name mismatches (category_id → category, brand_id → brand, rating_avg → rating)
+  - Fixed type errors with price field (removed unnecessary parseFloat on number type)
+  - Fixed Deal interface property access errors (discount_type → discountType, buy_qty/get_qty)
+  - Fixed Checkout type mismatches (productId, addressType, currency field)
+  - Fixed Subscriptions component type errors (brand.name, category.name object access)
+  - Fixed DealForm and dealHelpers missing Deal properties
+
+### Technical
+- Improved type safety across Product and Deal interfaces
+- Consistent field naming between backend responses and frontend types
+- Enhanced Deal interface with all required backend fields
+- Product interface now correctly reflects backend data structure
+
 ## [0.5.0] - 2026-01-23
 
 ### Added
