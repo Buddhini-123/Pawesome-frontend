@@ -573,29 +573,39 @@ const Checkout: React.FC = () => {
         //   quantity: item.quantity,
         //   price: item.product.price
         // })),
-        items: cart.map(item => {
-          // Extract numeric ID from prefixed string or number
-          let productId;
-          const idValue = item.product.id;
+        // items: cart.map(item => {
+        //   // Extract numeric ID from prefixed string or number
+        //   let productId;
+        //   const idValue = item.product.id;
           
-          // Convert to string first
-          const idString = String(idValue);
+        //   // Convert to string first
+        //   const idString = String(idValue);
           
-          if (idString.startsWith('theme-')) {
-            productId = parseInt(idString.replace('theme-', ''));
-          } else if (idString.startsWith('prod-')) {
-            productId = parseInt(idString.replace('prod-', ''));
-          } else {
-            // For deal products, it might already be a number
-            productId = parseInt(idString) || idValue;
-          }
+        //   if (idString.startsWith('theme-')) {
+        //     productId = parseInt(idString.replace('theme-', ''));
+        //   } else if (idString.startsWith('prod-')) {
+        //     productId = parseInt(idString.replace('prod-', ''));
+        //   } else {
+        //     // For deal products, it might already be a number
+        //     productId = parseInt(idString) || idValue;
+        //   }
           
-          return {
-            productId: productId, // Send numeric ID
-            quantity: item.quantity,
-            price: item.product.price
-          };
-        }),
+        //   return {
+        //     productId: productId, // Send numeric ID
+        //     quantity: item.quantity,
+        //     price: item.product.price
+        //   };
+        // }),
+
+        items: cart
+        .filter(item => !String(item.product.id).startsWith('theme-'))
+        .map(item => ({
+          productId: Number(
+            String(item.product.id).replace('prod-', '')
+          ),
+          quantity: item.quantity,
+          price: item.product.price
+        })),
         // shippingAddress: formData.shippingAddress,
         shippingAddress: buildShippingAddress(),
         paymentMethod: formData.paymentMethod,
