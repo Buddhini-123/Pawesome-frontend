@@ -23,6 +23,7 @@ import Brands from './components/pages/Shop/Brands';
 import Cart from './components/pages/Shop/Cart';
 import Checkout from './components/pages/Shop/Checkout';
 import OrderConfirmation from './components/pages/Shop/OrderConfirmation';
+import SearchResults from './components/pages/Shop/SearchResults';
 import Account from './components/pages/Account/Account';
 import Contact from './components/pages/Account/Contact';
 import NotFound from './components/pages/NotFound';
@@ -69,6 +70,7 @@ const App: React.FC = () => {
           <Route path="/other-animals" element={<OtherAnimals />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/brands" element={<Brands />} />
+          <Route path="/search" element={<SearchResults />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={
             <ProtectedRoute>

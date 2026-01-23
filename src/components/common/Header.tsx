@@ -45,9 +45,11 @@ const Header: React.FC = () => {
 
   const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Searching for:', searchQuery);
-    // TODO: Implement search functionality
-  }, [searchQuery]);
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setShowMobileSearch(false);
+    }
+  }, [searchQuery, navigate]);
 
   const handleLogout = useCallback(async () => {
     await logout();

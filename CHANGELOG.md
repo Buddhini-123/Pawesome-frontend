@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-01-23
+
+### Added
+- **Backend Search API Integration**: Complete integration with backend search endpoint
+  - Connected searchbar to `/api/search/products` backend endpoint
+  - SearchResults page component with grid layout
+  - URL-based search with shareable search query links
+  - Real-time search functionality from header searchbar
+  - Loading states with skeleton grid for better UX
+  - Error handling with retry functionality
+  - Empty state with category suggestions for no results
+  - Search result count display
+  - Responsive design for mobile and desktop
+
+### Enhanced
+- **Header Search Functionality**: Searchbar now navigates to search results page
+  - Desktop and mobile search bars navigate to `/search?q={query}`
+  - URL encoding for search queries
+  - Mobile search overlay closes after search submission
+
+- **Products Service**: Backend API integration for search
+  - Replaced mock search filtering with backend API call
+  - Proper error handling with fallback to empty array
+  - TypeScript type safety for API responses
+
+### Technical Improvements
+- **Route Addition**: New `/search` route added to App.tsx router
+- **Component Reusability**: SearchResults page reuses existing ProductCard component
+- **Type Safety**: Full TypeScript support for search functionality
+- **Performance**: Backend search for accurate and fast product discovery
+- **URL Parameters**: Query parameter handling with `useSearchParams` hook
+
+### Fixed
+- Header search functionality now fully operational with backend integration
+- Mobile search overlay closes properly after search submission
+
 ## [0.4.0] - 2026-01-22
 
 ### Added

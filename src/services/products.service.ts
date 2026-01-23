@@ -130,15 +130,47 @@ class ProductsService {
   }
 
   async searchProducts(query: string): Promise<Product[]> {
-    await this.simulateDelay();
-    
-    const searchQuery = query.toLowerCase();
-    return this.allProducts.filter(
-      product =>
-        product.name.toLowerCase().includes(searchQuery) ||
-        product.brand.toLowerCase().includes(searchQuery) ||
-        product.description?.toLowerCase().includes(searchQuery)
-    );
+    try {
+      const { api } = await import('./api');
+      const response = await api.request<any>(
+        `/search/products?q=${encodeURIComponent(query)}`,
+        { method: 'GET' }
+      );
+
+      if (!response.success || !response.data?.data) {
+        return [];
+      }
+
+      // Transform backend response to frontend Product interface
+      const products: Product[] = response.data.data.map((item: any) => {
+        // Use category-based placeholder if no image
+        const categoryName = item.category?.name?.toLowerCase() || 'dog';
+        const placeholderImage = `/icons/${categoryName === 'dogs' ? 'dog' : categoryName === 'cats' ? 'cat' : categoryName === 'birds' ? 'bird' : 'dog'}.png`;
+
+        return {
+          id: item.id.toString(),
+          name: item.name,
+          brand: item.brand?.name || 'Unknown',
+          price: parseFloat(item.price) || 0,
+          originalPrice: item.original_price ? parseFloat(item.original_price) : undefined,
+          image: item.images?.[0] || placeholderImage,
+          images: item.images || [],
+          rating: parseFloat(item.rating_avg) || 0,
+          reviews: item.review_count || 0,
+          category: item.category?.name || 'Unknown',
+          subcategory: item.category?.parent?.name || '',
+          inStock: item.is_in_stock || item.stock_quantity > 0,
+          stock: item.stock_quantity,
+          discount: item.discount_percentage || undefined,
+          description: item.description || ''
+        };
+      });
+
+      return products;
+    } catch (error) {
+      console.error('Search failed:', error);
+      return [];
+    }
   }
 
   async getRelatedProducts(productId: string, limit: number = 4): Promise<Product[]> {
