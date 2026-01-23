@@ -568,11 +568,34 @@ const Checkout: React.FC = () => {
 
       // 🌟 ELSE → Normal one-time order flow
       const orderData = {
-        items: cart.map(item => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-          price: item.product.price
-        })),
+        // items: cart.map(item => ({
+        //   productId: item.product.id,
+        //   quantity: item.quantity,
+        //   price: item.product.price
+        // })),
+        items: cart.map(item => {
+          // Extract numeric ID from prefixed string or number
+          let productId;
+          const idValue = item.product.id;
+          
+          // Convert to string first
+          const idString = String(idValue);
+          
+          if (idString.startsWith('theme-')) {
+            productId = parseInt(idString.replace('theme-', ''));
+          } else if (idString.startsWith('prod-')) {
+            productId = parseInt(idString.replace('prod-', ''));
+          } else {
+            // For deal products, it might already be a number
+            productId = parseInt(idString) || idValue;
+          }
+          
+          return {
+            productId: productId, // Send numeric ID
+            quantity: item.quantity,
+            price: item.product.price
+          };
+        }),
         // shippingAddress: formData.shippingAddress,
         shippingAddress: buildShippingAddress(),
         paymentMethod: formData.paymentMethod,
@@ -1536,8 +1559,6 @@ const Checkout: React.FC = () => {
         return null;
     }
   };
-
-  console.log(selectedProducts);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-soft-gray to-off-white">
