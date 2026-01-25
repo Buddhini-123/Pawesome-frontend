@@ -18,7 +18,7 @@ class ApiService {
   };
 
   private getAuthToken(): string | null {
-    return localStorage.getItem('token');
+    return localStorage.getItem('auth_token');
   }
 
   getBaseURL() {

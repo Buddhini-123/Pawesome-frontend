@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-01-25
+
+### Fixed
+- **CRITICAL: Token Storage Key Mismatch**: Fixed authentication token not being sent in API requests
+  - API service was reading `localStorage.getItem('token')`
+  - Auth service was saving `localStorage.setItem('auth_token', token)`
+  - Key mismatch prevented Authorization header from including token
+  - All authenticated backend API calls now work correctly with Bearer token
+  - Discovered during comprehensive session management testing
+
 ## [0.5.2] - 2026-01-23
 
 ### Fixed
