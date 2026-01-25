@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-01-23
+
+### Fixed
+- **React Object Rendering Error**: Fixed "Objects are not valid as a React child" error in Subscriptions page
+  - Fixed ProductCard component rendering brand object instead of brand name
+  - Added type checking: `typeof product.brand === 'string' ? product.brand : product.brand?.name`
+  - Handles both string and object brand types from backend
+  - Replaced product.currency (undefined) with 'LKR' in ProductCard and modal
+
 ## [0.5.1] - 2026-01-23
 
 ### Fixed

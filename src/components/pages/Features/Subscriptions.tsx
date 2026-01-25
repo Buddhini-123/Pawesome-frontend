@@ -897,7 +897,7 @@ const Subscriptions = () => {
                     </p>
                     {selectedProducts.length > 0 && (
                       <p className="text-sm text-mint-green font-medium">
-                        Monthly Total: {selectedProduct?.currency} {selectedProducts.reduce((total, product) => {
+                        Monthly Total: LKR {selectedProducts.reduce((total, product) => {
                           const qty = productQuantities[product.id] || 1
                           return total + Math.floor(product.price * 0.9 * qty)
                         }, 0)}
@@ -1473,24 +1473,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
 
       {/* Product Info */}
       <div className="p-4">
-        <h3 
+        <h3
           className="font-fredoka font-semibold text-charcoal text-sm mb-1 line-clamp-2 cursor-pointer hover:text-vibrant-orange transition-colors"
           onClick={() => onToggle(product)}
         >
           {product.name}
         </h3>
-        <p className="text-xs text-medium-gray mb-2">{product.brand}</p>
+        <p className="text-xs text-medium-gray mb-2">
+          {typeof product.brand === 'string' ? product.brand : product.brand?.name}
+        </p>
         
         {/* Price */}
         <div className="flex items-center justify-between mb-3">
           <div>
             {product.originalPrice && (
               <span className="text-xs text-gray-400 line-through mr-2">
-                {product?.currency} {product.originalPrice}
+                LKR {product.originalPrice}
               </span>
             )}
             <span className="font-fredoka font-bold text-vibrant-orange">
-              {product?.currency} {product.price}
+              LKR {product.price}
             </span>
           </div>
           
