@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-02-02
+
+### Fixed
+- **CRITICAL: Cart Management Issues**: Resolved 3 critical cart reliability and data integrity issues
+  - **Duplicate Context Removal**: Deleted duplicate CartContext file at `/src/components/ui/CartContext.tsx`
+    - Eliminated type confusion between string and number IDs
+    - Improved codebase maintainability by removing redundant implementation
+  - **localStorage Error Handling**: Added comprehensive error handling for all localStorage operations
+    - Wrapped JSON.parse in try-catch with array validation
+    - Wrapped localStorage.setItem/getItem in try-catch blocks
+    - Added console error logging for debugging
+    - Automatic recovery from corrupted cart data
+    - App no longer crashes on localStorage failures or quota exceeded errors
+  - **Quantity Validation**: Enforced strict quantity range validation (1-99)
+    - Added validation to `addItem` function: prevents quantities < 1 or > 99
+    - Added validation to `updateQuantity` function: enforces 1-99 range with warnings
+    - Auto-caps quantities at 99 when adding to existing items
+    - Auto-removes items when quantity set to 0
+    - Console warnings for invalid quantity attempts
+
+### Technical Improvements
+- Enhanced cart persistence reliability across page refreshes
+- Improved cart data integrity with array validation on load
+- Better error recovery with fallback to empty cart on corrupted data
+- Defensive programming approach for localStorage quota and permission errors
+- Maintained backward compatibility with existing cart data structure
+
 ## [0.5.3] - 2026-01-25
 
 ### Fixed

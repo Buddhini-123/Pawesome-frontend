@@ -1,0 +1,550 @@
+---
+# PRB Metadata
+prb_id: LOYALTY-INTEGRATION-PRB-002
+title: "Loyalty UX & History Enhancements - Pagination & Birthday Display"
+parent_story: "LOYALTY-API-INTEGRATION"
+created_date: 2026-02-02
+complexity: 12
+size: medium
+status: ready
+
+# Workflow Settings
+workflow:
+  version_bump: true
+  version_type: "minor"
+  changelog_required: true
+  pr_required: false
+  merge_strategy: "direct_commit"
+  release_automation: false
+  auto_merge: false
+  coordination_required: false
+  breaking_change_assessment: false
+
+# Project Context
+complete_context:
+  system_nature: "CODE-BASED SYSTEM"
+  project_type: "React TypeScript E-commerce Frontend"
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  backend_api: "http://127.0.0.1:8000/api"
+
+  current_state: |
+    - PRB-001 completed: Core redemption and earning working
+    - Transaction history using mock data from localStorage
+    - Birthday discount calculated but not visually prominent
+    - Loading states basic, need enhancement
+    - Need to migrate to backend /api/loyalty/ledger endpoint
+
+  critical_files:
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/services/loyalty.service.ts"
+      purpose: "Update getPointsHistory() to use backend API with pagination"
+      sample: |
+        async getPointsHistory(): Promise<PointTransaction[]> {
+          // Currently returns mock data from localStorage
+          // Need to change to: api.get('/loyalty/ledger?page={page}')
+        }
+
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/components/loyalty/PointsHistory.tsx"
+      purpose: "Add pagination UI for transaction history"
+      sample: |
+        const PointsHistory = () => {
+          const { getPointsHistory } = useLoyalty();
+          const [transactions, setTransactions] = useState<PointTransaction[]>([]);
+          // Missing: pagination state and controls
+        }
+
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/components/pages/Shop/Checkout.tsx"
+      purpose: "Add prominent birthday discount banner"
+      sample: |
+        // Birthday discount calculated in pricingResponse
+        // Missing: Visual banner with celebration message
+        const { birthday_discount } = pricingResponse.data;
+
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/components/loyalty/LoyaltyDashboard.tsx"
+      purpose: "Enhanced loading states with skeleton UI"
+      sample: |
+        const LoyaltyDashboard = () => {
+          // Basic loading state exists
+          // Need: Skeleton UI, error states, retry logic
+        }
+
+  backend_api_documentation: |
+    API Endpoints to integrate:
+
+    1. GET /api/loyalty/ledger?page={page}
+       Response: {
+         data: [{ id, type, points, description, expires_at, created_at, reference }],
+         meta: { current_page, per_page, total }
+       }
+       Returns 20 transactions per page
+
+    2. POST /api/pricing/calculate (already integrated in PRB-001)
+       Response includes birthday_discount object:
+       {
+         applies: boolean,
+         percentage: 10,
+         amount: number,
+         message: "🎉 Happy Birthday! Enjoy 10% off your order"
+       }
+
+  memory_patterns: |
+    Pattern 1: Backend API-First Architecture (Relevance: 95%)
+    - Display backend birthday_discount.message directly
+    - Don't calculate discount on frontend
+    - Use pagination from backend meta object
+
+    Pattern 2: React Service Layer Error Handling (Relevance: 88%)
+    - Loading skeletons for better UX
+    - ErrorAlert component with retry button
+    - Graceful degradation when API unavailable
+
+    Pattern 3: Pagination Best Practices (Relevance: 82%)
+    - Use backend meta.current_page and meta.total
+    - "Load More" button pattern for mobile
+    - Traditional pagination for desktop
+
+  best_practices: |
+    Practice 1: Service Layer Architecture (Tier 1)
+    - Transform backend response to frontend types
+    - Consistent error handling in service methods
+    - Cache pagination results for performance
+
+    Practice 2: React API Integration with Error Handling (Tier 1)
+    - LoadingSkeleton component for initial loads
+    - ErrorAlert with user-friendly messages
+    - Retry logic for failed requests
+    - Quality Gate: All fetches show loading state
+
+# Requirements
+user_requirements:
+  original_request: "Complete loyalty integration with transaction history pagination and birthday discount display"
+  work_type: "implementation"
+
+  success_criteria:
+    - "Transaction history loads from backend API with pagination"
+    - "Users can navigate through transaction pages"
+    - "Birthday discount prominently displayed with celebration banner"
+    - "Loading states show skeleton UI instead of blank screen"
+    - "Error messages provide clear guidance and retry options"
+    - "No git operations until user testing complete"
+
+  clarifications:
+    - "Use backend /api/loyalty/ledger endpoint for history"
+    - "Pagination should work on both desktop and mobile"
+    - "Birthday banner should be visually prominent with emoji"
+    - "Depends on PRB-001 completion"
+
+  scope_limits:
+    - "NOT included: Core redemption/earning (completed in PRB-001)"
+    - "NOT included: Admin loyalty features"
+    - "NOT included: Git operations (user will test first)"
+
+functional_requirements:
+  core_features:
+    - feature_id: "F1"
+      description: "Migrate getPointsHistory() to backend API"
+      acceptance_criteria:
+        - "Call GET /api/loyalty/ledger?page={page}"
+        - "Transform backend response to PointTransaction[] type"
+        - "Return pagination metadata (current_page, total_pages)"
+        - "Handle errors gracefully with fallback to empty array"
+
+    - feature_id: "F2"
+      description: "Add pagination to PointsHistory component"
+      acceptance_criteria:
+        - "Display current page and total pages"
+        - "Previous/Next buttons with disabled states"
+        - "Page number display (e.g., 'Page 2 of 5')"
+        - "Loading state during page transitions"
+        - "Mobile-friendly layout"
+
+    - feature_id: "F3"
+      description: "Birthday discount banner in Checkout"
+      acceptance_criteria:
+        - "Prominent banner when birthday_discount.applies = true"
+        - "Display birthday_discount.message from backend"
+        - "Show discount amount and percentage"
+        - "Celebration emoji and colorful gradient background"
+        - "Update order summary to highlight discount"
+
+    - feature_id: "F4"
+      description: "Enhanced loading states in LoyaltyDashboard"
+      acceptance_criteria:
+        - "Skeleton UI during initial load"
+        - "Error state with retry button"
+        - "Loading indicator for balance refresh"
+        - "Smooth transitions between states"
+
+  technical_specifications:
+    - spec_id: "T1"
+      description: "Update LoyaltyService getPointsHistory() signature"
+      details: |
+        async getPointsHistory(page: number = 1): Promise<{
+          data: PointTransaction[];
+          meta: {
+            current_page: number;
+            per_page: number;
+            total: number;
+            last_page: number;
+          };
+        }> {
+          try {
+            const response = await api.get(`/loyalty/ledger?page=${page}`);
+
+            return {
+              data: response.data.data.map(tx => ({
+                id: tx.id.toString(),
+                type: tx.type as 'earn' | 'redeem' | 'expire' | 'bonus',
+                points: tx.points,
+                description: tx.description,
+                date: new Date(tx.created_at),
+                expiryDate: tx.expires_at ? new Date(tx.expires_at) : undefined,
+                orderId: tx.reference?.id?.toString()
+              })),
+              meta: {
+                current_page: response.data.meta.current_page,
+                per_page: response.data.meta.per_page,
+                total: response.data.meta.total,
+                last_page: Math.ceil(response.data.meta.total / response.data.meta.per_page)
+              }
+            };
+          } catch (error) {
+            console.error('Failed to fetch points history:', error);
+            return { data: [], meta: { current_page: 1, per_page: 20, total: 0, last_page: 1 } };
+          }
+        }
+
+    - spec_id: "T2"
+      description: "Pagination state management in PointsHistory"
+      details: |
+        const [currentPage, setCurrentPage] = useState(1);
+        const [totalPages, setTotalPages] = useState(1);
+        const [loading, setLoading] = useState(false);
+
+        useEffect(() => {
+          const fetchHistory = async () => {
+            setLoading(true);
+            const { data, meta } = await loyaltyService.getPointsHistory(currentPage);
+            setTransactions(data);
+            setTotalPages(meta.last_page);
+            setLoading(false);
+          };
+          fetchHistory();
+        }, [currentPage]);
+
+    - spec_id: "T3"
+      description: "Birthday banner component JSX"
+      details: |
+        {pricingData?.birthday_discount?.applies && (
+          <div className="birthday-banner bg-gradient-to-r from-pink-500 via-purple-500 to-pink-600 text-white p-6 rounded-lg mb-6 shadow-lg">
+            <div className="flex items-center gap-4">
+              <span className="text-5xl animate-bounce">🎉</span>
+              <div>
+                <h3 className="font-bold text-xl mb-1">
+                  {pricingData.birthday_discount.message}
+                </h3>
+                <p className="text-lg opacity-90">
+                  Saving LKR {pricingData.birthday_discount.amount.toFixed(2)} on this order!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+  integration_points:
+    - component: "LoyaltyService"
+      changes: "Update getPointsHistory() to call backend API with pagination"
+
+    - component: "PointsHistory.tsx"
+      changes: "Add pagination state and UI controls"
+
+    - component: "Checkout.tsx"
+      changes: "Add birthday discount banner, update order summary display"
+
+    - component: "LoyaltyDashboard.tsx"
+      changes: "Add LoadingSkeleton, ErrorAlert, retry logic"
+
+processual_requirements:
+  execution_steps:
+    - step: 1
+      name: "Feature Branch Creation"
+      description: "Create feature/loyalty-ux-enhancements branch from feature/loyalty-checkout-integration"
+      commands:
+        - "git checkout feature/loyalty-checkout-integration"
+        - "git checkout -b feature/loyalty-ux-enhancements"
+      validation: "Branch created successfully"
+
+    - step: 2
+      name: "Update getPointsHistory Method"
+      description: "Migrate to backend API with pagination support"
+      file: "src/services/loyalty.service.ts"
+      validation: "Method returns paginated data and meta object"
+
+    - step: 3
+      name: "Add Pagination to PointsHistory"
+      description: "Add pagination state and controls"
+      file: "src/components/loyalty/PointsHistory.tsx"
+      details: |
+        const [currentPage, setCurrentPage] = useState(1);
+        const [totalPages, setTotalPages] = useState(1);
+        const [loading, setLoading] = useState(false);
+        const [transactions, setTransactions] = useState<PointTransaction[]>([]);
+
+        useEffect(() => {
+          const fetchHistory = async () => {
+            setLoading(true);
+            try {
+              const { data, meta } = await loyaltyService.getPointsHistory(currentPage);
+              setTransactions(data);
+              setTotalPages(meta.last_page);
+            } catch (error) {
+              console.error('Failed to load history:', error);
+            } finally {
+              setLoading(false);
+            }
+          };
+          fetchHistory();
+        }, [currentPage]);
+
+        // Pagination UI
+        <div className="flex justify-between items-center mt-4">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1 || loading}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <span className="text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages || loading}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      validation: "Pagination works, loading states display correctly"
+
+    - step: 4
+      name: "Add Birthday Discount Banner"
+      description: "Create prominent birthday banner in Checkout"
+      file: "src/components/pages/Shop/Checkout.tsx"
+      details: |
+        // Add after pricing calculation
+        const [pricingData, setPricingData] = useState<PricingResponse | null>(null);
+
+        useEffect(() => {
+          const calculatePricing = async () => {
+            const response = await api.post('/pricing/calculate', {
+              subtotal: totalPrice
+            });
+            setPricingData(response.data);
+          };
+          calculatePricing();
+        }, [totalPrice]);
+
+        // In JSX, before order summary:
+        {pricingData?.birthday_discount?.applies && (
+          <div className="birthday-banner bg-gradient-to-r from-pink-500 via-purple-500 to-pink-600 text-white p-6 rounded-lg mb-6 shadow-lg animate-fadeIn">
+            <div className="flex items-center gap-4">
+              <span className="text-5xl animate-bounce">🎉</span>
+              <div>
+                <h3 className="font-bold text-xl mb-1">
+                  {pricingData.birthday_discount.message}
+                </h3>
+                <p className="text-lg opacity-90">
+                  Saving LKR {pricingData.birthday_discount.amount.toFixed(2)} on this order!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Update order summary */}
+        <div className="order-summary bg-gray-50 p-4 rounded-lg">
+          <div className="flex justify-between mb-2">
+            <span>Subtotal:</span>
+            <span>LKR {pricingData?.subtotal.toFixed(2)}</span>
+          </div>
+
+          {pricingData?.birthday_discount?.applies && (
+            <div className="flex justify-between mb-2 text-pink-600 font-semibold">
+              <span>🎂 Birthday Discount ({pricingData.birthday_discount.percentage}%):</span>
+              <span>- LKR {pricingData.birthday_discount.amount.toFixed(2)}</span>
+            </div>
+          )}
+
+          {pointsToRedeem > 0 && (
+            <div className="flex justify-between mb-2 text-green-600">
+              <span>Points Redeemed ({pointsToRedeem} pts):</span>
+              <span>- LKR {redemptionValue.toFixed(2)}</span>
+            </div>
+          )}
+
+          <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+            <span>Total:</span>
+            <span>LKR {pricingData?.total.toFixed(2)}</span>
+          </div>
+        </div>
+      validation: "Birthday banner displays when applicable, order summary shows all discounts"
+
+    - step: 5
+      name: "Enhanced Loading States"
+      description: "Add skeleton UI and error handling to LoyaltyDashboard"
+      file: "src/components/loyalty/LoyaltyDashboard.tsx"
+      details: |
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState<string | null>(null);
+
+        useEffect(() => {
+          const loadLoyaltyData = async () => {
+            try {
+              setLoading(true);
+              setError(null);
+              await loyaltyService.getLoyaltyBalance();
+            } catch (err: any) {
+              setError(err.message || 'Failed to load loyalty data');
+            } finally {
+              setLoading(false);
+            }
+          };
+          loadLoyaltyData();
+        }, []);
+
+        // Loading skeleton
+        {loading && (
+          <div className="space-y-4 animate-pulse">
+            <div className="h-48 bg-gray-200 rounded-lg"></div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="h-24 bg-gray-200 rounded"></div>
+              <div className="h-24 bg-gray-200 rounded"></div>
+              <div className="h-24 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        )}
+
+        // Error state
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800 mb-2">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        // Success state
+        {!loading && !error && <LoyaltyCardDisplay />}
+      validation: "Loading skeleton shows, errors display with retry button"
+
+    - step: 6
+      name: "Testing & Validation"
+      description: "Test all UX enhancements end-to-end"
+      validation_checklist:
+        - "Transaction history pagination works (next/prev)"
+        - "Page numbers display correctly"
+        - "Birthday banner appears for test user with birthday today"
+        - "Birthday discount reflected in order summary"
+        - "Loading skeletons display during data fetch"
+        - "Error states show with retry buttons"
+        - "All TypeScript compiles without errors"
+        - "No console errors in browser"
+        - "Mobile responsive design works"
+
+  quality_standards:
+    - "Responsive design for mobile and desktop"
+    - "Smooth animations and transitions"
+    - "Accessible UI (keyboard navigation, ARIA labels)"
+    - "User-friendly error messages"
+    - "Loading states prevent confusion"
+
+  review_validation:
+    sme_role: "@Web-Designer"
+    review_criteria:
+      - "UI/UX follows design system standards"
+      - "Birthday banner is visually prominent and celebratory"
+      - "Pagination controls are intuitive"
+      - "Loading states enhance user experience"
+      - "Error messages are helpful and actionable"
+
+# Assignments
+role_assignments:
+  primary_assignee: "@Web-Designer"
+  secondary_assignees:
+    - "@Developer"
+
+  role_selection_rationale: |
+    @Web-Designer selected for UI/UX enhancements (birthday banner, loading states, pagination design).
+    @Developer for service layer updates and component integration.
+
+    Two-factor analysis:
+    - Project Scope: CODE-BASED SYSTEM (React TypeScript frontend)
+    - Work Type: UX Enhancement (UI components, loading states, error handling)
+
+    Dynamic specialist creation not required.
+
+# Completion Criteria
+completion_definition:
+  done_when:
+    - "getPointsHistory() migrated to backend API with pagination"
+    - "PointsHistory component has working pagination controls"
+    - "Birthday discount banner displays prominently in Checkout"
+    - "Order summary highlights birthday discount"
+    - "LoyaltyDashboard has skeleton loading and error states"
+    - "All TypeScript compiles without errors"
+    - "Manual testing completed successfully"
+    - "No git operations performed (per user request)"
+
+  validation_checklist:
+    - item: "History API Migration"
+      status: "pending"
+      evidence_required: "getPointsHistory() calls /api/loyalty/ledger with pagination"
+
+    - item: "Pagination UI"
+      status: "pending"
+      evidence_required: "Previous/Next buttons work, page numbers display"
+
+    - item: "Birthday Banner"
+      status: "pending"
+      evidence_required: "Banner displays with celebration message and discount amount"
+
+    - item: "Loading States"
+      status: "pending"
+      evidence_required: "Skeleton UI shows during load, error states have retry"
+
+    - item: "Testing Complete"
+      status: "pending"
+      evidence_required: "All features tested on desktop and mobile"
+
+# Dependencies & Blockers
+dependencies:
+  upstream:
+    - dependency: "PRB-001 Core Checkout Integration"
+      status: "completed"
+      notes: "Core redemption and earning must work before UX enhancements"
+
+  downstream: []
+
+blockers:
+  current: []
+  potential:
+    - blocker: "Backend API performance issues with pagination"
+      mitigation: "Add client-side caching, optimize query parameters"
+
+# Metadata
+tags:
+  - loyalty
+  - ux-enhancement
+  - pagination
+  - birthday-discount
+  - loading-states
+priority: "medium"
+estimated_effort: "3-4 hours"
+---

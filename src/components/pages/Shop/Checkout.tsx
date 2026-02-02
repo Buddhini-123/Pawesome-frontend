@@ -6,6 +6,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useLoyalty } from '../../../hooks/useLoyalty';
 import { formatters } from '../../../utils/formatters';
 import { orderService } from '../../../services/order.service';
+import { loyaltyService } from '../../../services/loyalty.service';
 import { PricingCalculation } from '../../../types';
 import { 
   CheckCircle, 
@@ -563,36 +564,27 @@ const Checkout: React.FC = () => {
       
 
       // 🌟 ELSE → Normal one-time order flow
-      const orderData = {
-        // items: cart.map(item => ({
-        //   productId: item.product.id,
-        //   quantity: item.quantity,
-        //   price: item.product.price
-        // })),
-        // items: cart.map(item => {
-        //   // Extract numeric ID from prefixed string or number
-        //   let productId;
-        //   const idValue = item.product.id;
-          
-        //   // Convert to string first
-        //   const idString = String(idValue);
-          
-        //   if (idString.startsWith('theme-')) {
-        //     productId = parseInt(idString.replace('theme-', ''));
-        //   } else if (idString.startsWith('prod-')) {
-        //     productId = parseInt(idString.replace('prod-', ''));
-        //   } else {
-        //     // For deal products, it might already be a number
-        //     productId = parseInt(idString) || idValue;
-        //   }
-          
-        //   return {
-        //     productId: productId, // Send numeric ID
-        //     quantity: item.quantity,
-        //     price: item.product.price
-        //   };
-        // }),
 
+      // 1. Redeem loyalty points FIRST (if any)
+      let redemptionSuccess = false;
+      if (loyaltyRedemption.points > 0) {
+        try {
+          const redemptionResult = await loyaltyService.redeemPoints(
+            loyaltyRedemption.points,
+            'ORDER_PENDING', // Will be updated with real order ID later
+            'Checkout discount'
+          );
+          redemptionSuccess = true;
+          console.log('Points redeemed:', redemptionResult);
+        } catch (redemptionError: any) {
+          setError(redemptionError.message);
+          setIsProcessing(false);
+          return; // Stop checkout if redemption fails
+        }
+      }
+
+      // 2. Create order with discounted total
+      const orderData = {
         items: cart
         .filter(item => !String(item.product.id).startsWith('theme-'))
         .map(item => ({
@@ -600,7 +592,6 @@ const Checkout: React.FC = () => {
           quantity: item.quantity,
           price: item.product.price
         })),
-        // shippingAddress: formData.shippingAddress,
         shippingAddress: buildShippingAddress(),
         paymentMethod: formData.paymentMethod,
         subtotal: subscriptionSubtotal,
@@ -617,7 +608,7 @@ const Checkout: React.FC = () => {
 
       const order = await orderService.createOrder(orderData);
       toast.success("Order placed successfully!");
-      
+
       clearCart();
 
       navigate(`/order-confirmation/${order.id}`);
@@ -1494,6 +1485,30 @@ const Checkout: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Birthday Discount Banner */}
+            {pricing?.birthday_discount?.applies && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mb-8 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-600 text-white p-6 rounded-2xl shadow-2xl"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-6xl animate-bounce">🎉</span>
+                  <div className="flex-1">
+                    <h3 className="font-fredoka font-bold text-2xl mb-2">
+                      {pricing.birthday_discount.message || '🎂 Happy Birthday! Enjoy your special discount'}
+                    </h3>
+                    <p className="text-lg opacity-95 font-fredoka">
+                      You're saving LKR {pricing.birthday_discount.amount.toFixed(2)} on this order!
+                    </p>
+                    <p className="text-sm opacity-80 mt-1">
+                      {pricing.birthday_discount.percentage}% birthday discount applied automatically
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Order Items */}
             <div className="mb-8">

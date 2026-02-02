@@ -1,27 +1,55 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Calendar, 
-  TrendingUp, 
-  TrendingDown, 
-  Gift, 
+import {
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  Gift,
   Heart,
   Download,
   Filter,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Loader
 } from 'lucide-react';
 import { useLoyalty } from '../../hooks/useLoyalty';
 import { PointTransaction } from '../../types/loyalty';
+import { loyaltyService } from '../../services/loyalty.service';
 
 const PointsHistory: React.FC = () => {
-  const { pointsHistory, loyaltyCard } = useLoyalty();
+  const { loyaltyCard } = useLoyalty();
   const [filter, setFilter] = useState<'all' | 'earned' | 'redeemed' | 'bonus' | 'donated'>('all');
   const [dateRange, setDateRange] = useState<'all' | '30days' | '90days' | '1year'>('90days');
   const [showExport, setShowExport] = useState(false);
 
-  // Filter transactions
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [transactions, setTransactions] = useState<PointTransaction[]>([]);
+
+  // Fetch transaction history from backend API with pagination
+  useEffect(() => {
+    const fetchHistory = async () => {
+      setLoading(true);
+      try {
+        const { data, meta } = await loyaltyService.getPointsHistory(currentPage);
+        setTransactions(data);
+        setTotalPages(meta.last_page);
+      } catch (error) {
+        console.error('Failed to load history:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [currentPage]);
+
+  // Filter transactions (client-side filtering for now)
   const filteredTransactions = useMemo(() => {
-    let filtered = [...pointsHistory];
+    let filtered = [...transactions];
 
     // Type filter
     if (filter !== 'all') {
@@ -32,24 +60,24 @@ const PointsHistory: React.FC = () => {
     const now = new Date();
     switch (dateRange) {
       case '30days':
-        filtered = filtered.filter(t => 
+        filtered = filtered.filter(t =>
           t.createdAt >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
         );
         break;
       case '90days':
-        filtered = filtered.filter(t => 
+        filtered = filtered.filter(t =>
           t.createdAt >= new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
         );
         break;
       case '1year':
-        filtered = filtered.filter(t => 
+        filtered = filtered.filter(t =>
           t.createdAt >= new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
         );
         break;
     }
 
     return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }, [pointsHistory, filter, dateRange]);
+  }, [transactions, filter, dateRange]);
 
   // Calculate summary stats
   const summaryStats = useMemo(() => {
@@ -239,61 +267,100 @@ const PointsHistory: React.FC = () => {
           </p>
         </div>
 
-        <div className="divide-y divide-light-gray max-h-96 overflow-y-auto">
-          {filteredTransactions.length === 0 ? (
-            <div className="p-12 text-center">
-              <Gift className="h-12 w-12 text-light-gray mx-auto mb-4" />
-              <p className="text-medium-gray font-fredoka">No transactions found</p>
-            </div>
-          ) : (
-            filteredTransactions.map((transaction, index) => (
-              <motion.div
-                key={transaction.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="p-4 hover:bg-soft-gray transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3">
-                    <div className={`p-2 rounded-lg ${getTransactionIconStyle(transaction.type)}`}>
-                      {getTransactionIcon(transaction.type)}
-                    </div>
-                    <div>
-                      <p className="font-fredoka font-semibold text-charcoal">
-                        {transaction.description}
-                      </p>
-                      <p className="text-sm text-medium-gray">
-                        {new Date(transaction.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                      {transaction.expiresAt && (
-                        <p className="text-xs text-coral-red mt-1">
-                          Expires: {new Date(transaction.expiresAt).toLocaleDateString()}
+        {loading ? (
+          <div className="p-12 flex items-center justify-center">
+            <Loader className="h-8 w-8 text-lavender animate-spin mr-3" />
+            <p className="text-medium-gray font-fredoka">Loading transactions...</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-light-gray max-h-96 overflow-y-auto">
+            {filteredTransactions.length === 0 ? (
+              <div className="p-12 text-center">
+                <Gift className="h-12 w-12 text-light-gray mx-auto mb-4" />
+                <p className="text-medium-gray font-fredoka">No transactions found</p>
+              </div>
+            ) : (
+              filteredTransactions.map((transaction, index) => (
+                <motion.div
+                  key={transaction.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="p-4 hover:bg-soft-gray transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3">
+                      <div className={`p-2 rounded-lg ${getTransactionIconStyle(transaction.type)}`}>
+                        {getTransactionIcon(transaction.type)}
+                      </div>
+                      <div>
+                        <p className="font-fredoka font-semibold text-charcoal">
+                          {transaction.description}
                         </p>
-                      )}
+                        <p className="text-sm text-medium-gray">
+                          {new Date(transaction.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                        {transaction.expiresAt && (
+                          <p className="text-xs text-coral-red mt-1">
+                            Expires: {new Date(transaction.expiresAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-fredoka font-bold text-lg ${
+                        transaction.points > 0 ? 'text-mint-green' : 'text-coral-red'
+                      }`}>
+                        {transaction.points > 0 ? '+' : ''}{transaction.points}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`font-fredoka font-bold text-lg ${
-                      transaction.points > 0 ? 'text-mint-green' : 'text-coral-red'
-                    }`}>
-                      {transaction.points > 0 ? '+' : ''}{transaction.points}
-                    </p>
-                    <p className="text-sm text-medium-gray">
-                      Balance: {transaction.balance}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))
-          )}
-        </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 border-t border-light-gray bg-soft-gray"
+          >
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1 || loading}
+                className="flex items-center px-6 py-3 bg-white border-2 border-light-gray rounded-xl hover:border-lavender hover:bg-lavender/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-fredoka font-medium text-charcoal w-full sm:w-auto"
+              >
+                <ChevronLeft className="h-5 w-5 mr-2" />
+                Previous
+              </button>
+
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-fredoka text-medium-gray">
+                  Page <span className="font-bold text-charcoal">{currentPage}</span> of <span className="font-bold text-charcoal">{totalPages}</span>
+                </span>
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || loading}
+                className="flex items-center px-6 py-3 bg-lavender text-white rounded-xl hover:bg-lavender/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-fredoka font-medium w-full sm:w-auto"
+              >
+                Next
+                <ChevronRight className="h-5 w-5 ml-2" />
+              </button>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   );

@@ -91,6 +91,45 @@ export interface LoyaltyBalance {
   expiry_date: string;
 }
 
+/**
+ * Redeem points request payload
+ * POST /api/loyalty/redeem
+ */
+export interface RedeemPointsRequest {
+  points: number;
+  order_id: string;
+  reason: string;
+}
+
+/**
+ * Redeem points response from backend API
+ * POST /api/loyalty/redeem
+ */
+export interface RedeemPointsResponse {
+  message: string;
+  points_redeemed: number;
+  new_balance: number;
+}
+
+/**
+ * Earn points request payload
+ * POST /api/loyalty/earn
+ */
+export interface EarnPointsRequest {
+  order_id: number;
+  amount_paid: number;
+}
+
+/**
+ * Earn points response from backend API
+ * POST /api/loyalty/earn
+ */
+export interface EarnPointsResponse {
+  message: string;
+  points_earned: number;
+  new_balance: number;
+}
+
 export interface MarketingPreferences {
   emailNotifications: boolean;
   smsNotifications: boolean;

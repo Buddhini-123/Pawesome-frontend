@@ -94,11 +94,11 @@ export const LoyaltyProvider: React.FC<LoyaltyProviderProps> = ({ children }) =>
 
       if (card) {
         setLoyaltyCard(card);
-        
-        // Get points history
-        const history = await loyaltyService.getPointsHistory(card.id);
-        setPointsHistory(history);
-        
+
+        // Get points history (first page only for context)
+        const historyResponse = await loyaltyService.getPointsHistory(1);
+        setPointsHistory(historyResponse.data);
+
         // Get badges
         const userBadges = await loyaltyService.getUserBadges(card.id);
         setBadges(userBadges);
@@ -142,7 +142,7 @@ export const LoyaltyProvider: React.FC<LoyaltyProviderProps> = ({ children }) =>
   };
 
   const redeemPoints = async (
-    points: number, 
+    points: number,
     orderId: string
   ): Promise<{ success: boolean; value: number }> => {
     if (!loyaltyCard) {
@@ -150,14 +150,15 @@ export const LoyaltyProvider: React.FC<LoyaltyProviderProps> = ({ children }) =>
     }
 
     try {
-      const result = await loyaltyService.redeemPoints(loyaltyCard.id, points, orderId);
-      
-      if (result.success) {
-        // Refresh loyalty data to update balance
-        await refreshLoyaltyData();
-      }
-      
-      return result;
+      const result = await loyaltyService.redeemPoints(points, orderId, 'Order discount');
+
+      // Calculate redemption value using standard rate
+      const value = points * 0.1; // LOYALTY_CONSTANTS.REDEMPTION_RATE
+
+      // Refresh loyalty data to update balance
+      await refreshLoyaltyData();
+
+      return { success: true, value };
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to redeem points');
       return { success: false, value: 0 };

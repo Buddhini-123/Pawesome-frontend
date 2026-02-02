@@ -70,17 +70,44 @@ const LoyaltyDashboard: React.FC = () => {
     }
   };
 
+  // Show loading skeleton during initial load
+  if (balanceLoading && !balanceData) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Skeleton Card */}
+        <div className="relative w-full max-w-md mx-auto">
+          <div className="w-full h-56 bg-gray-200 rounded-2xl"></div>
+          <div className="absolute -bottom-2 left-2 right-2 h-56 bg-gray-300/50 rounded-2xl -z-10"></div>
+        </div>
+
+        {/* Skeleton Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-32 bg-gray-200 rounded-xl"></div>
+          <div className="h-32 bg-gray-200 rounded-xl"></div>
+          <div className="h-32 bg-gray-200 rounded-xl"></div>
+        </div>
+
+        {/* Skeleton Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="h-24 bg-gray-200 rounded-2xl"></div>
+          <div className="h-24 bg-gray-200 rounded-2xl"></div>
+          <div className="h-24 bg-gray-200 rounded-2xl"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Expiry Notice Banner */}
-      {balanceLoading && (
+      {/* Expiry Notice Banner - Only show if still loading after initial data */}
+      {balanceLoading && balanceData && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-soft-gray rounded-xl p-4 flex items-center space-x-3"
         >
           <Loader className="h-5 w-5 text-medium-gray animate-spin" />
-          <p className="text-sm font-fredoka text-medium-gray">Loading balance...</p>
+          <p className="text-sm font-fredoka text-medium-gray">Refreshing balance...</p>
         </motion.div>
       )}
 

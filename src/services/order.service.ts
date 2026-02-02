@@ -2,6 +2,7 @@ import { Order, OrderStatus, Address } from '../types';
 import { api } from './api';
 import { mockDb } from './mockDb';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'react-toastify';
 
 interface CreateOrderData {
   items: Array<{
@@ -31,15 +32,44 @@ interface CreateOrderData {
 class OrderService {
   async createOrder(orderData: CreateOrderData): Promise<Order> {
     try {
+      // Create order first
       const response = await api.request<Order>('/orders', {
         method: 'POST',
         body: orderData
       });
-      
+
       if (response.success && response.data) {
-        return response.data;
+        const order = response.data;
+
+        // Award loyalty points after payment confirmation
+        if (order.paymentStatus === 'paid' || order.paymentStatus === 'completed') {
+          try {
+            const earnResult = await api.request('/loyalty/earn', {
+              method: 'POST',
+              body: {
+                order_id: order.id,
+                amount_paid: order.total || order.totalAmount
+              }
+            });
+
+            if (earnResult.success && earnResult.data) {
+              console.log('Points earned:', earnResult.data);
+
+              // Show success notification with points earned
+              toast.success(
+                `Order placed! You earned ${earnResult.data.points_earned} loyalty points!`,
+                { duration: 5000 }
+              );
+            }
+          } catch (loyaltyError) {
+            // Don't fail order if loyalty API fails (non-critical)
+            console.warn('Loyalty points award failed (non-critical):', loyaltyError);
+          }
+        }
+
+        return order;
       }
-      
+
       throw new Error('Failed to create order');
     } catch (error) {
       // Mock implementation for development

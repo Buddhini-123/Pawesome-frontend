@@ -7,16 +7,37 @@ import {
   LOYALTY_CONSTANTS,
   TIER_BENEFITS,
   ReferralBonus,
-  LoyaltyBalance
+  LoyaltyBalance,
+  RedeemPointsResponse
 } from '../types/loyalty';
 import { User } from '../types';
 import { api } from './api';
 import { v4 as uuidv4 } from 'uuid';
-import { 
-  mockLoyaltyCards, 
+import {
+  mockLoyaltyCards,
   mockPointTransactions,
-  mockBadges 
+  mockBadges
 } from '../data/mockLoyalty';
+
+/**
+ * Error handling utility for loyalty API operations
+ * Provides user-friendly error messages for common API failure scenarios
+ */
+function handleLoyaltyApiError(error: any): string {
+  if (error.response?.status === 401) {
+    return 'Please log in to use loyalty points';
+  }
+  if (error.response?.status === 403) {
+    return 'Insufficient loyalty points or unauthorized action';
+  }
+  if (error.response?.status === 422) {
+    return error.response.data.message || 'Invalid loyalty request';
+  }
+  if (error.response?.status >= 500) {
+    return 'Loyalty service temporarily unavailable. Your order will still be processed.';
+  }
+  return 'An unexpected error occurred with loyalty points';
+}
 
 class LoyaltyService {
   constructor() {
@@ -170,6 +191,45 @@ class LoyaltyService {
     throw new Error('Failed to fetch loyalty balance');
   }
 
+  /**
+   * Redeem loyalty points for checkout discount
+   * POST /api/loyalty/redeem
+   * Requires authentication (bearer token)
+   *
+   * @param points Number of points to redeem
+   * @param orderId Order ID for tracking
+   * @param reason Redemption reason (default: 'Order discount')
+   * @returns Redemption response with points redeemed and new balance
+   */
+  async redeemPoints(
+    points: number,
+    orderId: string,
+    reason: string = 'Order discount'
+  ): Promise<RedeemPointsResponse> {
+    try {
+      const response = await api.request<RedeemPointsResponse>('/loyalty/redeem', {
+        method: 'POST',
+        body: {
+          points,
+          order_id: orderId,
+          reason
+        }
+      });
+
+      if (response.success && response.data) {
+        // Refresh loyalty balance after redemption
+        await this.getLoyaltyBalance();
+
+        return response.data;
+      }
+
+      throw new Error('Failed to redeem points');
+    } catch (error: any) {
+      console.error('Point redemption failed:', error);
+      throw new Error(handleLoyaltyApiError(error));
+    }
+  }
+
   // Get points balance
   async getPointsBalance(loyaltyCardId: string): Promise<number> {
     try {
@@ -186,22 +246,89 @@ class LoyaltyService {
     }
   }
 
-  // Get points history
-  async getPointsHistory(loyaltyCardId: string, limit = 50): Promise<PointTransaction[]> {
+  /**
+   * Get paginated points history from backend API
+   * GET /api/loyalty/ledger?page={page}
+   *
+   * @param page - Page number (default: 1)
+   * @returns Paginated transaction data with metadata
+   */
+  async getPointsHistory(page: number = 1): Promise<{
+    data: PointTransaction[];
+    meta: {
+      current_page: number;
+      per_page: number;
+      total: number;
+      last_page: number;
+    };
+  }> {
     try {
-      const response = await api.request<PointTransaction[]>(`/loyalty/history/${loyaltyCardId}?limit=${limit}`);
-      
+      const response = await api.request<{
+        data: Array<{
+          id: number;
+          type: string;
+          points: number;
+          description: string;
+          created_at: string;
+          expires_at: string | null;
+          reference?: { id?: number };
+        }>;
+        meta: {
+          current_page: number;
+          per_page: number;
+          total: number;
+        };
+      }>(`/loyalty/ledger?page=${page}`, {
+        method: 'GET'
+      });
+
       if (response.success && response.data) {
-        return response.data;
+        // Transform backend response to frontend PointTransaction type
+        const transformedData: PointTransaction[] = response.data.data.map(tx => ({
+          id: tx.id.toString(),
+          loyaltyCardId: '', // Backend doesn't send this, frontend doesn't need it for display
+          type: tx.type as 'earned' | 'redeemed' | 'expired' | 'donated' | 'bonus',
+          points: tx.points,
+          description: tx.description,
+          createdAt: new Date(tx.created_at),
+          expiresAt: tx.expires_at ? new Date(tx.expires_at) : undefined,
+          orderId: tx.reference?.id?.toString(),
+          balance: 0 // Backend doesn't send balance per transaction in ledger endpoint
+        }));
+
+        return {
+          data: transformedData,
+          meta: {
+            current_page: response.data.meta.current_page,
+            per_page: response.data.meta.per_page,
+            total: response.data.meta.total,
+            last_page: Math.ceil(response.data.meta.total / response.data.meta.per_page)
+          }
+        };
       }
-      return [];
+
+      // Fallback to empty data
+      return {
+        data: [],
+        meta: {
+          current_page: 1,
+          per_page: 20,
+          total: 0,
+          last_page: 1
+        }
+      };
     } catch (error) {
-      // Mock implementation
-      const transactions = this.getStoredTransactions();
-      return transactions
-        .filter(t => t.loyaltyCardId === loyaltyCardId)
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-        .slice(0, limit);
+      console.error('Failed to fetch points history:', error);
+      // Return empty data on error with proper structure
+      return {
+        data: [],
+        meta: {
+          current_page: 1,
+          per_page: 20,
+          total: 0,
+          last_page: 1
+        }
+      };
     }
   }
 
@@ -273,73 +400,20 @@ class LoyaltyService {
     }
   }
 
-  // Redeem points
-  async redeemPoints(
-    loyaltyCardId: string, 
-    points: number, 
-    orderId: string
-  ): Promise<{ success: boolean; value: number; transaction?: PointTransaction }> {
-    try {
-      const response = await api.request<{ success: boolean; value: number; transaction: PointTransaction }>(
-        '/loyalty/redeem',
-        {
-          method: 'POST',
-          body: {
-            loyaltyCardId,
-            points,
-            orderId
-          }
-        }
-      );
-
-      if (response.success && response.data) {
-        return response.data;
-      }
-      throw new Error('Failed to redeem points');
-    } catch (error) {
-      // Mock implementation
-      const card = this.getLoyaltyCardById(loyaltyCardId);
-      if (!card) throw new Error('Loyalty card not found');
-      
-      if (card.points < points) {
-        return { success: false, value: 0 };
-      }
-
-      const value = points * LOYALTY_CONSTANTS.REDEMPTION_RATE;
-      const transaction: PointTransaction = {
-        id: uuidv4(),
-        loyaltyCardId,
-        type: 'redeemed',
-        points: -points,
-        description: `Redeemed for order #${orderId}`,
-        orderId,
-        createdAt: new Date(),
-        balance: card.points - points
-      };
-
-      // Update card
-      card.points -= points;
-      card.totalRedeemed += points;
-      card.lastActivity = new Date();
-      
-      // Save changes
-      this.saveLoyaltyCard(card);
-      this.saveTransaction(transaction);
-      
-      return { success: true, value, transaction };
-    }
-  }
 
   // Check and handle expiring points
   async checkExpiringPoints(loyaltyCardId: string): Promise<number> {
-    const transactions = await this.getPointsHistory(loyaltyCardId, 1000);
+    // Note: This method is deprecated as backend now provides expiring points via /api/loyalty/balance
+    // Keeping for backward compatibility
+    const historyResponse = await this.getPointsHistory(1);
+    const transactions = historyResponse.data;
     const now = new Date();
     let expiringPoints = 0;
 
     for (const transaction of transactions) {
       if (
-        transaction.type === 'earned' && 
-        transaction.expiresAt && 
+        transaction.type === 'earned' &&
+        transaction.expiresAt &&
         transaction.expiresAt <= now &&
         transaction.points > 0
       ) {
@@ -454,12 +528,13 @@ class LoyaltyService {
     if (!card) return [];
 
     const allBadges = this.getAllBadges();
-    const transactions = await this.getPointsHistory(loyaltyCardId, 1000);
+    const historyResponse = await this.getPointsHistory(1);
+    const transactions = historyResponse.data;
     const orderCount = new Set(transactions.filter(t => t.orderId).map(t => t.orderId)).size;
 
     return allBadges.map(badge => {
       let isUnlocked = false;
-      
+
       if (badge.requiredPoints && card.totalEarned >= badge.requiredPoints) {
         isUnlocked = true;
       }

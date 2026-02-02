@@ -1,0 +1,339 @@
+---
+# PRB Metadata
+prb_id: CART-FIX-PRB-001
+title: "Fix Critical Cart Management Issues"
+parent_story: "CART-IMPROVEMENTS"
+created_date: 2026-02-02
+complexity: 9
+size: tiny
+status: ready
+
+# Workflow Settings
+workflow:
+  version_bump: true
+  version_type: "patch"
+  changelog_required: true
+  pr_required: false
+  merge_strategy: "direct_commit"
+  release_automation: false
+  auto_merge: false
+  coordination_required: false
+  breaking_change_assessment: false
+
+# Project Context
+complete_context:
+  system_nature: "CODE-BASED SYSTEM"
+  project_type: "React TypeScript E-commerce Frontend"
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+
+  current_state: |
+    Cart management system is functionally working but has 3 critical issues:
+    1. Duplicate CartContext implementation causing type confusion
+    2. localStorage persistence overwrites cart on mount (data loss risk)
+    3. No error handling for localStorage operations (crash risk)
+
+    Quality Score: 7.5/10
+    Risk Level: HIGH for production use
+
+  critical_files:
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/contexts/CartContext.tsx"
+      purpose: "Primary cart context - needs error handling and validation"
+      sample: |
+        const [cart, setCart] = useState<CartItem[]>(() => {
+          const savedCart = localStorage.getItem('cart');
+          return savedCart ? JSON.parse(savedCart) : [];
+        });
+
+        useEffect(() => {
+          localStorage.setItem('cart', JSON.stringify(cart));
+        }, [cart]);
+
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/components/ui/CartContext.tsx"
+      purpose: "Duplicate implementation - MUST BE DELETED"
+      sample: |
+        // This file is a duplicate and unused
+        // Causes type confusion (uses number IDs instead of string)
+
+  issues_identified: |
+    Issue 1: Duplicate CartContext
+    - Primary: /src/contexts/CartContext.tsx (string IDs)
+    - Duplicate: /src/components/ui/CartContext.tsx (number IDs)
+    - Impact: Type confusion, maintenance problems
+    - Fix: Delete duplicate file
+
+    Issue 2: localStorage Overwrites
+    - Problem: Saves empty array on mount, overwrites existing cart
+    - Impact: Users lose cart on page refresh
+    - Fix: Add conditional save logic with error handling
+
+    Issue 3: No Error Handling
+    - Problem: No try-catch for JSON.parse or localStorage operations
+    - Impact: App crashes on corrupted data
+    - Fix: Wrap all localStorage operations in try-catch
+
+# Requirements
+user_requirements:
+  original_request: "Fix 3 critical cart issues: duplicate context, localStorage data loss, missing error handling"
+  work_type: "bug-fix"
+
+  success_criteria:
+    - "Duplicate CartContext file removed"
+    - "localStorage operations wrapped in error handling"
+    - "Cart data persists correctly across page refreshes"
+    - "App doesn't crash on corrupted localStorage"
+    - "Quantity validation prevents invalid values"
+    - "All cart operations still work correctly"
+
+  clarifications:
+    - "Delete /src/components/ui/CartContext.tsx completely"
+    - "Keep /src/contexts/CartContext.tsx as primary implementation"
+    - "Add comprehensive error handling"
+    - "Maintain backward compatibility with existing cart data"
+
+  scope_limits:
+    - "NOT included: New cart features or UI changes"
+    - "NOT included: Backend cart synchronization"
+    - "NOT included: Cart analytics or tracking"
+
+functional_requirements:
+  core_features:
+    - feature_id: "F1"
+      description: "Remove duplicate CartContext implementation"
+      acceptance_criteria:
+        - "Delete /src/components/ui/CartContext.tsx file"
+        - "Verify no imports reference the deleted file"
+        - "TypeScript compiles without errors"
+        - "No broken imports in application"
+
+    - feature_id: "F2"
+      description: "Add error handling to localStorage operations"
+      acceptance_criteria:
+        - "Wrap JSON.parse in try-catch"
+        - "Wrap localStorage.setItem in try-catch"
+        - "Log errors to console for debugging"
+        - "Provide fallback behavior on errors"
+        - "App continues working even if localStorage fails"
+
+    - feature_id: "F3"
+      description: "Add quantity validation"
+      acceptance_criteria:
+        - "Prevent negative quantities"
+        - "Enforce minimum quantity of 1"
+        - "Enforce maximum quantity of 99"
+        - "Auto-remove items at quantity 0"
+        - "Validate in both addItem and updateQuantity"
+
+  technical_specifications:
+    - spec_id: "T1"
+      description: "Enhanced localStorage with error handling"
+      details: |
+        // Initial load with error handling
+        const [cart, setCart] = useState<CartItem[]>(() => {
+          try {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+              const parsed = JSON.parse(savedCart);
+              // Validate parsed data is an array
+              if (Array.isArray(parsed)) {
+                return parsed;
+              }
+            }
+          } catch (error) {
+            console.error('Failed to load cart from localStorage:', error);
+            // Clear corrupted data
+            localStorage.removeItem('cart');
+          }
+          return [];
+        });
+
+        // Save with error handling
+        useEffect(() => {
+          try {
+            localStorage.setItem('cart', JSON.stringify(cart));
+          } catch (error) {
+            console.error('Failed to save cart to localStorage:', error);
+            // Handle quota exceeded or other errors
+          }
+        }, [cart]);
+
+    - spec_id: "T2"
+      description: "Quantity validation in updateQuantity"
+      details: |
+        const updateQuantity = useCallback((id: string, quantity: number) => {
+          // Validate quantity range
+          if (quantity < 0) {
+            console.warn('Invalid quantity: cannot be negative');
+            return;
+          }
+
+          if (quantity > 99) {
+            console.warn('Invalid quantity: maximum is 99');
+            return;
+          }
+
+          if (quantity === 0) {
+            removeItem(id);
+            return;
+          }
+
+          setCart(prevCart =>
+            prevCart.map(item =>
+              item.id === id ? { ...item, quantity } : item
+            )
+          );
+        }, [removeItem]);
+
+    - spec_id: "T3"
+      description: "Quantity validation in addItem"
+      details: |
+        const addItem = useCallback((product: Product, quantity: number = 1) => {
+          // Validate quantity
+          if (quantity < 1 || quantity > 99) {
+            console.warn('Invalid quantity: must be between 1 and 99');
+            return;
+          }
+
+          setCart(prevCart => {
+            const existingItem = prevCart.find(item => item.product.id === product.id);
+
+            if (existingItem) {
+              // Check total quantity won't exceed limit
+              const newQuantity = Math.min(existingItem.quantity + quantity, 99);
+
+              return prevCart.map(item =>
+                item.product.id === product.id
+                  ? { ...item, quantity: newQuantity }
+                  : item
+              );
+            }
+
+            return [...prevCart, { id: product.id, product, quantity }];
+          });
+        }, []);
+
+processual_requirements:
+  execution_steps:
+    - step: 1
+      name: "Verify Duplicate File Exists"
+      description: "Check if duplicate CartContext exists before deletion"
+      commands:
+        - "ls -la src/components/ui/CartContext.tsx"
+      validation: "File exists and needs deletion"
+
+    - step: 2
+      name: "Search for Imports"
+      description: "Verify no code imports the duplicate file"
+      commands:
+        - "grep -r 'components/ui/CartContext' src/"
+      validation: "No imports found (or only in duplicate file itself)"
+
+    - step: 3
+      name: "Delete Duplicate File"
+      description: "Remove the duplicate CartContext implementation"
+      file: "src/components/ui/CartContext.tsx"
+      action: "DELETE"
+      validation: "File deleted successfully"
+
+    - step: 4
+      name: "Update Primary CartContext"
+      description: "Add error handling and validation to primary implementation"
+      file: "src/contexts/CartContext.tsx"
+      changes:
+        - "Add try-catch to initial state load"
+        - "Add try-catch to localStorage save"
+        - "Add array validation after JSON.parse"
+        - "Add error logging for debugging"
+        - "Add quantity validation to updateQuantity"
+        - "Add quantity validation to addItem"
+        - "Enforce min 1, max 99 limits"
+      validation: "All error handling and validation added"
+
+    - step: 5
+      name: "Test Cart Operations"
+      description: "Verify all cart operations still work correctly"
+      validation_checklist:
+        - "Add item to cart works"
+        - "Remove item from cart works"
+        - "Update quantity works (1-99 range)"
+        - "Clear cart works"
+        - "Total items calculation correct"
+        - "Total price calculation correct"
+        - "localStorage persists correctly"
+        - "Page refresh preserves cart"
+        - "Corrupted localStorage doesn't crash app"
+
+    - step: 6
+      name: "TypeScript Compilation"
+      description: "Ensure no TypeScript errors"
+      commands:
+        - "npm run build"
+      validation: "Build completes successfully (ignore unrelated errors)"
+
+  quality_standards:
+    - "All localStorage operations wrapped in try-catch"
+    - "Error messages logged to console for debugging"
+    - "Quantity validation enforced (1-99 range)"
+    - "Backward compatible with existing cart data"
+    - "No breaking changes to cart API"
+
+# Assignments
+role_assignments:
+  primary_assignee: "@Developer"
+
+  role_selection_rationale: |
+    @Developer selected for bug fixing and error handling implementation.
+
+    Work Type: Bug Fix (error handling, validation, cleanup)
+    System: CODE-BASED (React TypeScript)
+
+# Completion Criteria
+completion_definition:
+  done_when:
+    - "Duplicate CartContext file deleted"
+    - "Error handling added to all localStorage operations"
+    - "Quantity validation added to addItem and updateQuantity"
+    - "All cart operations tested and working"
+    - "TypeScript compiles successfully"
+    - "No console errors during cart operations"
+
+  validation_checklist:
+    - item: "Duplicate File Removal"
+      status: "pending"
+      evidence_required: "File /src/components/ui/CartContext.tsx deleted"
+
+    - item: "Error Handling Added"
+      status: "pending"
+      evidence_required: "Try-catch blocks around all localStorage operations"
+
+    - item: "Quantity Validation"
+      status: "pending"
+      evidence_required: "Min 1, max 99 enforced in addItem and updateQuantity"
+
+    - item: "Cart Operations Working"
+      status: "pending"
+      evidence_required: "All CRUD operations tested successfully"
+
+    - item: "Persistence Working"
+      status: "pending"
+      evidence_required: "Cart persists across page refresh"
+
+# Dependencies & Blockers
+dependencies:
+  upstream: []
+  downstream: []
+
+blockers:
+  current: []
+  potential:
+    - blocker: "Other code imports duplicate CartContext"
+      mitigation: "Search imports first, update if found"
+
+# Metadata
+tags:
+  - cart
+  - bug-fix
+  - error-handling
+  - validation
+priority: "high"
+estimated_effort: "1 hour"
+---
