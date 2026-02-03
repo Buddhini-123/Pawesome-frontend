@@ -194,9 +194,9 @@ class AdminDealsService {
         },
         {
           id: uuidv4(),
-          title: 'Free Shipping on Orders Above ₹2000',
+          title: 'Free Shipping on Orders Above Rs. 2,000',
           subtitle: 'Save on delivery costs',
-          description: 'Get free shipping on all orders above ₹2000. No coupon needed, discount applied automatically at checkout.',
+          description: 'Get free shipping on all orders above Rs. 2,000. No coupon needed, discount applied automatically at checkout.',
           offerType: 'free-shipping',
           discount: 150,
           discountType: 'fixed',

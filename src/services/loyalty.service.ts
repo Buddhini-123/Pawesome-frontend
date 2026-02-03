@@ -163,13 +163,21 @@ class LoyaltyService {
   async getLoyaltyCard(userId: string): Promise<LoyaltyCard | null> {
     try {
       const response = await api.request<LoyaltyCard>(`/loyalty/card/${userId}`);
-      
+
       if (response.success && response.data) {
         return response.data;
       }
       return null;
-    } catch (error) {
-      // Mock implementation
+    } catch (error: any) {
+      // Silently handle 404 - endpoint not implemented yet on backend
+      // Fall back to localStorage implementation
+      if (error.response?.status === 404) {
+        console.log('[LoyaltyService] Using localStorage for loyalty card (backend endpoint not available)');
+      } else {
+        console.warn('[LoyaltyService] Error fetching loyalty card from backend:', error.message);
+      }
+
+      // Fallback to localStorage implementation
       const cards = this.getAllLoyaltyCards();
       return cards.find(card => card.userId === userId) || null;
     }

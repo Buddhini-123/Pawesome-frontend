@@ -154,6 +154,10 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
+  response?: {
+    status: number;
+    data: any;
+  };
 }
 
 export interface PaginatedResponse<T> {

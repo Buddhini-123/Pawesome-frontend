@@ -1386,7 +1386,7 @@ const Account: React.FC = () => {
                       <div>
                         <p className="font-fredoka font-medium text-charcoal">Royal Canin Adult Dog Food</p>
                         <p className="text-sm text-medium-gray">Quantity: 2 × 15kg</p>
-                        <p className="text-lg font-fredoka font-bold text-mint-green mt-1">₹4,998</p>
+                        <p className="text-lg font-fredoka font-bold text-mint-green mt-1">Rs. 4,998</p>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-medium-gray" />
@@ -1415,7 +1415,7 @@ const Account: React.FC = () => {
                       <div>
                         <p className="font-fredoka font-medium text-charcoal">Cat Litter - Premium Clumping</p>
                         <p className="text-sm text-medium-gray">Quantity: 1 × 10kg</p>
-                        <p className="text-lg font-fredoka font-bold text-mint-green mt-1">₹899</p>
+                        <p className="text-lg font-fredoka font-bold text-mint-green mt-1">Rs. 899</p>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-medium-gray" />
@@ -1456,7 +1456,7 @@ const Account: React.FC = () => {
                   </div>
                   <span className="text-sm text-medium-gray ml-2">(4.8)</span>
                 </div>
-                <p className="text-xl font-fredoka font-bold text-mint-green mb-4">₹599</p>
+                <p className="text-xl font-fredoka font-bold text-mint-green mb-4">Rs. 599</p>
                 <button className="w-full bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors">
                   Add to Cart
                 </button>
@@ -1482,7 +1482,7 @@ const Account: React.FC = () => {
                   </div>
                   <span className="text-sm text-medium-gray ml-2">(4.9)</span>
                 </div>
-                <p className="text-xl font-fredoka font-bold text-mint-green mb-4">₹1,299</p>
+                <p className="text-xl font-fredoka font-bold text-mint-green mb-4">Rs. 1,299</p>
                 <button className="w-full bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors">
                   Add to Cart
                 </button>

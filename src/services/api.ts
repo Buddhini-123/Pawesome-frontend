@@ -58,14 +58,28 @@ class ApiService {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.message || `HTTP error! status: ${res.status}`);
+        // Include status code in error for better handling
+        const error: any = new Error(data.message || `HTTP error! status: ${res.status}`);
+        error.response = { status: res.status, data };
+        throw error;
       }
 
       return { success: true, data };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    } catch (error: any) {
+      const errorMessage = error.message || 'An unknown error occurred';
+
+      // Suppress logging for expected 404s on optional endpoints
+      const is404 = error.response?.status === 404;
+      const isOptionalEndpoint = endpoint.includes('/loyalty/card/');
+
+      if (is404 && isOptionalEndpoint) {
+        // Silently fail for optional endpoints that aren't implemented yet
+        return { success: false, error: errorMessage, response: error.response };
+      }
+
+      // Log all other errors
       console.error('API Error:', errorMessage);
-      return { success: false, error: errorMessage };
+      return { success: false, error: errorMessage, response: error.response };
     }
   }
 

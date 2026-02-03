@@ -412,7 +412,7 @@ const Subscriptions = () => {
                       </h3>
                     </div>
                     <p className="text-medium-gray leading-relaxed">
-                      Enjoy 10% off every order, free shipping on orders over ₹2,000, and exclusive member perks.
+                      Enjoy 10% off every order, free shipping on orders over Rs. 2,000, and exclusive member perks.
                     </p>
                   </div>
                 </motion.div>
@@ -454,7 +454,7 @@ const Subscriptions = () => {
                     </div>
                     <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Save 10%</h4>
                     <p className="text-medium-gray">On every subscription order</p>
-                    <p className="text-2xl font-fredoka font-bold text-vibrant-orange mt-2">₹250+</p>
+                    <p className="text-2xl font-fredoka font-bold text-vibrant-orange mt-2">Rs. 250+</p>
                     <p className="text-xs text-medium-gray">Average monthly savings</p>
                   </motion.div>
                   
@@ -466,7 +466,7 @@ const Subscriptions = () => {
                       <Package className="h-10 w-10 text-white" />
                     </div>
                     <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Free Shipping</h4>
-                    <p className="text-medium-gray">On orders above ₹2,000</p>
+                    <p className="text-medium-gray">On orders above Rs. 2,000</p>
                     <p className="text-2xl font-fredoka font-bold text-primary-blue mt-2">Always</p>
                     <p className="text-xs text-medium-gray">No delivery charges</p>
                   </motion.div>
@@ -743,7 +743,7 @@ const Subscriptions = () => {
                         <div className="flex justify-between items-center text-green-600">
                           <span>Subscription Discount (10%)</span>
                           <span className="font-medium">
-                            -₹{confirmedProducts.reduce((total, product) => {
+                            -Rs. {confirmedProducts.reduce((total, product) => {
                               const qty = productQuantities[product.id] || 1
                               return total + Math.floor(product.price * 0.1 * qty)
                             }, 0)}
@@ -760,7 +760,7 @@ const Subscriptions = () => {
                               </p>
                             </div>
                             <p className="text-3xl font-bold text-vibrant-orange">
-                              ₹{confirmedProducts.reduce((total, product) => {
+                              Rs. {confirmedProducts.reduce((total, product) => {
                                 const qty = productQuantities[product.id] || 1
                                 return total + Math.floor(product.price * 0.9 * qty)
                               }, 0)}

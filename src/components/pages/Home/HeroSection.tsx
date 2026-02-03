@@ -276,7 +276,7 @@ const HeroSection: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-fredoka font-semibold text-charcoal">Premium Treats</p>
-                    <p className="text-sm text-medium-gray">Starting ₹299</p>
+                    <p className="text-sm text-medium-gray">Starting Rs. 299</p>
                   </div>
                 </div>
               </motion.div>

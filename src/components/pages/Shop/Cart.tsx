@@ -60,7 +60,7 @@ const Cart: React.FC = () => {
   };
 
   const benefits = [
-    { icon: Truck, text: 'Free Shipping on ₹2000+', color: 'bg-primary-blue' },
+    { icon: Truck, text: 'Free Shipping on Rs. 2,000+', color: 'bg-primary-blue' },
     { icon: Shield, text: 'Secure Checkout', color: 'bg-mint-green' },
     { icon: Clock, text: '24/7 Support', color: 'bg-lavender' },
     { icon: Gift, text: 'Gift Wrapping Available', color: 'bg-coral-red' }

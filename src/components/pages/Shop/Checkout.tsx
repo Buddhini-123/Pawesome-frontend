@@ -969,7 +969,7 @@ const Checkout: React.FC = () => {
                     </div>
                     <p className="text-sm text-medium-gray mt-1">5-7 business days</p>
                     <p className="text-sm font-fredoka font-semibold text-mint-green">
-                      {baseShippingCost === 0 ? 'FREE' : `₹${baseShippingCost}`}
+                      {baseShippingCost === 0 ? 'FREE' : `Rs. ${baseShippingCost}`}
                     </p>
                   </div>
                 </label>
@@ -996,7 +996,7 @@ const Checkout: React.FC = () => {
                     </div>
                     <p className="text-sm text-medium-gray mt-1">2-3 business days</p>
                     <p className="text-sm font-fredoka font-semibold text-vibrant-orange">
-                      +₹100
+                      +Rs. 100
                     </p>
                   </div>
                 </label>
@@ -1187,7 +1187,7 @@ const Checkout: React.FC = () => {
                         <span className="font-fredoka font-semibold text-lg">Cash on Delivery</span>
                       </div>
                       <p className="text-sm text-medium-gray">Pay when you receive</p>
-                      <p className="text-xs text-coral-red mt-1">+₹50 COD charges apply</p>
+                      <p className="text-xs text-coral-red mt-1">+Rs. 50 COD charges apply</p>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 ${
                       formData.paymentMethod === 'cod' 
@@ -1382,7 +1382,7 @@ const Checkout: React.FC = () => {
                         Cash on Delivery
                       </p>
                       <p className="text-sm text-medium-gray">
-                        ₹50 additional charges apply for Cash on Delivery orders
+                        Rs. 50 additional charges apply for Cash on Delivery orders
                       </p>
                       <p className="text-sm text-medium-gray mt-2">
                         Please keep exact change ready for delivery partner
@@ -1415,7 +1415,7 @@ const Checkout: React.FC = () => {
               </div>
               {couponDiscount > 0 && (
                 <p className="text-sm text-mint-green mt-2 font-fredoka">
-                  ✓ Coupon applied! You saved ₹{safeDisplayPrice(couponDiscount)}
+                  ✓ Coupon applied! You saved Rs. {safeDisplayPrice(couponDiscount)}
                 </p>
               )}
               <div className="mt-2 text-sm text-medium-gray">
@@ -1856,27 +1856,69 @@ const Checkout: React.FC = () => {
                       {currentCurrency} {safeDisplayPrice(finalTotal)}
                     </span>
                   </div>
-                </div>
 
-                {/* Loyalty Points Earning - Backend API Preview */}
-                {loyaltyCard && (
-                  <div className="mt-6 p-4 bg-lavender/10 rounded-xl">
-                    <div className="flex items-center justify-between text-lavender">
-                      <div className="flex items-center">
-                        <Star className="h-5 w-5 mr-2" />
-                        <span className="text-sm font-fredoka">
-                          You will earn {pointsToEarn} points with this order!
-                        </span>
+                  {/* Points Earning Info - Always visible */}
+                  <div className="mt-3 pt-3 border-t border-light-gray">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center text-lavender">
+                        <Star className="h-4 w-4 mr-1 fill-lavender" />
+                        <span className="font-fredoka font-medium">Points to Earn</span>
                       </div>
+                      <span className="font-fredoka font-bold text-lavender text-base">
+                        +{pointsToEarn} pts
+                      </span>
                     </div>
                     {pricing?.loyalty_points && (
-                      <div className="mt-2 text-xs text-medium-gray">
-                        <p>Current balance: {pricing.loyalty_points.current_balance} points</p>
-                        <p>New balance: {pricing.loyalty_points.new_balance} points</p>
+                      <div className="mt-1 text-xs text-medium-gray text-right">
+                        New balance: {pricing.loyalty_points.new_balance} points
                       </div>
                     )}
                   </div>
-                )}
+                </div>
+
+                {/* Loyalty Points Earning - Prominent Banner */}
+                <div className="mt-6 p-4 bg-gradient-to-r from-lavender/20 to-primary-blue/10 rounded-xl border-2 border-lavender/30">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <div className="bg-lavender rounded-full p-2 mr-3">
+                          <Star className="h-5 w-5 text-white fill-white" />
+                        </div>
+                        <div>
+                          <p className="font-fredoka font-bold text-charcoal text-base">
+                            Earn {pointsToEarn} Loyalty Points
+                          </p>
+                          <p className="text-xs text-medium-gray">
+                            Complete this purchase to earn rewards
+                          </p>
+                        </div>
+                      </div>
+                      {pricing?.loyalty_points && (
+                        <div className="ml-12 space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-medium-gray">Current Balance:</span>
+                            <span className="font-fredoka font-semibold text-charcoal">
+                              {pricing.loyalty_points.current_balance} pts
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-medium-gray">After Purchase:</span>
+                            <span className="font-fredoka font-bold text-lavender">
+                              {pricing.loyalty_points.new_balance} pts
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      {!loyaltyCard && (
+                        <div className="ml-12 mt-2">
+                          <p className="text-xs text-primary-blue font-fredoka">
+                            💡 Join our loyalty program to start earning rewards!
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 {/* Security Badge */}
                 <div className="mt-6 p-4 bg-mint-green/10 rounded-xl">

@@ -122,12 +122,12 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
                   <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-light-gray">
                     <DollarSign className="h-5 w-5 text-vibrant-orange mx-auto mb-1" />
                     <p className="text-xs text-medium-gray">Monthly</p>
-                    <p className="font-fredoka font-bold text-lg text-charcoal">₹{totalMonthlySpend}</p>
+                    <p className="font-fredoka font-bold text-lg text-charcoal">Rs. {totalMonthlySpend}</p>
                   </div>
                   <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-light-gray">
                     <TrendingUp className="h-5 w-5 text-mint-green mx-auto mb-1" />
                     <p className="text-xs text-medium-gray">Saved</p>
-                    <p className="font-fredoka font-bold text-lg text-mint-green">₹{totalSavings}</p>
+                    <p className="font-fredoka font-bold text-lg text-mint-green">Rs. {totalSavings}</p>
                   </div>
                 </div>
               </div>
@@ -234,7 +234,7 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-white/80">Monthly Savings</span>
-                          <span className="font-fredoka font-bold">₹{totalSavings}</span>
+                          <span className="font-fredoka font-bold">Rs. {totalSavings}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-white/80">Free Deliveries</span>

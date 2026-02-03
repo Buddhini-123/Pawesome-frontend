@@ -257,7 +257,7 @@ class OrdersService {
       return {
         valid: false,
         discount: 0,
-        message: `Minimum order value of ₹${promo.minOrder} required for this code`
+        message: `Minimum order value of Rs. ${promo.minOrder} required for this code`
       };
     }
 
@@ -268,7 +268,7 @@ class OrdersService {
     return {
       valid: true,
       discount,
-      message: `Promo code applied! You saved ₹${discount}`
+      message: `Promo code applied! You saved Rs. ${discount}`
     };
   }
 }

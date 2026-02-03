@@ -124,7 +124,7 @@ class AdminUserService {
         userId,
         action: 'Order Placed',
         timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        details: 'Order #ORD001 - ₹2,500'
+        details: 'Order #ORD001 - Rs. 2,500'
       },
       {
         userId,

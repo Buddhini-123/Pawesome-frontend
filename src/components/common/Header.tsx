@@ -281,7 +281,7 @@ const Header: React.FC = () => {
           {/* Notification Banner */}
           <div className="absolute bottom-0 left-0 right-0 bg-vibrant-orange p-3 text-center">
             <p className="text-white text-base font-fredoka">
-              🐾 FREE SHIPPING on orders above ₹20,000
+              🐾 FREE SHIPPING on orders above Rs. 20,000
             </p>
           </div>
         </div>
@@ -296,7 +296,7 @@ const Header: React.FC = () => {
         <div className="container mx-auto flex justify-between items-center">
           <div className="text-base font-fredoka font-medium text-charcoal flex items-center">
             <span className="mr-2 animate-bounce-slow">🐾</span>
-            FREE SHIPPING on orders above Rs.20k
+            FREE SHIPPING on orders above Rs. 20,000
           </div>
           <div className="flex space-x-4 text-base">
             <Link to="/contact" className="text-charcoal hover:text-warm-white transition-colors font-nunito">

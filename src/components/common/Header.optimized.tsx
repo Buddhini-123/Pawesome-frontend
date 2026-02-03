@@ -279,7 +279,7 @@ const Header: React.FC = () => {
           {/* Notification Banner */}
           <div className="absolute bottom-0 left-0 right-0 bg-vibrant-orange p-3 text-center">
             <p className="text-white text-sm font-fredoka">
-              🐾 FREE SHIPPING on orders above ₹20,000
+              🐾 FREE SHIPPING on orders above Rs. 20,000
             </p>
           </div>
         </div>
