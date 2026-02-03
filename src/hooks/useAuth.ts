@@ -22,8 +22,8 @@ export function useAuth() {
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("auth_user");
+    const token = localStorage.getItem("auth_token");
 
     if (savedUser && token) {
       setUser(JSON.parse(savedUser));
@@ -48,9 +48,9 @@ export function useAuth() {
       if (data.success) {
         const { user, access_token } = data.data;
 
-        // Save to localStorage
-        localStorage.setItem("token", access_token);
-        localStorage.setItem("user", JSON.stringify(user));
+        // Save to localStorage with correct keys
+        localStorage.setItem("auth_token", access_token);
+        localStorage.setItem("auth_user", JSON.stringify(user));
 
         setUser(user);
         setIsAuthenticated(true);
@@ -66,16 +66,52 @@ export function useAuth() {
     }
   };
 
+  const register = async (email: string, password: string, name: string) => {
+    try {
+      const response = await api.post("/auth/register", {
+        name,
+        email,
+        password,
+        password_confirmation: password,
+      });
+
+      const data = response.data as {
+        success: boolean;
+        data: { user: any; access_token: string };
+        message?: string;
+      };
+
+      if (data.success) {
+        const { user, access_token } = data.data;
+
+        // Save to localStorage (auto-login) with correct keys
+        localStorage.setItem("auth_token", access_token);
+        localStorage.setItem("auth_user", JSON.stringify(user));
+
+        setUser(user);
+        setIsAuthenticated(true);
+
+        return user;
+      } else {
+        throw new Error(data.message || "Registration failed");
+      }
+    } catch (err: any) {
+      throw new Error(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
+    }
+  };
+
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
     setUser(null);
     setIsAuthenticated(false);
   };
 
   const getUser = () => {
     if (!user) {
-      const saved = localStorage.getItem("user");
+      const saved = localStorage.getItem("auth_user");
       if (saved) {
         const parsed = JSON.parse(saved);
         setUser(parsed);
@@ -86,6 +122,6 @@ export function useAuth() {
     return user;
   };
 
-  return { user, login, logout, getUser, isLoading, isAuthenticated };
+  return { user, login, register, logout, getUser, isLoading, isAuthenticated };
 }
 

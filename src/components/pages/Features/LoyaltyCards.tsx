@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  CreditCard, 
-  Award, 
-  Trophy, 
-  Gift, 
+import {
+  CreditCard,
+  Award,
+  Trophy,
+  Gift,
   Users,
   History,
   Star,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useLoyalty } from '../../../hooks/useLoyalty';
 import { useAuth } from '../../../hooks/useAuth';
+import { LoyaltyTier } from '../../../types/loyalty';
 import { formatters } from '../../../utils/formatters';
 import LoyaltyDashboard from '../../loyalty/LoyaltyDashboard';
 import PointsHistory from '../../loyalty/PointsHistory';
@@ -154,6 +155,51 @@ const LoyaltyCards: React.FC = () => {
           <p className="text-lg text-medium-gray">
             Welcome back, {user?.name || 'Loyal Member'}! 🐾
           </p>
+        </motion.div>
+
+        {/* Points Balance Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="max-w-md mx-auto mb-8"
+        >
+          <div className="bg-gradient-to-br from-lavender to-primary-blue rounded-3xl p-8 text-white shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="bg-white/20 rounded-full p-3 mr-4">
+                  <Trophy className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm opacity-90 font-fredoka">Available Points</p>
+                  <p className="text-4xl font-fredoka font-bold">
+                    {loyaltyCard?.points?.toLocaleString() || 0}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs opacity-75 font-fredoka">Tier</p>
+                <div className="flex items-center mt-1">
+                  {loyaltyCard?.tier === LoyaltyTier.PLATINUM && <span className="text-2xl">💎</span>}
+                  {loyaltyCard?.tier === LoyaltyTier.GOLD && <span className="text-2xl">🥇</span>}
+                  {loyaltyCard?.tier === LoyaltyTier.SILVER && <span className="text-2xl">🥈</span>}
+                  {loyaltyCard?.tier === LoyaltyTier.BRONZE && <span className="text-2xl">🥉</span>}
+                  <span className="ml-2 font-fredoka font-bold capitalize">
+                    {loyaltyCard?.tier?.toLowerCase() || 'bronze'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-white/20 pt-4 mt-4">
+              <p className="text-xs opacity-75 mb-2 font-fredoka">Points Value</p>
+              <p className="text-2xl font-fredoka font-bold">
+                LKR {((loyaltyCard?.points || 0) * 0.1).toFixed(2)}
+              </p>
+              <p className="text-xs opacity-75 mt-1 font-fredoka">
+                (1 point = LKR 0.10)
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* Navigation Tabs */}

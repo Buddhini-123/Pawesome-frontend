@@ -42,9 +42,9 @@ class OrderService {
         const order = response.data;
 
         // Award loyalty points after payment confirmation
-        if (order.paymentStatus === 'paid' || order.paymentStatus === 'completed') {
+        if (order.paymentStatus === 'completed') {
           try {
-            const earnResult = await api.request('/loyalty/earn', {
+            const earnResult = await api.request<{ points_earned: number; new_balance: number }>('/loyalty/earn', {
               method: 'POST',
               body: {
                 order_id: order.id,
@@ -58,7 +58,7 @@ class OrderService {
               // Show success notification with points earned
               toast.success(
                 `Order placed! You earned ${earnResult.data.points_earned} loyalty points!`,
-                { duration: 5000 }
+                { autoClose: 5000 }
               );
             }
           } catch (loyaltyError) {

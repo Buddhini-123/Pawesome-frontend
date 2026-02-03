@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { AlertCircle, Check, Gift } from 'lucide-react';
 import { formatters } from '../../../utils/formatters';
-import {api} from "../../../services/api"
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +15,7 @@ const Register: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // const { register } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -65,33 +64,20 @@ const Register: React.FC = () => {
   setIsLoading(true);
 
   try {
-    const response = await api.post(
-      '/auth/register',
-      {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        password_confirmation: formData.confirmPassword
-      }
-    );
+    // Use AuthContext register function which handles authentication state
+    await register(formData.email, formData.password, formData.name);
 
-    if ((response.data as any).success) {
-      // Save token in localStorage (or handle auth as needed)
-      localStorage.setItem('access_token',( response.data as any).data.access_token);
-
-      // Store referral code if present
-      if (formData.referralCode) {
-        localStorage.setItem('pawsome_referral_code', formData.referralCode);
-      }
-
-      // Redirect after successful registration
-      navigate('/');
-    } else {
-      setError((response.data as any).message || 'Registration failed');
+    // Store referral code if present
+    if (formData.referralCode) {
+      localStorage.setItem('pawsome_referral_code', formData.referralCode);
     }
+
+    // User is now automatically logged in via AuthContext
+    // Redirect to home page
+    navigate('/');
   } catch (err: any) {
-    if (err.response?.data?.message) {
-      setError(err.response.data.message);
+    if (err.message) {
+      setError(err.message);
     } else {
       setError('Something went wrong. Please try again.');
     }

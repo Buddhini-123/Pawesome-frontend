@@ -83,9 +83,9 @@ export const LoyaltyProvider: React.FC<LoyaltyProviderProps> = ({ children }) =>
     setError(null);
 
     try {
-      // Get loyalty card
+      // Get loyalty card from localStorage (contains tier, joinDate, cardNumber, etc.)
       let card = await loyaltyService.getLoyaltyCard(user.id);
-      
+
       // If no card exists and user has loyaltyCardId, try to get by that ID
       if (!card && user.loyaltyCardId) {
         const cards = JSON.parse(localStorage.getItem('loyaltyCards') || '[]');
@@ -93,6 +93,17 @@ export const LoyaltyProvider: React.FC<LoyaltyProviderProps> = ({ children }) =>
       }
 
       if (card) {
+        // Fetch REAL points balance from backend
+        try {
+          const balanceData = await loyaltyService.getLoyaltyBalance();
+          // Override localStorage points with actual backend balance
+          card.points = balanceData.balance;
+          console.log('[LoyaltyContext] Updated points from backend:', balanceData.balance);
+        } catch (balanceError) {
+          console.warn('[LoyaltyContext] Failed to fetch balance from backend, using localStorage:', balanceError);
+          // Continue with localStorage points if backend fails
+        }
+
         setLoyaltyCard(card);
 
         // Get points history (first page only for context)

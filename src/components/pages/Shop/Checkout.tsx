@@ -1521,18 +1521,18 @@ const Checkout: React.FC = () => {
                   selectedProducts?.map((product: any) => (
                     <div key={product.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
                       <div className="flex items-center space-x-4">
-                        <img 
-                          src={ `${host}${product.primary_image.url}`}
+                        <img
+                          src={product.primary_image?.url ? `${host}${product.primary_image.url}` : '/placeholder.png'}
                           alt={product.name}
                           className="w-16 h-16 object-cover rounded-lg"
                         />
                         <div>
-                          <p className="font-fredoka font-semibold text-charcoal">{String(product.name)}</p>
+                          <p className="font-fredoka font-semibold text-charcoal">{String(product?.name || 'Product')}</p>
                           <p className="text-sm text-medium-gray">Qty: {deliveryCount} </p>
                         </div>
                       </div>
                       <p className="font-fredoka font-semibold text-charcoal">
-                        {getCurrencyDisplay(product.currency)} {safeDisplayPrice(product.subscription_price * deliveryCount)}
+                        {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice((product?.subscription_price || 0) * deliveryCount)}
                       </p>
                     </div>
                   ))
@@ -1540,18 +1540,18 @@ const Checkout: React.FC = () => {
                 normalizedCart.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
                     <div className="flex items-center space-x-4">
-                      <img 
-                        src={item.product.image} 
-                        alt={item.product.name}
+                      <img
+                        src={item.product?.image || '/placeholder.png'}
+                        alt={item.product?.name || 'Product'}
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                       <div>
-                        <p className="font-fredoka font-semibold text-charcoal">{String(item.product.name)}</p>
+                        <p className="font-fredoka font-semibold text-charcoal">{String(item.product?.name || 'Product')}</p>
                         <p className="text-sm text-medium-gray">Qty: {item.quantity} </p>
                       </div>
                     </div>
                     <p className="font-fredoka font-semibold text-charcoal">
-                      {currentCurrency} {safeDisplayPrice(item.product.price * item.quantity)}
+                      {currentCurrency} {safeDisplayPrice((item.product?.price || 0) * item.quantity)}
                     </p>
                   </div>
                 ))

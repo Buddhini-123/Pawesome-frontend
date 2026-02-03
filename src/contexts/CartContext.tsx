@@ -28,23 +28,33 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     // Load cart from localStorage on initial mount with error handling
     try {
       const savedCart = localStorage.getItem('cart');
+      console.log('[CartContext] Loading cart from localStorage:', savedCart);
+
       if (savedCart) {
         const parsed = JSON.parse(savedCart);
+        console.log('[CartContext] Parsed cart data:', parsed);
+        console.log('[CartContext] Is array?', Array.isArray(parsed));
+        console.log('[CartContext] Cart length:', parsed?.length);
+
         // Validate parsed data is an array
         if (Array.isArray(parsed)) {
+          console.log('[CartContext] ✅ Cart loaded successfully with', parsed.length, 'items');
           return parsed;
         }
-        console.warn('Invalid cart data in localStorage, expected array');
+        console.warn('[CartContext] ⚠️ Invalid cart data in localStorage, expected array but got:', typeof parsed);
+      } else {
+        console.log('[CartContext] No saved cart found in localStorage');
       }
     } catch (error) {
-      console.error('Failed to load cart from localStorage:', error);
+      console.error('[CartContext] ❌ Failed to load cart from localStorage:', error);
       // Clear corrupted data
       try {
         localStorage.removeItem('cart');
       } catch (e) {
-        console.error('Failed to clear corrupted cart data:', e);
+        console.error('[CartContext] Failed to clear corrupted cart data:', e);
       }
     }
+    console.log('[CartContext] Returning empty cart');
     return [];
   });
 

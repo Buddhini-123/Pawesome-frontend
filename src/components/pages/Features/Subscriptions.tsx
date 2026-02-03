@@ -1480,7 +1480,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
           {product.name}
         </h3>
         <p className="text-xs text-medium-gray mb-2">
-          {typeof product.brand === 'string' ? product.brand : product.brand?.name}
+          {typeof product.brand === 'string' ? product.brand : (product.brand as any)?.name || 'Unknown Brand'}
         </p>
         
         {/* Price */}
