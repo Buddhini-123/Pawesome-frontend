@@ -1,5 +1,5 @@
 import React, { createContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { authService } from '../services/auth.service';
+import { api } from '../services/api';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -7,7 +7,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, phone?: string, referralCode?: string, termsAccepted?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -24,13 +24,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check for existing session on mount
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       try {
-        const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+        const savedUser = localStorage.getItem("auth_user");
+        const token = localStorage.getItem("auth_token");
+
+        if (savedUser && token) {
+          setUser(JSON.parse(savedUser));
+        }
       } catch (error) {
-        // User not authenticated
-        console.log('No authenticated user found');
+        console.error('Error loading auth data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -40,21 +43,87 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const response = await authService.login({ email, password, rememberMe: false });
-    if (response.user) {
-      setUser(response.user);
+    try {
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      const data = response.data as {
+        success: boolean;
+        data: { user: any; access_token: string };
+        message?: string;
+      };
+
+      if (data.success) {
+        const { user, access_token } = data.data;
+
+        // Save to localStorage with correct keys
+        localStorage.setItem("auth_token", access_token);
+        localStorage.setItem("auth_user", JSON.stringify(user));
+
+        setUser(user);
+      } else {
+        throw new Error(data.message || "Login failed");
+      }
+    } catch (err: any) {
+      throw new Error(
+        err.response?.data?.message || "Invalid email or password"
+      );
     }
   }, []);
 
-  const register = useCallback(async (email: string, password: string, name: string) => {
-    const response = await authService.register({ email, password, name });
-    if (response.user) {
-      setUser(response.user);
+  const register = useCallback(async (
+    email: string,
+    password: string,
+    name: string,
+    phone?: string,
+    referralCode?: string,
+    termsAccepted: boolean = true
+  ) => {
+    try {
+      const response = await api.post("/auth/register", {
+        name,
+        email,
+        password,
+        password_confirmation: password,
+        phone: phone || undefined,
+        referral_code: referralCode || undefined,
+        terms_accepted: termsAccepted,
+      });
+
+      const data = response.data as {
+        success: boolean;
+        data: { user: any; access_token: string };
+        message?: string;
+      };
+
+      if (data.success) {
+        const { user, access_token } = data.data;
+
+        // Save to localStorage (auto-login) with correct keys
+        localStorage.setItem("auth_token", access_token);
+        localStorage.setItem("auth_user", JSON.stringify(user));
+
+        // Store referral code if present
+        if (referralCode) {
+          localStorage.setItem('pawsome_referral_code', referralCode);
+        }
+
+        setUser(user);
+      } else {
+        throw new Error(data.message || "Registration failed");
+      }
+    } catch (err: any) {
+      throw new Error(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
     }
   }, []);
 
   const logout = useCallback(async () => {
-    await authService.logout();
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
     setUser(null);
   }, []);
 

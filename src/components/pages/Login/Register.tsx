@@ -8,9 +8,11 @@ const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
-    referralCode: ''
+    referralCode: '',
+    termsAccepted: false
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,9 +30,10 @@ const Register: React.FC = () => {
   }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -47,6 +50,12 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setError('');
+
+  // Validate terms acceptance
+  if (!formData.termsAccepted) {
+    setError('You must accept the Terms and Conditions to create an account');
+    return;
+  }
 
   // Validate passwords match
   if (formData.password !== formData.confirmPassword) {
@@ -65,12 +74,7 @@ const Register: React.FC = () => {
 
   try {
     // Use AuthContext register function which handles authentication state
-    await register(formData.email, formData.password, formData.name);
-
-    // Store referral code if present
-    if (formData.referralCode) {
-      localStorage.setItem('pawsome_referral_code', formData.referralCode);
-    }
+    await register(formData.email, formData.password, formData.name, formData.phone, formData.referralCode, formData.termsAccepted);
 
     // User is now automatically logged in via AuthContext
     // Redirect to home page
@@ -170,7 +174,19 @@ const Register: React.FC = () => {
               disabled={isLoading}
             />
           </div>
-          
+
+          <div>
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Phone Number (Optional)"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+              disabled={isLoading}
+            />
+          </div>
+
           <div>
             <input
               type="password"
@@ -232,7 +248,31 @@ const Register: React.FC = () => {
               />
             </div>
           )}
-            
+
+          {/* Terms and Conditions Checkbox */}
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              name="termsAccepted"
+              id="termsAccepted"
+              checked={formData.termsAccepted}
+              onChange={handleChange}
+              className="mt-1 h-4 w-4 text-vibrant-orange focus:ring-primary-blue border-medium-gray rounded"
+              required
+              disabled={isLoading}
+            />
+            <label htmlFor="termsAccepted" className="ml-2 text-sm text-charcoal">
+              I accept the{' '}
+              <Link to="/terms" className="text-vibrant-orange hover:underline" target="_blank">
+                Terms and Conditions
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="text-vibrant-orange hover:underline" target="_blank">
+                Privacy Policy
+              </Link>
+            </label>
+          </div>
+
           <button 
             type="submit" 
             className="w-full bg-vibrant-orange hover:bg-sunny-yellow hover:text-charcoal text-white text-base font-fredoka font-medium py-3 px-14 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -242,19 +282,13 @@ const Register: React.FC = () => {
           </button>
         </form>
 
-        {/* Terms and privacy */}
-        <div className="text-center mt-7 space-y-4">
-          <p className="text-xs text-primary-blue">
-            By creating an account you confirm that you accept our{' '}
-            <Link to="/terms" className="underline hover:text-blue-600">
-              Terms and Conditions
-            </Link>.
-          </p>
-          <p className="text-xs text-primary-blue">
-            You also acknowledge{' '}
-            <Link to="/privacy" className="underline hover:text-blue-600">
-              Pawsome's privacy policy
-            </Link>.
+        {/* Additional info */}
+        <div className="text-center mt-7">
+          <p className="text-xs text-medium-gray">
+            Already have an account?{' '}
+            <Link to="/login" className="text-vibrant-orange hover:underline">
+              Sign in here
+            </Link>
           </p>
         </div>
       </div>

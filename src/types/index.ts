@@ -101,6 +101,8 @@ export interface RegisterData {
   email: string;
   password: string;
   phone?: string;
+  referralCode?: string;
+  termsAccepted: boolean;
 }
 
 // Order related types

@@ -106,11 +106,16 @@ class AuthService {
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const { name, email, password, phone } = data;
-    
+    const { name, email, password, phone, termsAccepted, referralCode } = data;
+
     // Validate input
     if (!name || !email || !password) {
       throw new Error('Name, email, and password are required');
+    }
+
+    // Validate terms acceptance
+    if (!termsAccepted) {
+      throw new Error('You must accept the Terms and Conditions');
     }
 
     // Validate email format
@@ -142,9 +147,14 @@ class AuthService {
     // Generate token
     const token = uuidv4();
     const sessionId = await mockDb.createSession(newUser.id);
-    
+
     // Save auth data
     this.saveAuthData(newUser, token);
+
+    // Store referral code if present
+    if (referralCode) {
+      localStorage.setItem('pawsome_referral_code', referralCode);
+    }
 
     return { user: newUser, token };
   }
