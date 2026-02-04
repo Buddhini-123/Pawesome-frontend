@@ -13,6 +13,12 @@ export interface Product {
   stock?: number;
   discount?: number;
   description?: string;
+  weight?: string;
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
 }
 
 export const dogProducts: Product[] = [
@@ -29,7 +35,13 @@ export const dogProducts: Product[] = [
     subcategory: 'food',
     inStock: true,
     stock: 45,
-    discount: 17
+    discount: 17,
+    weight: '3.00',
+    dimensions: {
+      length: 35,
+      width: 25,
+      height: 10
+    }
   },
   {
     id: 'dog-2',
@@ -42,7 +54,13 @@ export const dogProducts: Product[] = [
     category: 'dogs',
     subcategory: 'toys',
     inStock: true,
-    stock: 8
+    stock: 8,
+    weight: '0.35',
+    dimensions: {
+      length: 20,
+      width: 15,
+      height: 12
+    }
   },
   {
     id: 'dog-3',
@@ -56,7 +74,13 @@ export const dogProducts: Product[] = [
     category: 'dogs',
     subcategory: 'bedding',
     inStock: true,
-    discount: 20
+    discount: 20,
+    weight: '2.50',
+    dimensions: {
+      length: 90,
+      width: 70,
+      height: 15
+    }
   },
   {
     id: 'dog-4',
@@ -68,7 +92,13 @@ export const dogProducts: Product[] = [
     reviews: 201,
     category: 'dogs',
     subcategory: 'grooming',
-    inStock: true
+    inStock: true,
+    weight: '0.75',
+    dimensions: {
+      length: 22,
+      width: 8,
+      height: 8
+    }
   },
   {
     id: 'dog-5',
@@ -80,7 +110,13 @@ export const dogProducts: Product[] = [
     reviews: 412,
     category: 'dogs',
     subcategory: 'accessories',
-    inStock: false
+    inStock: false,
+    weight: '0.15',
+    dimensions: {
+      length: 50,
+      width: 2,
+      height: 2
+    }
   },
   {
     id: 'dog-6',
@@ -94,7 +130,13 @@ export const dogProducts: Product[] = [
     category: 'dogs',
     subcategory: 'food',
     inStock: true,
-    discount: 13
+    discount: 13,
+    weight: '5.00',
+    dimensions: {
+      length: 40,
+      width: 30,
+      height: 12
+    }
   },
   {
     id: 'dog-7',
@@ -106,7 +148,13 @@ export const dogProducts: Product[] = [
     reviews: 234,
     category: 'dogs',
     subcategory: 'accessories',
-    inStock: true
+    inStock: true,
+    weight: '0.25',
+    dimensions: {
+      length: 15,
+      width: 12,
+      height: 5
+    }
   },
   {
     id: 'dog-8',
@@ -120,7 +168,13 @@ export const dogProducts: Product[] = [
     category: 'dogs',
     subcategory: 'treats',
     inStock: true,
-    discount: 20
+    discount: 20,
+    weight: '0.50',
+    dimensions: {
+      length: 25,
+      width: 18,
+      height: 8
+    }
   },
   {
     id: 'dog-9',

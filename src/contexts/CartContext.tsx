@@ -1,5 +1,6 @@
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 import { Product } from '../types';
+import { productsService } from '../services/products.service';
 
 export interface CartItem {
   id: string;
@@ -15,6 +16,8 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  totalWeight: number;
+  weightUnit: string;
 }
 
 export const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -67,6 +70,55 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       // Handle quota exceeded or other localStorage errors
     }
   }, [cart]);
+
+  // Refresh cart items with latest product data on mount (to get weight/dimensions)
+  useEffect(() => {
+    const refreshCartItems = async () => {
+      if (cart.length === 0) return;
+
+      console.log('[CartContext] Refreshing cart items with latest product data...');
+
+      try {
+        const refreshedCart = await Promise.all(
+          cart.map(async (item) => {
+            const freshProduct = await productsService.getProductById(item.product.id);
+
+            if (freshProduct) {
+              // Merge fresh product data with existing cart item
+              return {
+                ...item,
+                product: {
+                  ...item.product,
+                  weight: freshProduct.weight,
+                  dimensions: freshProduct.dimensions
+                }
+              };
+            }
+
+            return item;
+          })
+        );
+
+        // Check if any items were updated
+        const hasChanges = refreshedCart.some((item, index) => {
+          const oldItem = cart[index];
+          return item.product.weight !== oldItem.product.weight ||
+                 JSON.stringify(item.product.dimensions) !== JSON.stringify(oldItem.product.dimensions);
+        });
+
+        if (hasChanges) {
+          console.log('[CartContext] ✅ Cart items refreshed with weight/dimensions');
+          setCart(refreshedCart);
+        } else {
+          console.log('[CartContext] Cart items already up to date');
+        }
+      } catch (error) {
+        console.error('[CartContext] Failed to refresh cart items:', error);
+      }
+    };
+
+    refreshCartItems();
+  }, []); // Only run on mount
 
   const addItem = useCallback((product: Product, quantity: number = 1) => {
     // Validate quantity range
@@ -128,6 +180,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const totalWeight = cart.reduce((sum, item) => {
+    const weight = parseFloat(item.product.weight || '0');
+    return sum + (weight * item.quantity);
+  }, 0);
 
   const value: CartContextType = {
     cart,
@@ -136,7 +192,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     updateQuantity,
     clearCart,
     totalItems,
-    totalPrice
+    totalPrice,
+    totalWeight,
+    weightUnit: 'kg'
   };
 
   return (

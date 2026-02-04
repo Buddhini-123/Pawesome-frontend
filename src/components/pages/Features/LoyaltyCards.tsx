@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   CreditCard,
@@ -26,6 +26,17 @@ const LoyaltyCards: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const { loyaltyCard, registerLoyaltyCard, isLoading } = useLoyalty();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [autoRegistering, setAutoRegistering] = useState(false);
+
+  // Auto-register loyalty card for logged-in users
+  useEffect(() => {
+    if (isAuthenticated && !loyaltyCard && !isLoading && !autoRegistering) {
+      setAutoRegistering(true);
+      registerLoyaltyCard().finally(() => {
+        setAutoRegistering(false);
+      });
+    }
+  }, [isAuthenticated, loyaltyCard, isLoading, registerLoyaltyCard, autoRegistering]);
 
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: TrendingUp },
@@ -81,57 +92,33 @@ const LoyaltyCards: React.FC = () => {
     );
   }
 
-  // If user is authenticated but doesn't have a loyalty card, show registration
-  if (isAuthenticated && !loyaltyCard && !isLoading) {
+  // Show loading state while auto-registering loyalty card
+  if (isAuthenticated && !loyaltyCard && (isLoading || autoRegistering)) {
     return (
-      <div className="min-h-screen bg-off-white">
-        <div className="container mx-auto px-4 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-3xl mx-auto"
-          >
-            <div className="bg-gradient-to-br from-lavender to-primary-blue rounded-3xl p-12 text-white mb-8">
-              <CreditCard className="h-20 w-20 mx-auto mb-6" />
-              <h1 className="text-4xl font-fredoka font-bold mb-4">
-                Welcome to Pawsome Loyalty!
-              </h1>
-              <p className="text-xl mb-6 opacity-90">
-                Ready to start earning points and unlocking exclusive rewards?
-              </p>
-              <button 
-                onClick={registerLoyaltyCard}
-                disabled={isLoading}
-                className="bg-white text-lavender px-8 py-4 rounded-2xl font-fredoka font-bold text-lg hover:bg-white/90 transition-colors disabled:opacity-50"
-              >
-                {isLoading ? 'Creating Your Card...' : 'Get My Loyalty Card'}
-              </button>
+      <div className="min-h-screen bg-off-white flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="relative">
+            <CreditCard className="h-20 w-20 text-lavender mx-auto mb-6 animate-pulse" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-24 w-24 border-b-2 border-lavender"></div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="text-3xl mb-3">🥉</div>
-                <h3 className="font-fredoka font-bold text-charcoal mb-2">Bronze Tier</h3>
-                <p className="text-sm text-medium-gray">Start earning 1 point per Rs. 10</p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="text-3xl mb-3">🥈</div>
-                <h3 className="font-fredoka font-bold text-charcoal mb-2">Silver Tier</h3>
-                <p className="text-sm text-medium-gray">1.5x points + 5% extra discount</p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="text-3xl mb-3">🥇</div>
-                <h3 className="font-fredoka font-bold text-charcoal mb-2">Gold Tier</h3>
-                <p className="text-sm text-medium-gray">2x points + free shipping</p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="text-3xl mb-3">💎</div>
-                <h3 className="font-fredoka font-bold text-charcoal mb-2">Platinum Tier</h3>
-                <p className="text-sm text-medium-gray">3x points + VIP perks</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+          </div>
+          <h2 className="text-2xl font-fredoka font-bold text-charcoal mb-2">
+            Setting Up Your Loyalty Account
+          </h2>
+          <p className="text-medium-gray">
+            Creating your loyalty card and preparing rewards...
+          </p>
+          <div className="mt-8 flex items-center justify-center space-x-2">
+            <div className="w-2 h-2 bg-lavender rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-lavender rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-lavender rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+        </motion.div>
       </div>
     );
   }

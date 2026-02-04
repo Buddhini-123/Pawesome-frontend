@@ -15,6 +15,12 @@ export interface Product {
   stock?: number;
   discount?: number;
   description?: string;
+  weight?: string; // Weight value (e.g., "2.50")
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
 }
 
 // Cart related types
@@ -22,12 +28,22 @@ export interface CartItem {
   id: string;
   product: Product;
   quantity: number;
+  weight?: string; // Individual item weight
+  total_weight?: string; // Total weight for this cart item (weight × quantity)
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
+  subtotal?: string; // Item subtotal
 }
 
 export interface CartState {
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
+  total_weight?: string; // Total cart weight
+  weight_unit?: string; // Weight unit (e.g., "kg")
 }
 
 // User related types

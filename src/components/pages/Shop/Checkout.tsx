@@ -8,15 +8,14 @@ import { formatters } from '../../../utils/formatters';
 import { orderService } from '../../../services/order.service';
 import { loyaltyService } from '../../../services/loyalty.service';
 import { PricingCalculation } from '../../../types';
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  MapPin, 
-  CreditCard, 
-  Smartphone, 
-  Truck, 
-  Shield, 
-  Gift, 
+import {
+  CheckCircle,
+  AlertCircle,
+  MapPin,
+  CreditCard,
+  Truck,
+  Shield,
+  Gift,
   ChevronRight,
   ChevronLeft,
   Package,
@@ -52,14 +51,13 @@ interface CheckoutForm {
     addressType: 'home' | 'work' | 'other';
   };
   // Payment Information
-  paymentMethod: 'card' | 'upi' | 'cod' | 'netbanking';
+  paymentMethod: 'card' | 'cod';
   cardDetails?: {
     number: string;
     name: string;
     expiry: string;
     cvv: string;
   };
-  upiId?: string;
   // Delivery Options
   deliveryOption: 'standard' | 'express';
   // Gift Options
@@ -339,7 +337,7 @@ const Checkout: React.FC = () => {
     }));
   };
 
-  const handlePaymentMethodChange = (method: 'card' | 'upi' | 'cod' | 'netbanking') => {
+  const handlePaymentMethodChange = (method: 'card' | 'cod') => {
     setFormData(prev => ({
       ...prev,
       paymentMethod: method,
@@ -441,9 +439,6 @@ const Checkout: React.FC = () => {
         setError('Please enter a valid CVV');
         return false;
       }
-    } else if (formData.paymentMethod === 'upi' && !formData.upiId) {
-      setError('Please enter your UPI ID');
-      return false;
     }
     return true;
   };
@@ -1088,84 +1083,6 @@ const Checkout: React.FC = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
-                  formData.paymentMethod === 'upi' 
-                    ? 'border-vibrant-orange bg-vibrant-orange/5' 
-                    : 'border-light-gray hover:border-vibrant-orange/50'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="upi"
-                  checked={formData.paymentMethod === 'upi'}
-                  onChange={() => handlePaymentMethodChange('upi')}
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center mb-2">
-                        <Smartphone className="h-6 w-6 mr-2 text-primary-blue" />
-                        <span className="font-fredoka font-semibold text-lg">UPI</span>
-                      </div>
-                      <p className="text-sm text-medium-gray">Google Pay, PhonePe, Paytm</p>
-                    </div>
-                    <div className={`w-5 h-5 rounded-full border-2 ${
-                      formData.paymentMethod === 'upi' 
-                        ? 'border-vibrant-orange bg-vibrant-orange' 
-                        : 'border-gray-300'
-                    }`}>
-                      {formData.paymentMethod === 'upi' && (
-                        <div className="w-full h-full rounded-full bg-white scale-50" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.label>
-
-              <motion.label 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex items-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
-                  formData.paymentMethod === 'netbanking' 
-                    ? 'border-vibrant-orange bg-vibrant-orange/5' 
-                    : 'border-light-gray hover:border-vibrant-orange/50'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="netbanking"
-                  checked={formData.paymentMethod === 'netbanking'}
-                  onChange={() => handlePaymentMethodChange('netbanking')}
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center mb-2">
-                        <Building className="h-6 w-6 mr-2 text-mint-green" />
-                        <span className="font-fredoka font-semibold text-lg">Net Banking</span>
-                      </div>
-                      <p className="text-sm text-medium-gray">All major banks supported</p>
-                    </div>
-                    <div className={`w-5 h-5 rounded-full border-2 ${
-                      formData.paymentMethod === 'netbanking' 
-                        ? 'border-vibrant-orange bg-vibrant-orange' 
-                        : 'border-gray-300'
-                    }`}>
-                      {formData.paymentMethod === 'netbanking' && (
-                        <div className="w-full h-full rounded-full bg-white scale-50" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.label>
-
-              <motion.label 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex items-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
                   formData.paymentMethod === 'cod' 
                     ? 'border-vibrant-orange bg-vibrant-orange/5' 
                     : 'border-light-gray hover:border-vibrant-orange/50'
@@ -1325,49 +1242,6 @@ const Checkout: React.FC = () => {
                 </motion.div>
               )}
 
-              {formData.paymentMethod === 'upi' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="p-6 bg-gradient-to-br from-primary-blue/5 to-primary-blue/10 rounded-xl"
-                >
-                  <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                    UPI ID
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="yourname@paytm"
-                      value={formData.upiId || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        upiId: e.target.value
-                      }))}
-                      className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                    />
-                    <Smartphone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                  </div>
-                  <p className="text-sm text-medium-gray mt-2">
-                    Enter your UPI ID to receive payment request
-                  </p>
-                </motion.div>
-              )}
-
-              {formData.paymentMethod === 'netbanking' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="p-6 bg-gradient-to-br from-mint-green/5 to-mint-green/10 rounded-xl"
-                >
-                  <p className="text-sm text-medium-gray flex items-center">
-                    <Info className="h-4 w-4 mr-2" />
-                    You will be redirected to your bank's website to complete the payment
-                  </p>
-                </motion.div>
-              )}
-
               {formData.paymentMethod === 'cod' && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -1471,17 +1345,12 @@ const Checkout: React.FC = () => {
               <div className="p-4 bg-soft-gray rounded-xl">
                 <p className="font-fredoka font-semibold">
                   {formData.paymentMethod === 'card' && 'Credit/Debit Card'}
-                  {formData.paymentMethod === 'upi' && 'UPI'}
-                  {formData.paymentMethod === 'netbanking' && 'Net Banking'}
                   {formData.paymentMethod === 'cod' && 'Cash on Delivery'}
                 </p>
                 {formData.paymentMethod === 'card' && formData.cardDetails && (
                   <p className="text-sm text-medium-gray">
                     •••• •••• •••• {String(formData.cardDetails.number.slice(-4))}
                   </p>
-                )}
-                {formData.paymentMethod === 'upi' && formData.upiId && (
-                  <p className="text-sm text-medium-gray">{String(formData.upiId)}</p>
                 )}
               </div>
             </div>

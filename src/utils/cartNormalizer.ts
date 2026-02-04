@@ -30,6 +30,10 @@ export const normalizeCartItem = (item: any) => {
   return {
     id: String(item.id),
     quantity: item.quantity ?? 1,
+    weight: item.weight || product.weight,
+    total_weight: item.total_weight,
+    dimensions: item.dimensions || product.dimensions,
+    subtotal: item.subtotal,
 
     product: {
       id: String(product.id ?? item.id),
@@ -42,6 +46,9 @@ export const normalizeCartItem = (item: any) => {
         typeof product.brand === 'string'
           ? product.brand
           : product.brand?.name ?? null,
+
+      weight: product.weight,
+      dimensions: product.dimensions,
     },
   };
 };

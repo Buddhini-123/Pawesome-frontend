@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, easeInOut } from 'framer-motion';
-import { 
-  Trash2, 
-  Plus, 
-  Minus, 
-  ShoppingBag, 
-  Sparkles, 
+import {
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingBag,
+  Sparkles,
   TrendingUp,
   Gift,
   Truck,
   Shield,
   Clock,
   Heart,
-  Star,
   Package,
   Zap,
   CheckCircle,
-  Lock
+  Lock,
+  Weight,
+  Ruler
 } from 'lucide-react';
 import { useCart } from '../../../hooks/useCart';
 import { formatters } from '../../../utils/formatters';
@@ -25,7 +26,7 @@ import { normalizeCartItem } from '../../../utils/cartNormalizer';
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, removeItem, updateQuantity, totalItems, totalPrice, clearCart } = useCart();
+  const { cart, removeItem, updateQuantity, totalItems, totalPrice, totalWeight, weightUnit, clearCart } = useCart();
   const [removingItem, setRemovingItem] = useState<string | null>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showPromo, setShowPromo] = useState(false);
@@ -41,6 +42,11 @@ const Cart: React.FC = () => {
 
   const getFinalTotal = (): number => {
     return totalPrice + getShippingCost();
+  };
+
+  const formatDimensions = (dimensions?: { length: number; width: number; height: number }): string => {
+    if (!dimensions) return '';
+    return `${dimensions.length} × ${dimensions.width} × ${dimensions.height} cm`;
   };
 
   const handleCheckout = () => {
@@ -237,11 +243,32 @@ const Cart: React.FC = () => {
                               </motion.span>
                             )}
                           </h3>
-                          <p className="text-sm text-medium-gray flex items-center mt-1">
-                            <Star className="w-3 h-3 text-sunny-yellow mr-1 fill-current" />
-                            {/* {item.product?.brand} */}
-                          </p>
-                          <motion.p 
+
+                          {/* Weight and Dimensions */}
+                          <div className="flex flex-wrap gap-3 mt-2">
+                            {item.product.weight && (
+                              <p className="text-xs text-medium-gray flex items-center bg-soft-gray rounded-full px-2 py-1">
+                                <Weight className="w-3 h-3 mr-1 text-primary-blue" />
+                                <span className="font-fredoka font-medium">
+                                  {item.product.weight} kg {item.quantity > 1 && (
+                                    <span className="text-charcoal">
+                                      • {(parseFloat(item.product.weight) * item.quantity).toFixed(2)} kg total
+                                    </span>
+                                  )}
+                                </span>
+                              </p>
+                            )}
+                            {item.product.dimensions && (
+                              <p className="text-xs text-medium-gray flex items-center bg-soft-gray rounded-full px-2 py-1">
+                                <Ruler className="w-3 h-3 mr-1 text-lavender" />
+                                <span className="font-fredoka font-medium">
+                                  {formatDimensions(item.product.dimensions)}
+                                </span>
+                              </p>
+                            )}
+                          </div>
+
+                          <motion.p
                             className="text-xl font-fredoka font-bold text-mint-green mt-2"
                             animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
                           >
@@ -320,12 +347,12 @@ const Cart: React.FC = () => {
               </div>
             
               <div className="space-y-4 mb-8">
-                <motion.div 
+                <motion.div
                   className="flex justify-between items-center p-3 rounded-xl hover:bg-soft-gray transition-colors"
                   whileHover={{ x: 5 }}
                 >
                   <span className="text-charcoal font-fredoka font-medium">Subtotal</span>
-                  <motion.span 
+                  <motion.span
                     className="font-fredoka font-bold text-lg"
                     key={totalPrice}
                     animate={{ scale: [1, 1.1, 1] }}
@@ -333,6 +360,23 @@ const Cart: React.FC = () => {
                     {formatters.currency(totalPrice)}
                   </motion.span>
                 </motion.div>
+
+                {/* Total Weight */}
+                {totalWeight > 0 && (
+                  <motion.div
+                    className="flex justify-between items-center p-3 rounded-xl bg-soft-gray/50"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <span className="text-charcoal font-fredoka font-medium flex items-center">
+                      <Weight className="w-4 h-4 mr-2 text-primary-blue" />
+                      Total Weight
+                    </span>
+                    <span className="font-fredoka font-bold text-primary-blue">
+                      {totalWeight.toFixed(2)} {weightUnit}
+                    </span>
+                  </motion.div>
+                )}
                 
                 <motion.div 
                   className="flex justify-between items-center p-3 rounded-xl hover:bg-soft-gray transition-colors"
