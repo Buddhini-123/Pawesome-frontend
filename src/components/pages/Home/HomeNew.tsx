@@ -60,9 +60,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, col
           </div>
 
           {/* Pet Badge */}
-          <div className="absolute -top-2 -right-2 bg-sunny-yellow text-charcoal px-4 py-2 rounded-full font-fredoka font-semibold text-sm transform rotate-12 shadow-lg">
+          {/* <div className="absolute -top-2 -right-2 bg-sunny-yellow text-charcoal px-4 py-2 rounded-full font-fredoka font-semibold text-sm transform rotate-12 shadow-lg">
             NEW!
-          </div>
+          </div> */}
         </div>
       </Link>
     </motion.div>
@@ -72,11 +72,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, col
 const Home: React.FC = () => {
   const services = [
     {
-      title: 'Subscriptions',
-      description: 'Never run out of essentials with automated deliveries tailored to your pet.',
-      icon: <Calendar className="w-10 h-10 text-white" />,
-      color: 'bg-vibrant-orange',
-      link: '/subscriptions',
+      title: 'Daily Deals',
+      description: 'Exclusive discounts on top-rated products every single day.',
+      icon: <Percent className="w-10 h-10 text-white" />,
+      color: 'bg-mint-green',
+      link: '/deals',
     },
     {
       title: 'Gift Boxes',
@@ -86,19 +86,20 @@ const Home: React.FC = () => {
       link: '/gifts',
     },
     {
-      title: 'Daily Deals',
-      description: 'Exclusive discounts on top-rated products every single day.',
-      icon: <Percent className="w-10 h-10 text-white" />,
-      color: 'bg-mint-green',
-      link: '/deals',
-    },
-    {
       title: 'Paw Rewards',
       description: 'Earn points, unlock benefits, and get VIP access to new products.',
       icon: <Trophy className="w-10 h-10 text-white" />,
       color: 'bg-lavender',
       link: '/loyalty-cards',
     },
+    {
+      title: 'Subscriptions',
+      description: 'Never run out of essentials with automated deliveries tailored to your pet.',
+      icon: <Calendar className="w-10 h-10 text-white" />,
+      color: 'bg-vibrant-orange',
+      link: '/subscriptions',
+    },
+
   ];
 
   const features = [

@@ -18,18 +18,48 @@ import {
   CheckCircle,
   Lock,
   Weight,
-  Ruler
+  Ruler,
+  RefreshCw
 } from 'lucide-react';
 import { useCart } from '../../../hooks/useCart';
+import { useAuth } from '../../../hooks/useAuth';
 import { formatters } from '../../../utils/formatters';
 import { normalizeCartItem } from '../../../utils/cartNormalizer';
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, removeItem, updateQuantity, totalItems, totalPrice, totalWeight, weightUnit, clearCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const { cart, removeItem, updateQuantity, totalItems, totalPrice, totalWeight, weightUnit, shippingCost, shippingBreakdown, clearCart, refreshCart } = useCart();
   const [removingItem, setRemovingItem] = useState<string | null>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showPromo, setShowPromo] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Debug: Log cart data
+  React.useEffect(() => {
+    console.log('[Cart] Current cart:', cart);
+    console.log('[Cart] Is authenticated:', isAuthenticated);
+    console.log('[Cart] Cart items with weight:', cart.map(item => ({
+      id: item.id,
+      name: item.product.name,
+      weight: item.product.weight,
+      dimensions: item.product.dimensions
+    })));
+  }, [cart, isAuthenticated]);
+
+  const handleRefreshCart = async () => {
+    if (isAuthenticated && refreshCart) {
+      setIsRefreshing(true);
+      try {
+        await refreshCart();
+        console.log('[Cart] Cart refreshed from backend');
+      } catch (error) {
+        console.error('[Cart] Failed to refresh cart:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setShowPromo(true), 2000);
@@ -37,7 +67,9 @@ const Cart: React.FC = () => {
   }, []);
 
   const getShippingCost = (): number => {
-    return totalPrice >= 2000 ? 0 : 150;
+    // Use shipping cost from backend (weight-based calculation)
+    // Falls back to 0 if not available
+    return shippingCost || 0;
   };
 
   const getFinalTotal = (): number => {
@@ -150,8 +182,8 @@ const Cart: React.FC = () => {
         </motion.div>
 
         {/* Benefits Banner */}
-        <motion.div 
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -169,6 +201,23 @@ const Cart: React.FC = () => {
               <p className="text-sm font-fredoka font-medium text-charcoal">{benefit.text}</p>
             </motion.div>
           ))}
+
+          {/* Total Weight Card */}
+          {totalWeight > 0 && (
+            <motion.div
+              className="bg-white rounded-2xl p-4 shadow-lg border-2 border-primary-blue"
+              whileHover={{ scale: 1.05, y: -5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <div className="bg-primary-blue w-12 h-12 rounded-xl flex items-center justify-center mb-2">
+                <Weight className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-sm font-fredoka font-medium text-charcoal mb-1">Total Weight</p>
+              <p className="text-lg font-fredoka font-bold text-primary-blue">
+                {totalWeight.toFixed(2)} {weightUnit}
+              </p>
+            </motion.div>
+          )}
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -189,15 +238,29 @@ const Cart: React.FC = () => {
                     <p className="text-sm text-medium-gray">{totalItems} items selected</p>
                   </div>
                 </div>
-                <motion.button
-                  onClick={clearCart}
-                  className="text-sm text-coral-red hover:text-coral-red/80 font-fredoka font-medium transition-colors flex items-center"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Clear All
-                </motion.button>
+                <div className="flex items-center gap-3">
+                  {isAuthenticated && (
+                    <motion.button
+                      onClick={handleRefreshCart}
+                      disabled={isRefreshing}
+                      className="text-sm text-primary-blue hover:text-primary-blue/80 font-fredoka font-medium transition-colors flex items-center disabled:opacity-50"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </motion.button>
+                  )}
+                  <motion.button
+                    onClick={clearCart}
+                    className="text-sm text-coral-red hover:text-coral-red/80 font-fredoka font-medium transition-colors flex items-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Clear All
+                  </motion.button>
+                </div>
               </div>
               
               <div className="divide-y divide-light-gray">
@@ -245,26 +308,40 @@ const Cart: React.FC = () => {
                           </h3>
 
                           {/* Weight and Dimensions */}
-                          <div className="flex flex-wrap gap-3 mt-2">
+                          <div className="flex flex-wrap gap-2 mt-2">
                             {item.product.weight && (
-                              <p className="text-xs text-medium-gray flex items-center bg-soft-gray rounded-full px-2 py-1">
-                                <Weight className="w-3 h-3 mr-1 text-primary-blue" />
-                                <span className="font-fredoka font-medium">
-                                  {item.product.weight} kg {item.quantity > 1 && (
-                                    <span className="text-charcoal">
-                                      • {(parseFloat(item.product.weight) * item.quantity).toFixed(2)} kg total
+                              <motion.div
+                                className="flex items-center bg-primary-blue/10 border border-primary-blue/30 rounded-lg px-3 py-1.5"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                <Weight className="w-4 h-4 mr-1.5 text-primary-blue" />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-fredoka font-semibold text-charcoal">
+                                    Weight: {item.product.weight} kg
+                                  </span>
+                                  {item.quantity > 1 && (
+                                    <span className="text-xs text-medium-gray font-fredoka">
+                                      Total: {(parseFloat(item.product.weight) * item.quantity).toFixed(2)} kg
                                     </span>
                                   )}
-                                </span>
-                              </p>
+                                </div>
+                              </motion.div>
                             )}
                             {item.product.dimensions && (
-                              <p className="text-xs text-medium-gray flex items-center bg-soft-gray rounded-full px-2 py-1">
-                                <Ruler className="w-3 h-3 mr-1 text-lavender" />
-                                <span className="font-fredoka font-medium">
-                                  {formatDimensions(item.product.dimensions)}
-                                </span>
-                              </p>
+                              <motion.div
+                                className="flex items-center bg-lavender/10 border border-lavender/30 rounded-lg px-3 py-1.5"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                <Ruler className="w-4 h-4 mr-1.5 text-lavender" />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-fredoka font-semibold text-charcoal">
+                                    Dimensions (L×W×H)
+                                  </span>
+                                  <span className="text-xs text-medium-gray font-fredoka">
+                                    {formatDimensions(item.product.dimensions)}
+                                  </span>
+                                </div>
+                              </motion.div>
                             )}
                           </div>
 
@@ -378,51 +455,52 @@ const Cart: React.FC = () => {
                   </motion.div>
                 )}
                 
-                <motion.div 
+                <motion.div
                   className="flex justify-between items-center p-3 rounded-xl hover:bg-soft-gray transition-colors"
                   whileHover={{ x: 5 }}
                 >
                   <span className="text-charcoal font-fredoka font-medium flex items-center">
                     <Truck className="w-4 h-4 mr-2 text-primary-blue" />
                     Shipping
-                  </span>
-                  <span className="font-fredoka font-bold">
-                    {getShippingCost() === 0 ? (
-                      <motion.span 
-                        className="text-mint-green flex items-center"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        FREE
-                      </motion.span>
-                    ) : (
-                      formatters.currency(getShippingCost())
+                    {shippingBreakdown && (
+                      <span className="ml-2 text-xs text-medium-gray">
+                        ({shippingBreakdown.description})
+                      </span>
                     )}
                   </span>
+                  <span className="font-fredoka font-bold">
+                    {formatters.currency(getShippingCost())}
+                  </span>
                 </motion.div>
-                
-                {totalPrice < 2000 && (
-                  <motion.div 
-                    className="bg-sunny-yellow/20 border border-sunny-yellow rounded-2xl p-4"
+
+                {/* Shipping Info Banner */}
+                {shippingBreakdown && (
+                  <motion.div
+                    className="bg-primary-blue/10 border border-primary-blue/30 rounded-2xl p-4"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
                     <div className="flex items-start">
-                      <Zap className="w-5 h-5 text-vibrant-orange mr-2 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-fredoka font-bold text-charcoal">
-                          You're {formatters.currency(2000 - totalPrice)} away from FREE shipping!
+                      <Truck className="w-5 h-5 text-primary-blue mr-2 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-fredoka font-bold text-charcoal mb-2">
+                          Weight-Based Shipping
                         </p>
-                        <div className="mt-2 bg-light-gray rounded-full h-2 overflow-hidden">
-                          <motion.div 
-                            className="h-full bg-vibrant-orange"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(totalPrice / 2000) * 100}%` }}
-                            transition={{ duration: 1, ease: "easeOut" }}
-                          />
+                        <div className="space-y-1 text-xs text-medium-gray">
+                          {shippingBreakdown.pricing_tiers.map((tier, index) => (
+                            <div key={index} className="flex justify-between items-center">
+                              <span>{tier.range}:</span>
+                              <span className={`font-fredoka font-medium ${
+                                shippingBreakdown.description === tier.range
+                                  ? 'text-primary-blue font-bold'
+                                  : ''
+                              }`}>
+                                Rs. {tier.cost}
+                                {shippingBreakdown.description === tier.range && ' ✓'}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>

@@ -91,7 +91,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, fallback
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, totalPrice, clearCart } = useCart();
+  const { cart, totalPrice, shippingCost, shippingBreakdown, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const { loyaltyCard } = useLoyalty();
   const [step, setStep] = useState(1);
@@ -311,18 +311,18 @@ const Checkout: React.FC = () => {
     return null;
   }
 
-  // Calculate pricing - use backend API when available
-  const baseShippingCost = subscriptionSubtotal >= 2000 ? 0 : 150;
+  // Calculate pricing - use backend API shipping cost (weight-based)
+  const baseShippingCost = shippingCost || 0; // From backend (weight-based calculation)
   const deliveryCharge = formData.deliveryOption === 'express' ? 100 : 0;
   const codCharge = formData.paymentMethod === 'cod' ? 50 : 0;
-  const shippingCost = baseShippingCost + deliveryCharge;
+  const totalShippingCost = baseShippingCost + deliveryCharge;
 
   // Use backend pricing calculation for birthday discount and total
   const birthdayDiscount = pricing?.birthday_discount?.applies ? pricing.birthday_discount.amount : 0;
   const subtotalAfterBirthdayDiscount = pricing?.total ?? subscriptionSubtotal;
   const subtotalAfterCoupon = subtotalAfterBirthdayDiscount - couponDiscount;
   const subtotalAfterLoyalty = subtotalAfterCoupon - loyaltyRedemption.value;
-  const finalTotal = subtotalAfterLoyalty + shippingCost + codCharge;
+  const finalTotal = subtotalAfterLoyalty + totalShippingCost + codCharge;
 
   // Points to earn from backend API
   const pointsToEarn = pricing?.loyalty_points?.points_to_earn ?? Math.floor(finalTotal / 100);
@@ -529,10 +529,10 @@ const Checkout: React.FC = () => {
             preferences: product.preferences || {},
           })),
           subscription_data: {
-            interval_type: scheduleData.deliveryPeriod,
-            interval_value: 1,
+            interval_type: scheduleData.intervalType, // weekly, monthly, or custom
+            interval_value: scheduleData.intervalValue, // 1, 2, 3, 4, etc.
             start_date: scheduleData.startDate,
-            end_date: scheduleData.endDate,
+            end_date: scheduleData.endDate || null, // Optional end date
             delivery_address_id: deliveryAddressId,
             payment_method_id: 2,
             preferences: {
@@ -590,7 +590,7 @@ const Checkout: React.FC = () => {
         shippingAddress: buildShippingAddress(),
         paymentMethod: formData.paymentMethod,
         subtotal: subscriptionSubtotal,
-        shippingCost,
+        shippingCost: totalShippingCost,
         totalAmount: finalTotal,
         loyaltyPointsUsed: loyaltyRedemption.points,
         loyaltyDiscount: loyaltyRedemption.value,
@@ -1702,12 +1702,17 @@ const Checkout: React.FC = () => {
                     <span className="text-medium-gray flex items-center">
                       <Truck className="h-4 w-4 mr-1" />
                       Shipping
+                      {shippingBreakdown && (
+                        <span className="ml-1 text-xs">
+                          ({shippingBreakdown.description})
+                        </span>
+                      )}
                     </span>
                     <span className="font-fredoka font-medium">
-                      {shippingCost === 0 ? (
+                      {totalShippingCost === 0 ? (
                         <span className="text-mint-green">FREE</span>
                       ) : (
-                        `${currentCurrency} ${safeDisplayPrice(shippingCost)}`
+                        `${currentCurrency} ${safeDisplayPrice(totalShippingCost)}`
                       )}
                     </span>
                   </div>

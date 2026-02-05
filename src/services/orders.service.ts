@@ -2,6 +2,7 @@ import { Order, OrderItem, CheckoutForm, CartItem } from '../types';
 import { mockDb } from './mockDb';
 import { authService } from './auth.service';
 import { productsService } from './products.service';
+import { api } from './api';
 
 class OrdersService {
   async createOrder(checkoutData: CheckoutForm & { items: CartItem[] }): Promise<Order> {
@@ -84,32 +85,54 @@ class OrdersService {
     return updatedOrder;
   }
 
-  async getUserOrders(): Promise<Order[]> {
-    const currentUser = await authService.getCurrentUser();
-    if (!currentUser) {
-      throw new Error('User must be logged in');
-    }
+  async getUserOrders(): Promise<any[]> {
+    try {
+      // Try API first
+      const response = await api.get('/orders');
+      const data = response.data as any;
 
-    return mockDb.getUserOrders(currentUser.id);
+      if (data.success && data.data) {
+        return data.data;
+      }
+
+      throw new Error('Failed to fetch orders');
+    } catch (error: any) {
+      // Fallback to mockDb if API fails
+      console.warn('API failed, falling back to mockDb:', error.message);
+
+      const currentUser = await authService.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('User must be logged in');
+      }
+
+      return mockDb.getUserOrders(currentUser.id);
+    }
   }
 
-  async getOrderById(orderId: string): Promise<Order> {
-    const currentUser = await authService.getCurrentUser();
-    if (!currentUser) {
-      throw new Error('User must be logged in');
-    }
+  async getOrderById(orderId: string): Promise<any> {
+    try {
+      const response = await api.get(`/orders/${orderId}`);
+      const data = response.data as any;
 
-    const order = await mockDb.getOrderById(orderId);
-    if (!order) {
-      throw new Error('Order not found');
-    }
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch order');
+      }
 
-    // Verify the order belongs to the current user
-    if (order.userId !== currentUser.id) {
-      throw new Error('Unauthorized access to order');
-    }
+      return data.data;
+    } catch (error: any) {
+      // Handle 404 - Order not found
+      if (error.response?.status === 404) {
+        throw new Error('Order not found');
+      }
 
-    return order;
+      // Handle 403 - Unauthorized access
+      if (error.response?.status === 403) {
+        throw new Error('Unauthorized access to this order');
+      }
+
+      // Handle other errors
+      throw new Error(error.response?.data?.message || error.message || 'Failed to fetch order details');
+    }
   }
 
   async trackOrder(orderId: string): Promise<{
@@ -166,26 +189,34 @@ class OrdersService {
     };
   }
 
-  async cancelOrder(orderId: string): Promise<Order> {
-    const currentUser = await authService.getCurrentUser();
-    if (!currentUser) {
-      throw new Error('User must be logged in');
+  async cancelOrder(orderId: string): Promise<any> {
+    try {
+      const response = await api.post(`/orders/${orderId}/cancel`);
+      const data = response.data as any;
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to cancel order');
+      }
+
+      return data.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to cancel order');
     }
+  }
 
-    const order = await this.getOrderById(orderId);
+  async reorderItems(orderId: string): Promise<any> {
+    try {
+      const response = await api.post(`/orders/${orderId}/reorder`);
+      const data = response.data as any;
 
-    // Can only cancel pending or processing orders
-    if (order.status !== 'pending' && order.status !== 'processing') {
-      throw new Error('Cannot cancel order in current status');
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to reorder items');
+      }
+
+      return data.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to reorder items');
     }
-
-    // Update order status
-    const cancelledOrder = await mockDb.updateOrderStatus(orderId, 'cancelled');
-
-    // In a real app, we'd also process refunds here
-    console.log('Order cancelled, refund initiated');
-
-    return cancelledOrder;
   }
 
   async getOrderSummary(): Promise<{

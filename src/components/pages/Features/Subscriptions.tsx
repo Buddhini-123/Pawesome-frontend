@@ -98,6 +98,11 @@ interface Product {
   description?: string;
   subcategory?: string;
   currency?: string;
+  // Subscription fields
+  subscription_enabled?: boolean;
+  subscription_discount_percentage?: number;
+  min_subscription_quantity?: number;
+  max_subscription_quantity?: number;
 }
 
 interface MappedSubscription {
@@ -142,6 +147,15 @@ const Subscriptions = () => {
 
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [deliveryPeriod, setDeliveryPeriod] = useState("");
+  const [intervalType, setIntervalType] = useState<'weekly' | 'monthly' | 'custom'>('weekly');
+  const [intervalValue, setIntervalValue] = useState(1);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState(12);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
 
   const fetchSubscriptions = async () => {
     try {
@@ -196,17 +210,69 @@ const Subscriptions = () => {
     fetchSubscriptions();
   }, []);
 
+  // Fetch products with pagination
+  const fetchProducts = async (page: number = 1, category: string = 'all') => {
+    setIsLoadingProducts(true);
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        per_page: perPage.toString(),
+        subscription_enabled: 'true', // Only fetch subscription-eligible products
+      });
+
+      // Add category filter if not 'all'
+      if (category !== 'all') {
+        params.append('category', category);
+      }
+
+      const response = await api.get(`/products?${params.toString()}`);
+      const data = response.data as any;
+
+      if (data.success && data.data) {
+        setProducts(data.data);
+
+        // Handle pagination metadata
+        if (data.pagination) {
+          setCurrentPage(data.pagination.current_page || page);
+          setTotalPages(data.pagination.last_page || 1);
+          setTotalProducts(data.pagination.total || 0);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load products");
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
   useEffect(() => {
     api.get("/categories").then(res => {
       setCategories((res.data as any).data || []);
-    })
-    api.get("/products/subscriptions").then(res => {
-      setProducts((res.data as any).data)
-    })
-  }, [])
+    });
+    fetchProducts(1);
+  }, []);
+
+  // Fetch products when page or category changes
+  useEffect(() => {
+    if (isModalOpen) {
+      fetchProducts(currentPage, selectedCategory);
+    }
+  }, [currentPage, selectedCategory, isModalOpen]);
 
 
   const handleProductToggle = (product: Product) => {
+    // Validate product eligibility
+    if (!product.subscription_enabled) {
+      toast.error("This product is not available for subscription");
+      return;
+    }
+
+    if (!product.is_in_stock || product.stock_quantity <= 0) {
+      toast.error("This product is out of stock");
+      return;
+    }
+
     setSelectedProducts(prev => {
       const isSelected = prev.some(p => p.id === product.id)
       if (isSelected) {
@@ -216,8 +282,9 @@ const Subscriptions = () => {
         setProductQuantities(newQuantities)
         return prev.filter(p => p.id !== product.id)
       } else {
-        // Add product with default quantity of 1
-        setProductQuantities(prev => ({ ...prev, [product.id]: 1 }))
+        // Add product with default quantity (respect min_subscription_quantity)
+        const minQty = product.min_subscription_quantity || 1;
+        setProductQuantities(prev => ({ ...prev, [product.id]: minQty }))
         return [...prev, product]
       }
     })
@@ -225,22 +292,44 @@ const Subscriptions = () => {
 
   const handleQuantityChange = (productId: string, change: number) => {
     setProductQuantities(prev => {
-      const currentQty = prev[productId] || 1
-      const newQty = Math.max(1, currentQty + change)
+      // Find the product to get min/max quantities
+      const product = confirmedProducts.find(p => p.id === Number(productId)) ||
+                     selectedProducts.find(p => p.id === Number(productId));
+
+      const minQty = product?.min_subscription_quantity || 1;
+      const maxQty = product?.max_subscription_quantity || 99;
+
+      const currentQty = prev[productId] || minQty;
+      const newQty = Math.max(minQty, Math.min(maxQty, currentQty + change));
+
+      // Show warning if hitting limits
+      if (newQty === maxQty && currentQty + change > maxQty) {
+        toast.warning(`Maximum quantity for this product is ${maxQty}`);
+      } else if (newQty === minQty && currentQty + change < minQty) {
+        toast.warning(`Minimum quantity for this product is ${minQty}`);
+      }
+
       return { ...prev, [productId]: newQty }
     })
   }
 
   const handleConfirmSelection = (scheduleData: any) => {
-    if (!scheduleData.startDate || !scheduleData.endDate) {
-      toast.error("Please select both start and end dates");
+    if (!scheduleData.startDate) {
+      toast.error("Please select a start date");
       return;
     }
 
-    if (new Date(scheduleData.endDate) <= new Date(scheduleData.startDate)) {
+    if (scheduleData.endDate && new Date(scheduleData.endDate) <= new Date(scheduleData.startDate)) {
       toast.error("End date must be after start date");
       return;
     }
+
+    // Validate interval values
+    if (!scheduleData.intervalType || !scheduleData.intervalValue) {
+      toast.error("Please select a valid delivery frequency");
+      return;
+    }
+
     navigate('/checkout', {
       state: {
         type: "subscription",
@@ -254,6 +343,7 @@ const Subscriptions = () => {
   const handleOpenModal = () => {
     setSelectedProducts(confirmedProducts)
     setIsModalOpen(true)
+    setCurrentPage(1) // Reset to first page when opening modal
   }
 
   const handleSubscriptionClick = (subscription: MappedSubscription) => {
@@ -298,10 +388,10 @@ const Subscriptions = () => {
 
     if (data.success) {
       setShowSubscriptionModal(false);
-      setSelectedSubscription(null); 
+      setSelectedSubscription(null);
 
       toast.success("Subscription cancelled successfully");
-      setActiveSubscriptions(prev => prev.filter(sub => sub.id !== subscriptionId));
+      await fetchSubscriptions(); // Refresh subscriptions list
     } else {
       toast.error(data.message || "Failed to cancel subscription");
     }
@@ -312,10 +402,101 @@ const Subscriptions = () => {
   }
 };
 
-  const filteredProducts =
-    selectedCategory === "all"
-      ? products
-      : products.filter(p => p.category?.slug === selectedCategory)
+const handlePause = async (subscriptionId: number) => {
+  if (!window.confirm("Do you want to pause this subscription?")) return;
+
+  try {
+    const response = await api.put(`/subscriptions/${subscriptionId}/pause`);
+    const data = response.data as any;
+
+    if (data.success) {
+      toast.success("Subscription paused successfully");
+      await fetchSubscriptions(); // Refresh subscriptions list
+      setShowSubscriptionModal(false);
+    } else {
+      toast.error(data.message || "Failed to pause subscription");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || "An error occurred";
+    toast.error(message);
+    console.error("Pause subscription error:", error.response || error.message);
+  }
+};
+
+const handleResume = async (subscriptionId: number) => {
+  try {
+    const response = await api.put(`/subscriptions/${subscriptionId}/resume`);
+    const data = response.data as any;
+
+    if (data.success) {
+      toast.success("Subscription resumed successfully");
+      await fetchSubscriptions(); // Refresh subscriptions list
+      setShowSubscriptionModal(false);
+    } else {
+      toast.error(data.message || "Failed to resume subscription");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || "An error occurred";
+    toast.error(message);
+    console.error("Resume subscription error:", error.response || error.message);
+  }
+};
+
+const handleSkipDelivery = async (subscriptionId: number) => {
+  if (!window.confirm("Skip the next delivery? The following delivery will be scheduled automatically.")) return;
+
+  try {
+    const response = await api.put(`/subscriptions/${subscriptionId}/skip-delivery`);
+    const data = response.data as any;
+
+    if (data.success) {
+      toast.success("Next delivery skipped successfully");
+      await fetchSubscriptions(); // Refresh subscriptions list
+    } else {
+      toast.error(data.message || "Failed to skip delivery");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || "An error occurred";
+    toast.error(message);
+    console.error("Skip delivery error:", error.response || error.message);
+  }
+};
+
+const handleReschedule = async (subscriptionId: number, newDate: string) => {
+  try {
+    const response = await api.put(`/subscriptions/${subscriptionId}/reschedule`, {
+      next_delivery_date: newDate
+    });
+    const data = response.data as any;
+
+    if (data.success) {
+      toast.success("Delivery rescheduled successfully");
+      await fetchSubscriptions(); // Refresh subscriptions list
+    } else {
+      toast.error(data.message || "Failed to reschedule delivery");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || "An error occurred";
+    toast.error(message);
+    console.error("Reschedule delivery error:", error.response || error.message);
+  }
+};
+
+  // Products are now filtered on the backend
+  const filteredProducts = products;
+
+  // Handle category change
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1); // Reset to page 1 when category changes
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-soft-gray">
@@ -678,15 +859,24 @@ const Subscriptions = () => {
                           
                           <div className="flex items-center justify-between mb-4">
                             <div>
-                              <span className="text-lg font-fredoka font-bold text-vibrant-orange">
-                                {product?.currency} {Math.floor(product.price * 0.9)}
-                              </span>
-                              <span className="text-sm text-light-gray line-through ml-2">
-                                {product?.currency} {product.price}
-                              </span>
+                              {(() => {
+                                const discountPercent = product.subscription_discount_percentage || 0;
+                                const discountMultiplier = 1 - (discountPercent / 100);
+                                const subscriptionPrice = Math.floor(product.price * discountMultiplier);
+                                return (
+                                  <>
+                                    <span className="text-lg font-fredoka font-bold text-vibrant-orange">
+                                      {product?.currency} {subscriptionPrice}
+                                    </span>
+                                    <span className="text-sm text-light-gray line-through ml-2">
+                                      {product?.currency} {product.price}
+                                    </span>
+                                  </>
+                                );
+                              })()}
                             </div>
                             <div className="text-xs text-green-600 font-fredoka font-medium">
-                              -10%
+                              -{product.subscription_discount_percentage || 0}%
                             </div>
                           </div>
                           
@@ -734,19 +924,20 @@ const Subscriptions = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-medium-gray">Products Total</span>
                           <span className="font-medium">
-                            LKR {confirmedProducts.reduce((total, product) => {
+                            Rs. {confirmedProducts.reduce((total, product) => {
                               const qty = productQuantities[product.id] || 1
                               return total + (product.price * qty)
-                            }, 0)}
+                            }, 0).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between items-center text-green-600">
-                          <span>Subscription Discount (10%)</span>
+                          <span>Subscription Discount</span>
                           <span className="font-medium">
                             -Rs. {confirmedProducts.reduce((total, product) => {
                               const qty = productQuantities[product.id] || 1
-                              return total + Math.floor(product.price * 0.1 * qty)
-                            }, 0)}
+                              const discountPercent = product.subscription_discount_percentage || 0
+                              return total + (product.price * qty * (discountPercent / 100))
+                            }, 0).toFixed(2)}
                           </span>
                         </div>
                         <div className="pt-3 border-t-2 border-yellow-300">
@@ -762,8 +953,10 @@ const Subscriptions = () => {
                             <p className="text-3xl font-bold text-vibrant-orange">
                               Rs. {confirmedProducts.reduce((total, product) => {
                                 const qty = productQuantities[product.id] || 1
-                                return total + Math.floor(product.price * 0.9 * qty)
-                              }, 0)}
+                                const discountPercent = product.subscription_discount_percentage || 0
+                                const discountMultiplier = 1 - (discountPercent / 100)
+                                return total + (product.price * qty * discountMultiplier)
+                              }, 0).toFixed(2)}
                             </p>
                           </div>
                         </div>
@@ -845,7 +1038,7 @@ const Subscriptions = () => {
               <div className="bg-soft-gray px-6 py-4 border-b border-light-gray">
                 <div className="flex space-x-4 overflow-x-auto">
                   <button
-                    onClick={() => setSelectedCategory('all')}
+                    onClick={() => handleCategoryChange('all')}
                     className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
                       selectedCategory === 'all'
                         ? 'bg-warm-orange text-white'
@@ -862,7 +1055,7 @@ const Subscriptions = () => {
                         ? 'bg-warm-orange text-white'
                         : 'bg-white text-medium-gray hover:bg-light-gray' }
                     }`}
-                      onClick={() => setSelectedCategory(cat.slug)}
+                      onClick={() => handleCategoryChange(cat.slug)}
                     >
                       {cat.name}
                     </button>
@@ -872,17 +1065,106 @@ const Subscriptions = () => {
 
               {/* Products Grid */}
               <div className="flex-1 overflow-y-auto p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {filteredProducts.map(product => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      isSelected={selectedProducts.some(p => p.id === product.id)}
-                      onToggle={handleProductToggle}
-                      onViewDetails={handleViewProductDetails}
-                    />
-                  ))}
-                </div>
+                {isLoadingProducts ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-vibrant-orange mx-auto mb-4"></div>
+                      <p className="text-medium-gray">Loading products...</p>
+                    </div>
+                  </div>
+                ) : filteredProducts.length === 0 ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <Package className="h-16 w-16 text-light-gray mx-auto mb-4" />
+                      <p className="text-lg font-fredoka text-medium-gray">No products found</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                      {filteredProducts.map(product => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          isSelected={selectedProducts.some(p => p.id === product.id)}
+                          onToggle={handleProductToggle}
+                          onViewDetails={handleViewProductDetails}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between px-4 py-4 border-t border-light-gray bg-soft-gray">
+                        <div className="text-sm text-medium-gray">
+                          Showing {filteredProducts.length} of {totalProducts} products
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          {/* Previous Button */}
+                          <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`p-2 rounded-lg transition-all ${
+                              currentPage === 1
+                                ? 'bg-light-gray text-medium-gray cursor-not-allowed'
+                                : 'bg-white text-charcoal hover:bg-vibrant-orange hover:text-white'
+                            }`}
+                          >
+                            <ChevronLeft className="h-5 w-5" />
+                          </button>
+
+                          {/* Page Numbers */}
+                          <div className="flex items-center space-x-1">
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                              let pageNum: number;
+                              if (totalPages <= 5) {
+                                pageNum = i + 1;
+                              } else if (currentPage <= 3) {
+                                pageNum = i + 1;
+                              } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + i;
+                              } else {
+                                pageNum = currentPage - 2 + i;
+                              }
+
+                              return (
+                                <button
+                                  key={pageNum}
+                                  onClick={() => handlePageChange(pageNum)}
+                                  className={`px-3 py-1 rounded-lg font-fredoka font-medium transition-all ${
+                                    currentPage === pageNum
+                                      ? 'bg-vibrant-orange text-white'
+                                      : 'bg-white text-charcoal hover:bg-light-gray'
+                                  }`}
+                                >
+                                  {pageNum}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Next Button */}
+                          <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`p-2 rounded-lg transition-all ${
+                              currentPage === totalPages
+                                ? 'bg-light-gray text-medium-gray cursor-not-allowed'
+                                : 'bg-white text-charcoal hover:bg-vibrant-orange hover:text-white'
+                            }`}
+                          >
+                            <ChevronRight className="h-5 w-5" />
+                          </button>
+                        </div>
+
+                        <div className="text-sm text-medium-gray">
+                          Page {currentPage} of {totalPages}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Modal Footer */}
@@ -897,10 +1179,12 @@ const Subscriptions = () => {
                     </p>
                     {selectedProducts.length > 0 && (
                       <p className="text-sm text-mint-green font-medium">
-                        Monthly Total: LKR {selectedProducts.reduce((total, product) => {
+                        Subscription Total: Rs. {selectedProducts.reduce((total, product) => {
                           const qty = productQuantities[product.id] || 1
-                          return total + Math.floor(product.price * 0.9 * qty)
-                        }, 0)}
+                          const discountPercent = product.subscription_discount_percentage || 0
+                          const discountMultiplier = 1 - (discountPercent / 100)
+                          return total + (product.price * qty * discountMultiplier)
+                        }, 0).toFixed(2)}
                       </p>
                     )}
                   </div>
@@ -953,16 +1237,57 @@ const Subscriptions = () => {
 
                 <h2 className="text-xl font-bold mb-4">Set Delivery Schedule</h2>
 
-                {/* Delivery Period */}
-                <label className="block font-medium">Delivery Period</label>
+                {/* Delivery Frequency Type */}
+                <label className="block font-medium">Delivery Frequency</label>
                 <select
-                  className="w-full border rounded-lg p-2 mt-1"
-                  value={deliveryPeriod}
-                  onChange={e => setDeliveryPeriod(e.target.value)}
+                  className="w-full border rounded-lg p-2 mt-1 mb-4"
+                  value={intervalType}
+                  onChange={e => {
+                    const type = e.target.value as 'weekly' | 'monthly' | 'custom';
+                    setIntervalType(type);
+                    // Reset interval value to 1 when changing type
+                    setIntervalValue(type === 'weekly' ? 1 : type === 'monthly' ? 1 : 7);
+                  }}
                 >
-                  <option value="">Select</option>
-                  <option value="weekly">Every Week</option>
+                  <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
+                  <option value="custom">Custom (Days)</option>
+                </select>
+
+                {/* Interval Value Selection */}
+                <label className="block font-medium">Delivery Interval</label>
+                <select
+                  className="w-full border rounded-lg p-2 mt-1 mb-4"
+                  value={intervalValue}
+                  onChange={e => setIntervalValue(Number(e.target.value))}
+                >
+                  {intervalType === 'weekly' && (
+                    <>
+                      <option value="1">Every Week</option>
+                      <option value="2">Every 2 Weeks</option>
+                      <option value="3">Every 3 Weeks</option>
+                      <option value="4">Every 4 Weeks</option>
+                    </>
+                  )}
+                  {intervalType === 'monthly' && (
+                    <>
+                      <option value="1">Every Month</option>
+                      <option value="2">Every 2 Months</option>
+                      <option value="3">Every 3 Months</option>
+                      <option value="6">Every 6 Months</option>
+                    </>
+                  )}
+                  {intervalType === 'custom' && (
+                    <>
+                      <option value="7">Every 7 Days</option>
+                      <option value="14">Every 14 Days</option>
+                      <option value="21">Every 21 Days</option>
+                      <option value="30">Every 30 Days</option>
+                      <option value="45">Every 45 Days</option>
+                      <option value="60">Every 60 Days</option>
+                      <option value="90">Every 90 Days</option>
+                    </>
+                  )}
                 </select>
 
                 {/* Start Date */}
@@ -976,14 +1301,15 @@ const Subscriptions = () => {
                 />
 
                 {/* End Date */}
-                <label className="block font-medium mt-4">End Date</label>
+                <label className="block font-medium mt-4">End Date (Optional)</label>
                 <input
                   type="date"
                   className="w-full border rounded-lg p-2 mt-1"
-                  min={new Date().toISOString().split("T")[0]}
+                  min={startDate || new Date().toISOString().split("T")[0]}
                   value={endDate}
                   onChange={e => setEndDate(e.target.value)}
                 />
+                <p className="text-xs text-medium-gray mt-1">Leave empty for ongoing subscription</p>
 
                 {/* Footer */}
                 <div className="flex justify-end gap-3 mt-6">
@@ -998,12 +1324,18 @@ const Subscriptions = () => {
                     onClick={() => {
                       setIsScheduleModalOpen(false);
                       handleConfirmSelection({
-                        deliveryPeriod,
+                        intervalType,
+                        intervalValue,
                         startDate,
                         endDate
                       });
                     }}
-                    className="bg-vibrant-orange hover:bg-sunny-yellow text-white px-6 py-2 rounded-full"
+                    disabled={!startDate}
+                    className={`px-6 py-2 rounded-full transition-colors ${
+                      startDate
+                        ? 'bg-vibrant-orange hover:bg-sunny-yellow text-white'
+                        : 'bg-light-gray text-medium-gray cursor-not-allowed'
+                    }`}
                   >
                     Confirm Selection
                   </button>
@@ -1126,6 +1458,50 @@ const Subscriptions = () => {
 
                 {/* Modal Footer */}
                 <div className="bg-soft-gray px-6 py-4 border-t border-light-gray">
+                  {/* Management Actions Row */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    {selectedSubscription.status === 'Active' && (
+                      <button
+                        onClick={() => handlePause(selectedSubscription.id)}
+                        className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-fredoka font-medium rounded-full transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Package className="h-4 w-4" />
+                        Pause
+                      </button>
+                    )}
+                    {selectedSubscription.status === 'Paused' && (
+                      <button
+                        onClick={() => handleResume(selectedSubscription.id)}
+                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-fredoka font-medium rounded-full transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Package className="h-4 w-4" />
+                        Resume
+                      </button>
+                    )}
+                    {selectedSubscription.status === 'Active' && (
+                      <button
+                        onClick={() => handleSkipDelivery(selectedSubscription.id)}
+                        className="px-4 py-2 bg-primary-blue hover:bg-blue-700 text-white font-fredoka font-medium rounded-full transition-colors flex items-center justify-center gap-2"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                        Skip Next
+                      </button>
+                    )}
+                    {(selectedSubscription.status === 'Active' || selectedSubscription.status === 'Paused') && selectedSubscription.nextDelivery && (
+                      <button
+                        onClick={() => {
+                          const newDate = prompt("Enter new delivery date (YYYY-MM-DD):", selectedSubscription.nextDelivery || undefined);
+                          if (newDate) handleReschedule(selectedSubscription.id, newDate);
+                        }}
+                        className="px-4 py-2 bg-mint-green hover:bg-green-600 text-white font-fredoka font-medium rounded-full transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Reschedule
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Primary Actions Row */}
                   <div className="flex gap-3 justify-end">
                     <button
                       onClick={() => setShowSubscriptionModal(false)}
@@ -1133,12 +1509,14 @@ const Subscriptions = () => {
                     >
                       Close
                     </button>
-                    <button className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-fredoka font-medium rounded-full transition-colors"  onClick={() => handleCancel(selectedSubscription.id)}>
-                      Cancel Subscription
-                    </button>
-                    <button className="px-6 py-2 bg-primary-blue hover:bg-blue-700 text-white font-fredoka font-medium rounded-full transition-colors">
-                      Edit Subscription
-                    </button>
+                    {(selectedSubscription.status === 'Active' || selectedSubscription.status === 'Paused') && (
+                      <button
+                        className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-fredoka font-medium rounded-full transition-colors"
+                        onClick={() => handleCancel(selectedSubscription.id)}
+                      >
+                        Cancel Subscription
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1453,9 +1831,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         </div>
       )}
 
+      {/* Subscription Discount Badge */}
+      {product.subscription_discount_percentage && product.subscription_discount_percentage > 0 && (
+        <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-fredoka font-bold z-10 shadow-lg">
+          Save {product.subscription_discount_percentage}%
+        </div>
+      )}
+
       {/* Product Image */}
-      <div 
-        className="aspect-square overflow-hidden rounded-t-lg bg-soft-gray cursor-pointer"
+      <div
+        className="aspect-square overflow-hidden rounded-t-lg bg-soft-gray cursor-pointer relative"
         onClick={() => onToggle(product)}
       >
        <img
@@ -1531,11 +1916,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         </div>
 
         {/* Subscription Price */}
-        {/* <div className="mt-3 pt-2 border-t border-light-gray">
-          <p className="text-xs text-mint-green font-fredoka font-medium text-center">
-            Subscription: {product.currency} {Math.floor(product.price * 0.9)} (Save 10%)
-          </p>
-        </div> */}
+        {product.subscription_discount_percentage && product.subscription_discount_percentage > 0 && (
+          <div className="mt-3 pt-2 border-t border-light-gray">
+            <p className="text-xs text-mint-green font-fredoka font-medium text-center">
+              Subscription: Rs. {(product.price * (1 - product.subscription_discount_percentage / 100)).toFixed(2)} (Save {product.subscription_discount_percentage}%)
+            </p>
+          </div>
+        )}
       </div>
     </motion.div>
   )

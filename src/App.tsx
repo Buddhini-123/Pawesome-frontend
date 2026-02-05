@@ -23,6 +23,8 @@ import Brands from './components/pages/Shop/Brands';
 import Cart from './components/pages/Shop/Cart';
 import Checkout from './components/pages/Shop/Checkout';
 import OrderConfirmation from './components/pages/Shop/OrderConfirmation';
+import OrderDetails from './components/pages/Shop/OrderDetails';
+import Orders from './components/pages/Shop/Orders';
 import SearchResults from './components/pages/Shop/SearchResults';
 import Account from './components/pages/Account/Account';
 import Contact from './components/pages/Account/Contact';
@@ -80,6 +82,16 @@ const App: React.FC = () => {
           <Route path="/order-confirmation/:orderId" element={
             <ProtectedRoute>
               <OrderConfirmation />
+            </ProtectedRoute>
+          } />
+          <Route path="/orders" element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          } />
+          <Route path="/orders/:orderId" element={
+            <ProtectedRoute>
+              <OrderDetails />
             </ProtectedRoute>
           } />
           <Route path="/account" element={

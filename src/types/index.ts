@@ -38,12 +38,27 @@ export interface CartItem {
   subtotal?: string; // Item subtotal
 }
 
+export interface ShippingBreakdown {
+  weight: string;
+  weight_unit: string;
+  tier: 'light' | 'medium' | 'heavy';
+  description: string;
+  cost: string;
+  pricing_tiers: Array<{
+    range: string;
+    cost: string;
+  }>;
+}
+
 export interface CartState {
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
   total_weight?: string; // Total cart weight
   weight_unit?: string; // Weight unit (e.g., "kg")
+  shipping_cost?: number; // Shipping cost from backend
+  shipping_breakdown?: ShippingBreakdown; // Detailed shipping info
+  tax_amount?: number; // Tax amount
 }
 
 // User related types
