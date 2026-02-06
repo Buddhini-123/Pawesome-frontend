@@ -43,11 +43,26 @@ interface CartProviderProps {
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
-  const [cart, setCart] = useState<CartItem[]>([]);
+
+  // Check localStorage on component mount
+  console.log('[CartContext] Component mounting. Checking localStorage...');
+  const storedCart = localStorage.getItem('cart');
+  console.log('[CartContext] localStorage "cart" value:', storedCart);
+  console.log('[CartContext] isAuthenticated on mount:', isAuthenticated);
+
+  const [cart, setCartState] = useState<CartItem[]>([]);
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [shippingBreakdown, setShippingBreakdown] = useState<ShippingBreakdown | null>(null);
   const [taxAmount, setTaxAmount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+
+  // Wrapper to log all cart state changes
+  const setCart = useCallback((value: CartItem[] | ((prev: CartItem[]) => CartItem[])) => {
+    console.log('[CartContext] setCart called with:', typeof value === 'function' ? 'function' : value);
+    console.trace('[CartContext] setCart call stack');
+    setCartState(value);
+  }, []);
 
   // Helper: Convert backend cart response to local cart items
   const convertBackendCart = useCallback((backendCart: BackendCartResponse): CartItem[] => {
@@ -84,19 +99,27 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const loadLocalCart = useCallback((): CartItem[] => {
     try {
       const savedCart = localStorage.getItem('cart');
-      console.log('[CartContext] Loading cart from localStorage');
+      console.log('[CartContext] loadLocalCart called');
+      console.log('[CartContext] localStorage raw value:', savedCart);
 
       if (savedCart) {
         const parsed = JSON.parse(savedCart);
+        console.log('[CartContext] Parsed cart:', parsed);
         if (Array.isArray(parsed)) {
           console.log('[CartContext] ✅ Local cart loaded with', parsed.length, 'items');
+          console.log('[CartContext] Cart items:', parsed);
           return parsed;
+        } else {
+          console.warn('[CartContext] Parsed cart is not an array:', typeof parsed);
         }
+      } else {
+        console.log('[CartContext] No cart found in localStorage');
       }
     } catch (error) {
       console.error('[CartContext] Failed to load local cart:', error);
       localStorage.removeItem('cart');
     }
+    console.log('[CartContext] Returning empty cart');
     return [];
   }, []);
 
@@ -123,12 +146,15 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       return;
     }
 
+    console.log('[CartContext] Fetching cart from backend for user:', user.id);
     setIsLoading(true);
     try {
       const backendCart = await cartService.getCart();
+      console.log('[CartContext] Backend cart response:', backendCart);
 
-      if (backendCart) {
+      if (backendCart && backendCart.items && backendCart.items.length > 0) {
         const items = convertBackendCart(backendCart);
+        console.log('[CartContext] Converted backend items:', items);
 
         // Merge original prices from localStorage
         const originalPrices = loadOriginalPrices();
@@ -150,10 +176,20 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         setShippingCost(parseFloat(backendCart.shipping_cost));
         setShippingBreakdown(backendCart.shipping_breakdown);
         setTaxAmount(parseFloat(backendCart.tax_amount));
-        console.log('[CartContext] ✅ Backend cart loaded with original prices merged:', backendCart);
+        console.log('[CartContext] ✅ Backend cart loaded with', itemsWithPrices.length, 'items');
       } else {
-        console.log('[CartContext] No backend cart found');
-        setCart([]);
+        console.warn('[CartContext] Backend returned empty cart or no items');
+        console.log('[CartContext] Falling back to localStorage backup for authenticated user');
+
+        // FALLBACK: Try loading from localStorage backup for authenticated users
+        const localBackup = loadLocalCart();
+        if (localBackup.length > 0) {
+          console.log('[CartContext] Found localStorage backup with', localBackup.length, 'items');
+          setCart(localBackup);
+        } else {
+          console.log('[CartContext] No backup found, cart is empty');
+          setCart([]);
+        }
         setShippingCost(0);
         setShippingBreakdown(null);
         setTaxAmount(0);
@@ -162,6 +198,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       console.error('[CartContext] Failed to fetch backend cart:', error);
       // Fall back to local cart
       const localCart = loadLocalCart();
+      console.log('[CartContext] Error fallback: loaded', localCart.length, 'items from localStorage');
       setCart(localCart);
     } finally {
       setIsLoading(false);
@@ -170,18 +207,32 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Initialize cart on mount and when authentication changes
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchBackendCart();
-    } else {
-      // Load from localStorage for guest users
-      const localCart = loadLocalCart();
-      setCart(localCart);
-    }
-  }, [isAuthenticated, fetchBackendCart, loadLocalCart]);
+    console.log('[CartContext] Init effect running. isAuthenticated:', isAuthenticated);
+
+    const initCart = async () => {
+      if (isAuthenticated) {
+        console.log('[CartContext] User is authenticated, fetching backend cart');
+        await fetchBackendCart();
+      } else {
+        console.log('[CartContext] User is NOT authenticated, loading from localStorage');
+        // Load from localStorage for guest users
+        const localCart = loadLocalCart();
+        console.log('[CartContext] Setting cart with', localCart.length, 'items');
+        setCart(localCart);
+      }
+      console.log('[CartContext] Setting isInitialized to true');
+      setIsInitialized(true);
+    };
+
+    initCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // Only run when auth status changes, not when functions change
 
   // Save to localStorage for guest users
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Only save after cart has been initialized to prevent clearing localStorage on mount
+    if (!isAuthenticated && isInitialized) {
+      console.log('[CartContext] Saving cart to localStorage:', cart.length, 'items');
       saveLocalCart(cart);
 
       // Calculate local shipping for guest users
@@ -191,55 +242,21 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       }, 0);
       setShippingCost(calculateLocalShipping(weight));
     }
-  }, [cart, isAuthenticated, saveLocalCart, calculateLocalShipping]);
+  }, [cart, isAuthenticated, isInitialized, saveLocalCart, calculateLocalShipping]);
 
-  // Refresh cart items with latest product data (for guest users)
-  useEffect(() => {
-    const refreshCartItems = async () => {
-      if (isAuthenticated || cart.length === 0) return;
-
-      console.log('[CartContext] Refreshing guest cart with latest product data...');
-
-      try {
-        const refreshedCart = await Promise.all(
-          cart.map(async (item) => {
-            const freshProduct = await productsService.getProductById(item.product.id);
-
-            if (freshProduct) {
-              return {
-                ...item,
-                product: {
-                  ...item.product,
-                  weight: freshProduct.weight,
-                  dimensions: freshProduct.dimensions
-                }
-              };
-            }
-
-            return item;
-          })
-        );
-
-        const hasChanges = refreshedCart.some((item, index) => {
-          const oldItem = cart[index];
-          return item.product.weight !== oldItem.product.weight ||
-                 JSON.stringify(item.product.dimensions) !== JSON.stringify(oldItem.product.dimensions);
-        });
-
-        if (hasChanges) {
-          console.log('[CartContext] ✅ Guest cart refreshed with weight/dimensions');
-          setCart(refreshedCart);
-        }
-      } catch (error) {
-        console.error('[CartContext] Failed to refresh cart items:', error);
-      }
-    };
-
-    refreshCartItems();
-  }, [isAuthenticated]); // Only run when auth status changes
+  // Note: Removed cart refresh effect to prevent stale closure bugs
+  // Product weight/dimensions should be fetched when adding to cart
 
   // Add item to cart
   const addItem = useCallback(async (product: Product, quantity: number = 1) => {
+    console.log('[CartContext] addItem called with:', {
+      productId: product.id,
+      productName: product.name,
+      quantity,
+      isAuthenticated,
+      hasSlug: !!(product as any).slug
+    });
+
     if (quantity < 1 || quantity > 99) {
       console.warn('[CartContext] Invalid quantity: must be between 1 and 99');
       return;
@@ -253,13 +270,24 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       console.log('[CartContext] Saved originalPrice for product', product.id, ':', (product as any).originalPrice);
     }
 
+    console.log('[CartContext] Checking if should use backend API:', {
+      isAuthenticated,
+      hasProductId: !!product.id
+    });
+
     if (isAuthenticated && product.id) {
       // Use backend API
       try {
         setIsLoading(true);
         // Assuming product has a slug field, or use id as fallback
         const productSlug = (product as any).slug || product.id;
-        console.log('[CartContext] Adding to backend cart:', { productSlug, quantity, product });
+        console.log('[CartContext] Adding to backend cart:', {
+          productSlug,
+          productId: product.id,
+          productName: product.name,
+          hasSlug: !!(product as any).slug,
+          quantity,
+        });
         const backendCart = await cartService.addItem(productSlug, quantity);
 
         const items = convertBackendCart(backendCart);
@@ -284,6 +312,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         setShippingCost(parseFloat(backendCart.shipping_cost));
         setShippingBreakdown(backendCart.shipping_breakdown);
         setTaxAmount(parseFloat(backendCart.tax_amount));
+
+        // BACKUP: Also save to localStorage for authenticated users as fallback
+        console.log('[CartContext] Saving backup to localStorage for authenticated user');
+        saveLocalCart(itemsWithPrices);
+
         console.log('[CartContext] ✅ Item added to backend cart successfully with original prices merged');
       } catch (error: any) {
         console.warn('[CartContext] Backend cart add failed, using local cart instead');
@@ -307,19 +340,27 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [isAuthenticated, convertBackendCart, loadOriginalPrices, saveOriginalPrices]);
 
   const addToLocalCart = (product: Product, quantity: number) => {
+    console.log('[CartContext] Adding to local cart:', product.name, 'qty:', quantity);
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.product.id === product.id);
 
+      let newCart;
       if (existingItem) {
         const newQuantity = Math.min(existingItem.quantity + quantity, 99);
-        return prevCart.map(item =>
+        newCart = prevCart.map(item =>
           item.product.id === product.id
             ? { ...item, quantity: newQuantity }
             : item
         );
+      } else {
+        newCart = [...prevCart, { id: product.id, product, quantity }];
       }
 
-      return [...prevCart, { id: product.id, product, quantity }];
+      // IMPORTANT: Save to localStorage immediately (even for authenticated users as backup)
+      console.log('[CartContext] Saving local cart to localStorage:', newCart.length, 'items');
+      saveLocalCart(newCart);
+
+      return newCart;
     });
   };
 
@@ -357,6 +398,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         setShippingCost(parseFloat(backendCart.shipping_cost));
         setShippingBreakdown(backendCart.shipping_breakdown);
         setTaxAmount(parseFloat(backendCart.tax_amount));
+
+        // BACKUP: Save to localStorage
+        saveLocalCart(itemsWithPrices);
 
         // Clean up originalPrice for removed product
         if (productId) {
@@ -429,6 +473,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         setShippingCost(parseFloat(backendCart.shipping_cost));
         setShippingBreakdown(backendCart.shipping_breakdown);
         setTaxAmount(parseFloat(backendCart.tax_amount));
+
+        // BACKUP: Save to localStorage
+        saveLocalCart(itemsWithPrices);
       } catch (error) {
         console.error('[CartContext] Failed to update quantity via backend:', error);
         // Fall back to local update

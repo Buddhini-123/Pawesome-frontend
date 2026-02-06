@@ -46,11 +46,27 @@ class CartService {
   async getCart(): Promise<BackendCartResponse | null> {
     try {
       const response = await api.get<BackendCartResponse>('/cart');
+      console.log('[CartService] Full API response:', JSON.stringify(response, null, 2));
+
       if (response.success && response.data) {
-        console.log('[CartService] Cart fetched from backend:', response.data);
-        console.log('[CartService] Cart items array:', response.data.items);
-        console.log('[CartService] Is items an array?', Array.isArray(response.data.items));
-        return response.data;
+        // Handle double-wrapped response (response.data.data)
+        let cartData = response.data;
+        if ((cartData as any).data && typeof (cartData as any).data === 'object') {
+          console.log('[CartService] Detected double-wrapped response, unwrapping...');
+          cartData = (cartData as any).data;
+        }
+
+        console.log('[CartService] Cart data structure:', JSON.stringify(cartData, null, 2));
+        console.log('[CartService] Cart items array:', cartData.items);
+        console.log('[CartService] Is items an array?', Array.isArray(cartData.items));
+
+        // Handle case where backend returns cart without items array
+        if (!cartData.items || !Array.isArray(cartData.items)) {
+          console.warn('[CartService] Backend cart has no items array, initializing empty array');
+          cartData.items = [];
+        }
+
+        return cartData as BackendCartResponse;
       }
       console.warn('[CartService] Cart response not successful or no data');
       return null;

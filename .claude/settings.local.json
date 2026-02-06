@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run build:*)",
       "Bash([ -f \"src/components/common/Header.optimized.tsx\" ])",
-      "Bash([ -f \"src/components/common/Header.backup.tsx\" ])"
+      "Bash([ -f \"src/components/common/Header.backup.tsx\" ])",
+      "Bash(npx tsc:*)"
     ]
   }
 }
