@@ -158,7 +158,36 @@ const Deals: React.FC = () => {
         const dealsData = (response.data as any).data || [];
         console.log('[Deals Page] Total deals fetched:', dealsData.length);
         console.log('[Deals Page] Deals data:', dealsData);
-        setDeals(dealsData);
+
+        // Frontend date filtering as safety layer
+        const now = new Date();
+        const activeDeals = dealsData.filter((deal: any) => {
+          const startDate = deal.start_date ? new Date(deal.start_date) : null;
+          const endDate = deal.end_date ? new Date(deal.end_date) : null;
+
+          // Deal must have started (or no start date)
+          const hasStarted = !startDate || startDate <= now;
+
+          // Deal must not have ended (or no end date)
+          const notEnded = !endDate || endDate >= now;
+
+          const isActive = hasStarted && notEnded;
+
+          if (!isActive) {
+            console.log('[Deals Page] Filtering out inactive deal:', {
+              title: deal.title,
+              start_date: deal.start_date,
+              end_date: deal.end_date,
+              hasStarted,
+              notEnded
+            });
+          }
+
+          return isActive;
+        });
+
+        console.log('[Deals Page] Active deals after date filtering:', activeDeals.length);
+        setDeals(activeDeals);
       } catch (err) {
         console.error('[Deals Page] Error fetching deals:', err);
         setError('Failed to load deals');
@@ -184,6 +213,16 @@ const Deals: React.FC = () => {
   const bogoDeals = deals.filter(d => d.deal_type === 'bogo');
   const specialDeals = deals.filter(d => ['new_customer', 'bulk_buy', 'product_deal'].includes(d.deal_type));
 
+  // Catch-all for any other deal types (seasonal, limited_time, etc.)
+  const knownDealTypes = [
+    'flash_sale', 'clearance', 'weekend_sale',
+    'brand_deal',
+    'category_sale',
+    'bogo',
+    'new_customer', 'bulk_buy', 'product_deal'
+  ];
+  const otherDeals = deals.filter(d => !knownDealTypes.includes(d.deal_type));
+
   console.log('[Deals Page] Filtered deals:', {
     total: deals.length,
     flashSale: flashSaleDeals.length,
@@ -191,6 +230,7 @@ const Deals: React.FC = () => {
     category: categoryDeals.length,
     bogo: bogoDeals.length,
     special: specialDeals.length,
+    other: otherDeals.length,
     dealTypes: deals.map(d => ({ title: d.title, deal_type: d.deal_type }))
   });
 
@@ -235,11 +275,12 @@ const Deals: React.FC = () => {
               <DealSection title="📦 Category Special Deals" deals={categoryDeals} onDealClick={handleDealClick} />
               <DealSection title="🎁 Buy One Get One Free" deals={bogoDeals} onDealClick={handleDealClick} />
               <DealSection title="🌟 Special Offers & Promotions" deals={specialDeals} onDealClick={handleDealClick} />
+              <DealSection title="🎉 Seasonal & Other Deals" deals={otherDeals} onDealClick={handleDealClick} />
             </>
           )}
         </div>
 
-        <CategoryCarousel />
+        {/* <CategoryCarousel /> */}
         <ReccomendationsGrid />
         <TopBrandsCarousel />
       </div>

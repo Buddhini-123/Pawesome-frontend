@@ -52,6 +52,21 @@ const DealDetail: React.FC = () => {
       try {
         const res = await api.get(`/deals/${slug}`);
         const dealData = (res.data as any).data;
+
+        // Validate deal dates
+        const now = new Date();
+        const startDate = dealData.start_date ? new Date(dealData.start_date) : null;
+        const endDate = dealData.end_date ? new Date(dealData.end_date) : null;
+
+        const hasStarted = !startDate || startDate <= now;
+        const notEnded = !endDate || endDate >= now;
+
+        if (!hasStarted) {
+          setError(`This deal hasn't started yet. It will begin on ${startDate?.toLocaleDateString()}`);
+        } else if (!notEnded) {
+          setError(`This deal has expired. It ended on ${endDate?.toLocaleDateString()}`);
+        }
+
         setDeal(dealData);
       } catch (err) {
         console.error(err);

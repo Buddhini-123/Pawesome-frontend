@@ -87,10 +87,10 @@ const ReccomendationsGrid = () => {
         </div> */}
 
         {/* Regular Products Section */}
-          <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal-gray mb-4">
+          {/* <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal-gray mb-4">
             Products Your Furry Friend Will Love
           </h2>
-        <ProductGrid products={regularProducts} />
+        <ProductGrid products={regularProducts} /> */}
          {/* Featured Deals Section */}
         {/* <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6 mt-6 font-figtree">
