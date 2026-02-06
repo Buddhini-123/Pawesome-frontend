@@ -1,11 +1,13 @@
 {
   "name": "pawesome",
-  "version": "0.1.0",
+  "version": "0.5.4",
   "private": true,
   "dependencies": {
     "@react-three/drei": "^10.0.8",
     "@react-three/fiber": "^9.1.2",
     "@types/three": "^0.176.0",
+    "@types/uuid": "^10.0.0",
+    "axios": "^1.12.2",
     "cra-template": "1.2.0",
     "framer-motion": "^12.12.1",
     "gsap": "^3.13.0",
@@ -16,14 +18,19 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.6.0",
     "react-scripts": "5.0.1",
+    "react-toastify": "^11.0.5",
     "three": "^0.176.0",
+    "uuid": "^11.1.0",
     "web-vitals": "^4.2.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "optimize:images": "node scripts/optimize-images.js",
+    "analyze:images": "node scripts/optimize-images.js --analyze-only",
+    "install:image-deps": "npm install --save-dev sharp imagemin imagemin-webp imagemin-pngquant imagemin-mozjpeg"
   },
   "eslintConfig": {
     "extends": [
@@ -44,9 +51,17 @@
     ]
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.14",
+    "@types/react-dom": "^19.1.9",
+    "@types/react-icons": "^2.2.7",
+    "@types/testing-library__jest-dom": "^5.14.9",
+    "@types/testing-library__react": "^10.0.1",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^4.9.5"
   }
 }

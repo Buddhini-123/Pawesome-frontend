@@ -1,0 +1,347 @@
+# Tiny PRB Template - Simple Changes (3-5 points)
+# REVISED: Integrates with actual backend admin customers API with loyalty data
+
+git_privacy: false
+id: "PRB-005-REVISED-admin-customers-loyalty-api-2026-01-22"
+type: tiny-prb
+complexity: simple
+priority: "MEDIUM"
+title: "@Developer Integrate admin customers with backend API including loyalty data"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend with Backend API)"
+  project_overview: "E-commerce platform admin panel. Integrating with backend API that returns customer data with loyalty information in single optimized call"
+  work_location: "Frontend codebase - Admin Users component"
+  key_context: "Backend API GET /api/admin/customers?include=loyalty returns customers with embedded loyalty data. Frontend needs to call this endpoint and display loyalty columns (card number, points, tier)"
+  system_features: "Admin Panel (Customer Management, Loyalty Visibility), Backend REST API"
+  backend_api_available: true
+  backend_endpoints:
+    - endpoint: "GET /api/admin/customers?include=loyalty"
+      response: "Users array with loyalty balance and recent transactions embedded"
+      auth_required: true
+      admin_only: true
+      optimization: "Single endpoint returns all customer + loyalty data (no N+1 queries)"
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/admin/Users/UserList.tsx"
+      purpose: "Admin customer list table - needs to call backend API with include=loyalty parameter"
+      sample: "User table with columns: Name, Email, Phone, Role, Actions. Needs to add Loyalty columns"
+    - path: "src/services/admin.service.ts"
+      purpose: "Admin API service - may need method to fetch customers with loyalty"
+      sample: "Admin service with methods for managing users, orders, etc."
+    - path: "src/types/index.ts"
+      purpose: "Main TypeScript types - needs AdminCustomer interface for API response"
+      sample: "User, Product, Order interfaces"
+  user_requirements:
+    original_request: "Admin should view customers with loyalty points using GET /api/admin/customers?include=loyalty endpoint"
+    success_criteria:
+      - "Call GET /api/admin/customers?include=loyalty on component mount"
+      - "Display loyalty card number column (or 'No Card' if null)"
+      - "Display points balance column (formatted with thousand separators)"
+      - "Display tier badge column (color-coded: Bronze/Silver/Gold/Platinum)"
+      - "Handle loading state while fetching customers"
+      - "Handle error state if API call fails"
+      - "Create AdminCustomer interface matching backend response"
+      - "Table sortable by points column"
+      - "Efficient single API call (no per-user fetching)"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, Admin Panel, REST API, Data Tables"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Call GET /api/admin/customers?include=loyalty in UserList component"
+    - "Create AdminCustomer interface with User + loyalty_balance fields"
+    - "Add Loyalty Card column showing card number or 'No Card'"
+    - "Add Points column showing formatted balance (1,250)"
+    - "Add Tier column showing color-coded badge (BRONZE/SILVER/GOLD/PLATINUM)"
+    - "Handle authenticated admin-only API call"
+    - "Handle loading state (skeleton table)"
+    - "Handle error state (error message with retry)"
+    - "Enable table sorting by points column"
+    - "Optimize with single API call (not per-user)"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Multi-file modification scope (UserList.tsx + interface)"
+  technical:
+    - "Under 100 lines of changes"
+    - "TypeScript strict mode compliance"
+    - "Use existing api.request() pattern"
+    - "Async/await with error handling"
+    - "Use existing DataTable/Badge components"
+    - "Admin authentication check"
+
+# ========================================
+# EXECUTION PROCESS: 7 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: This PRB integrates with ACTUAL BACKEND ADMIN API
+  - Backend provides GET /api/admin/customers?include=loyalty endpoint
+  - Response: Users array with embedded loyalty_balance data
+  - Single optimized API call (no N+1 query problem)
+  - Admin-only endpoint (requires admin role + bearer token)
+  - Frontend receives customers with loyalty data in single response
+
+  git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: |
+    Existing admin patterns:
+    - Admin components use DataTable for tables
+    - Badge component for tier/status badges (admin/ui/Badge.tsx)
+    - API calls via api.request() with bearer token
+    - Loading states: skeleton or spinner
+    - Error states: error message with retry
+    - Admin authentication checked on route level
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_files:
+    - path: "src/types/index.ts"
+      changes:
+        - "Add AdminCustomer interface export"
+        - |
+          Interface structure:
+          {
+            id: string;
+            name: string;
+            email: string;
+            phone?: string;
+            role: 'user' | 'admin';
+            created_at: string;
+            loyalty_balance?: {
+              balance: number;
+              card_number: string | null;
+              tier: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
+            };
+          }
+        - "Add JSDoc describing admin customers API response"
+
+    - path: "src/components/admin/Users/UserList.tsx"
+      changes:
+        - "Import AdminCustomer from types"
+        - "Update state: useState<AdminCustomer[]>([]) instead of User[]"
+        - "Update API call: api.request<AdminCustomer[]>('/admin/customers?include=loyalty')"
+        - "Add Loyalty Card column to table columns array"
+        - "Add Points column with formatted display (toLocaleString)"
+        - "Add Tier column with color-coded Badge component"
+        - "Add helper: getTierBadgeColor(tier: string) for badge styling"
+        - "Handle null loyalty_balance (show 'No Card' / '-')"
+        - "Enable sorting on points column"
+        - "Add loading skeleton during API fetch"
+        - "Add error message with retry button"
+
+  validation: "Test admin API call returns customers with loyalty data, verify columns display correctly, test sorting, verify tier badge colors"
+
+## STEP 3: REVIEW
+review_checklist:
+  - "Functional requirements met - customers with loyalty displayed"
+  - "AdminCustomer interface matches backend response"
+  - "Single API call (efficient, no per-user fetching)"
+  - "Loyalty columns added: Card, Points, Tier"
+  - "Points formatted with thousand separators"
+  - "Tier badges color-coded correctly"
+  - "Table sortable by points"
+  - "Loading state during fetch"
+  - "Error handling with retry"
+  - "TypeScript compilation passes"
+
+## STEP 4: VERSION
+version_bump:
+  type: "minor"
+  action: "Bump version (0.3.0 → 0.4.0) - admin loyalty visibility"
+
+## STEP 5: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Added
+      - Admin customers API integration (GET /api/admin/customers?include=loyalty)
+      - Loyalty visibility in admin customer table
+      - Loyalty Card Number column
+      - Points Balance column (sortable, formatted)
+      - Tier Badge column (color-coded)
+      - `AdminCustomer` TypeScript interface for API response
+
+      ### Changed
+      - Admin UserList now fetches customers with loyalty data in single API call
+      - Improved admin customer data visibility
+    required: true
+  additional: "Document admin customers API endpoint usage"
+  comments: "Add JSDoc to AdminCustomer interface"
+
+## STEP 6: GIT COMMIT
+git_commit:
+  commit_message: |
+    PRB-005-REVISED: Integrate admin customers with loyalty API
+
+    Backend API Integration:
+    - Added GET /api/admin/customers?include=loyalty endpoint call
+    - Created AdminCustomer interface matching backend response
+    - Single optimized API call (no per-user fetching)
+
+    Admin Table Enhancements:
+    - Added Loyalty Card Number column (shows card or "No Card")
+    - Added Points Balance column (formatted with commas, sortable)
+    - Added Tier Badge column (color-coded: Bronze/Silver/Gold/Platinum)
+    - Loading state during customer data fetch
+    - Error handling with retry option
+
+    Tier Badge Styling:
+    - Bronze: Orange/brown colors
+    - Silver: Gray/silver colors
+    - Gold: Yellow/gold colors
+    - Platinum: Purple/indigo colors
+
+    Efficient admin panel for loyalty program visibility.
+  privacy_filter: false
+  action: "Commit changes"
+
+## STEP 7: GIT PUSH
+git_push:
+  action: "Push to remote on branch bugx/issue-fix"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive admin API message"
+      - "Git push to remote"
+      blocked_patterns:
+        - "No git operations needed"
+      error_message: "❌ BLOCKED: Git operations mandatory."
+
+    sme_review:
+      - "Admin API tested with actual backend"
+      - "Loyalty columns display correctly"
+      - "Sorting by points verified"
+      - "Tier badges color-coded correctly"
+      - "TypeScript compilation passes"
+      blocked_patterns:
+        - "Skip admin testing"
+      error_message: "❌ BLOCKED: Admin API testing mandatory."
+
+    documentation:
+      - "CHANGELOG documents admin loyalty visibility"
+      - "Version bump (0.3.0 → 0.4.0)"
+      - "JSDoc on AdminCustomer interface"
+      blocked_patterns:
+        - "No documentation needed"
+      error_message: "❌ BLOCKED: Documentation mandatory."
+
+    version_management:
+      - "Minor version bump (admin feature addition)"
+      - "package.json updated (0.3.0 → 0.4.0)"
+      error_message: "❌ BLOCKED: Minor version required."
+
+  workflow:
+    version_bump: true
+    version_type: "minor"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+
+  enforcement_rules:
+    - "ALL 7 execution steps completed"
+    - "Admin API testing before commit"
+    - "Documentation updates required"
+    - "TypeScript compilation must pass"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: Admin patterns identified
+  ☐ Step 2 - Implementation: AdminCustomer interface created, API integrated
+  ☐ Step 3 - Review: Admin table validated, sorting tested
+  ☐ Step 4 - Version: package.json bumped (0.3.0 → 0.4.0)
+  ☐ Step 5 - Documentation: CHANGELOG updated
+  ☐ Step 6 - Git Commit: Committed with admin API message
+  ☐ Step 7 - Git Push: Pushed to remote
+
+# ACCEPTANCE CRITERIA
+acceptance_criteria:
+  api_integration:
+    - endpoint: "GET /api/admin/customers?include=loyalty called"
+    - authentication: "Admin bearer token in Authorization header"
+    - response: "AdminCustomer[] response parsed correctly"
+    - optimization: "Single API call (not per-user fetching)"
+
+  loyalty_columns:
+    - card_number: "Loyalty Card column shows card number or 'No Card'"
+    - points: "Points column shows formatted balance (e.g., 5,250)"
+    - tier: "Tier column shows color-coded badge"
+    - sorting: "Table sortable by points column"
+
+  tier_badges:
+    - bronze: "Bronze badge: orange/brown (bg-orange-100 text-orange-800)"
+    - silver: "Silver badge: gray (bg-gray-100 text-gray-800)"
+    - gold: "Gold badge: yellow (bg-yellow-100 text-yellow-800)"
+    - platinum: "Platinum badge: purple (bg-purple-100 text-purple-800)"
+
+  ui_states:
+    - loading: "Loading skeleton during API fetch"
+    - error: "Error message with retry if API fails"
+    - success: "Table displays when data loads"
+    - empty: "Handles customers without loyalty cards gracefully"
+
+  validation:
+    - non_negative: "Points never negative"
+    - valid_tiers: "Only BRONZE/SILVER/GOLD/PLATINUM displayed"
+    - formatting: "Points use thousand separators"
+
+# BACKEND API SPEC
+backend_api_specification:
+  endpoint: "GET /api/admin/customers?include=loyalty"
+  method: "GET"
+  authentication: "Bearer token (admin role required)"
+  query_parameters:
+    - name: "include"
+      value: "loyalty"
+      required: true
+      description: "Include loyalty balance data in response"
+  response_format:
+    success:
+      status: 200
+      body: |
+        [
+          {
+            "id": "1",
+            "name": "John Doe",
+            "email": "john@example.com",
+            "phone": "+1234567890",
+            "role": "user",
+            "created_at": "2026-01-15T10:00:00Z",
+            "loyalty_balance": {
+              "balance": 5250,
+              "card_number": "PAW1234567890",
+              "tier": "SILVER"
+            }
+          },
+          {
+            "id": "2",
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "role": "user",
+            "created_at": "2026-01-10T14:30:00Z",
+            "loyalty_balance": null
+          }
+        ]
+  example_usage: |
+    const response = await api.request<AdminCustomer[]>('/admin/customers?include=loyalty', {
+      method: 'GET'
+    });
+    // response.data = array of customers with embedded loyalty_balance

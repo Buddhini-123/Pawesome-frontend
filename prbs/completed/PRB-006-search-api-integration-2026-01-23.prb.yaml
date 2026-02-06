@@ -1,0 +1,451 @@
+# Medium PRB Template - Multi-file Features (6-15 points)
+# Integrate backend search API with frontend searchbar
+
+git_privacy: false
+id: "PRB-006-search-api-integration-2026-01-23"
+type: medium-prb
+complexity: moderate
+priority: "HIGH"
+title: "@Developer Integrate backend search API with searchbar and create search results page"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend with Backend API)"
+  project_overview: "E-commerce platform for pet products. Connecting searchbar to backend search API that searches product names, brands, descriptions, and SKUs"
+  work_location: "Frontend codebase - Header searchbar, product service, new SearchResults page"
+  key_context: "Backend team implemented GET /api/search/products?q={searchTerm} that searches products by name, brand, description, SKU. Frontend searchbar currently only logs to console with TODO comment. Need complete integration with results display"
+  system_features: "Product Search, Product Catalog, Shopping Cart, Header Navigation"
+  backend_api_available: true
+  backend_endpoints:
+    - endpoint: "GET /api/search/products?q={searchTerm}"
+      description: "Search products by name, brand, description, or SKU"
+      response: "Array of matching products"
+      auth_required: false
+      example: "curl 'http://localhost:8000/api/search/products?q=royal'"
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/common/Header.tsx"
+      purpose: "Main header with searchbar - currently has TODO comment, only logs search query"
+      sample: "handleSearch logs to console with 'TODO: Implement search functionality' (line 49)"
+    - path: "src/services/products.service.ts"
+      purpose: "Product API service - has unused searchProducts method using mock data"
+      sample: "searchProducts(query) filters local allProducts array (lines 132-142)"
+    - path: "src/App.tsx"
+      purpose: "Main routing configuration - needs /search route"
+      sample: "React Router routes for all pages"
+    - path: "src/types/index.ts"
+      purpose: "TypeScript interfaces - needs SearchResult interface"
+      sample: "Product, User, Order interfaces"
+  user_requirements:
+    original_request: "Integrate GET /api/search/products?q={searchTerm} with searchbar. Backend searches names, brands, descriptions, SKUs"
+    success_criteria:
+      - "Update products.service.ts searchProducts() to call GET /api/search/products?q={query}"
+      - "Create SearchResults page component to display search results"
+      - "Add /search route in App.tsx"
+      - "Update Header.tsx handleSearch to navigate to /search?q={query}"
+      - "Display search results with product grid/list"
+      - "Show loading state during search API call"
+      - "Show empty state if no results found"
+      - "Show search query in results page (e.g., 'Results for: royal')"
+      - "Each result links to product detail page"
+      - "Handle error state if API fails"
+      - "Preserve search query in URL (shareable search links)"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, REST API, Search UX, Product Discovery"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Replace searchProducts() in products.service.ts to call GET /api/search/products?q={query}"
+    - "Create SearchResults.tsx page component in src/components/pages/Shop/"
+    - "Add /search route in App.tsx"
+    - "Update Header.tsx handleSearch to: navigate(`/search?q=${searchQuery}`)"
+    - "SearchResults page reads query param and calls productsService.searchProducts()"
+    - "Display results in grid layout (similar to category pages)"
+    - "Show 'No results for: {query}' if results.length === 0"
+    - "Show 'Search Results for: {query}' heading with result count"
+    - "Each product card links to /product/{slug}"
+    - "Handle loading state with skeleton grid"
+    - "Handle error state with error message"
+    - "Create ProductSearchResult interface (if backend returns different structure than Product)"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Multi-file modification scope (4 files: service, Header, SearchResults, App, types)"
+  technical:
+    - "Under 200 lines of changes total"
+    - "TypeScript strict mode compliance"
+    - "Use existing api.request() pattern"
+    - "Async/await with error handling"
+    - "URL query params with useSearchParams from react-router-dom"
+    - "Reuse existing ProductCard component for results"
+    - "Responsive grid layout (Tailwind CSS)"
+    - "Handle special characters in search query (URL encoding)"
+
+# ========================================
+# EXECUTION PROCESS: 9 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: This PRB integrates with ACTUAL BACKEND SEARCH API
+  - Backend endpoint: GET /api/search/products?q={searchTerm}
+  - Searches: Product names, brands, descriptions, SKUs
+  - Returns: Array of matching products
+  - No authentication required (public search)
+  - Frontend needs: API integration + SearchResults page + routing
+
+  git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: |
+    Existing patterns found:
+    - Category pages display product grids (Dogs.tsx, Cats.tsx, etc.)
+    - ProductCard component for product display
+    - useSearchParams from react-router-dom for URL params
+    - api.request() for backend API calls
+    - Loading states with skeleton grids
+    - Empty states with helpful messaging
+    - Navigate with useNavigate() hook
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_files:
+    - path: "src/services/products.service.ts"
+      changes:
+        - "Update searchProducts(query: string) method (lines 132-142)"
+        - "Replace mock filter logic with: api.request<Product[]>(`/search/products?q=${encodeURIComponent(query)}`)"
+        - "Add error handling with try/catch"
+        - "Return response.data or empty array on error"
+
+    - path: "src/components/pages/Shop/SearchResults.tsx"
+      changes:
+        - "Create new SearchResults component"
+        - "Use useSearchParams to get 'q' query param"
+        - "Call productsService.searchProducts(query) on mount and when query changes"
+        - "Display search query in heading: 'Search Results for: {query}'"
+        - "Show result count: '{count} products found'"
+        - "Display products in responsive grid using ProductCard component"
+        - "Show loading skeleton during search"
+        - "Show empty state: 'No products found for: {query}. Try different keywords.'"
+        - "Show error state with retry button"
+        - "Handle empty/undefined query (redirect to home or show prompt)"
+
+    - path: "src/components/common/Header.tsx"
+      changes:
+        - "Update handleSearch function (line 46-50)"
+        - "Remove console.log and TODO comment"
+        - "Add: navigate(`/search?q=${encodeURIComponent(searchQuery)}`)"
+        - "Clear searchQuery after navigation (optional UX improvement)"
+        - "Close mobile search overlay after search"
+
+    - path: "src/App.tsx"
+      changes:
+        - "Import SearchResults component"
+        - "Add route: <Route path='/search' element={<SearchResults />} />"
+        - "Position route in public routes section (no auth required)"
+
+  validation: "Test search with 'royal', verify results display, test empty query, test no results, verify loading/error states, test URL sharing"
+
+## STEP 3: INTEGRATION
+integration_points:
+  - api_integration: "Use api.request<Product[]>() for GET /search/products"
+  - routing_integration: "Add /search route, navigate from Header"
+  - component_integration: "Reuse ProductCard component for results display"
+  - state_management: "useState for results, loading, error states"
+
+## STEP 4: REVIEW
+review_checklist:
+  - "Functional requirements met - search integrated, results displayed"
+  - "Backend API called correctly with query param"
+  - "Search query URL encoded properly (handles special characters)"
+  - "Results displayed in grid layout"
+  - "ProductCard component reused (consistent UI)"
+  - "Loading state shows skeleton grid"
+  - "Empty state helpful and actionable"
+  - "Error handling with retry option"
+  - "Search query in URL (shareable links)"
+  - "TypeScript compilation passes"
+  - "Responsive design (mobile/tablet/desktop)"
+
+## STEP 5: VERSION
+version_bump:
+  type: "minor"
+  action: "Bump version (0.4.0 → 0.5.0) - search functionality is new feature"
+
+## STEP 6: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Added
+      - Product search functionality with backend API integration
+      - Search results page displaying matching products
+      - GET /api/search/products?q={query} endpoint integration
+      - Search by product name, brand, description, or SKU
+      - Shareable search URLs (query params preserved)
+      - Loading skeleton during search
+      - Empty state for zero results
+      - Error handling with retry option
+
+      ### Changed
+      - Header searchbar now functional (was TODO placeholder)
+      - Searchbar navigates to /search results page
+      - products.service.ts searchProducts() now calls backend API (was mock data)
+    required: true
+  additional: "Document search API integration in API documentation"
+  comments: "Add inline comments explaining search query encoding and URL param handling"
+
+## STEP 7: GIT COMMIT
+git_commit:
+  commit_message: |
+    PRB-006: Integrate backend search API with searchbar
+
+    Backend API Integration:
+    - Integrated GET /api/search/products?q={searchTerm} endpoint
+    - Searches product names, brands, descriptions, SKUs
+    - Updated products.service.ts searchProducts() to call backend API
+
+    Search Results Page:
+    - Created SearchResults.tsx component in src/components/pages/Shop/
+    - Displays matching products in responsive grid layout
+    - Shows search query and result count
+    - Reuses ProductCard component for consistent UI
+    - Implements loading skeleton during search
+    - Empty state: "No products found for: {query}"
+    - Error handling with retry button
+
+    Header Searchbar:
+    - Removed TODO comment (search now implemented)
+    - Navigate to /search?q={query} on search submission
+    - Proper URL encoding for special characters
+    - Close mobile search overlay after search
+
+    Routing:
+    - Added /search route in App.tsx
+    - Search URLs are shareable (query param preserved)
+
+    UX Improvements:
+    - Fast product discovery across names, brands, descriptions
+    - Clear feedback (loading, results count, empty state)
+    - Consistent product display with existing category pages
+    - Mobile-responsive search results grid
+
+    Enables powerful product search across entire catalog.
+  privacy_filter: false
+  action: "Commit changes"
+
+## STEP 8: GIT PUSH
+git_push:
+  action: "Push to remote on branch changes"
+
+## STEP 9: COMPLETION
+completion_summary:
+  deliverables:
+    - "Backend search API integration"
+    - "SearchResults page component"
+    - "Functional searchbar navigation"
+    - "/search route with query params"
+    - "Loading, empty, and error states"
+  next_steps:
+    - "Test search with various queries (royal, dog, food, etc.)"
+    - "Verify backend API performance"
+    - "Consider search suggestions/autocomplete (future enhancement)"
+    - "Monitor search analytics"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive search integration message"
+      - "Git push to remote"
+      blocked_patterns:
+        - "No git operations needed"
+      error_message: "❌ BLOCKED: Git operations mandatory."
+
+    sme_review:
+      - "Backend search API tested with actual queries"
+      - "Search results page validated in browser"
+      - "Loading/error/empty states tested"
+      - "URL query params tested (shareable links)"
+      - "TypeScript compilation passes"
+      blocked_patterns:
+        - "Skip search testing"
+        - "API not tested"
+      error_message: "❌ BLOCKED: Search API testing mandatory."
+
+    documentation:
+      - "CHANGELOG documents search functionality"
+      - "Version bump (0.4.0 → 0.5.0)"
+      - "Inline comments for URL encoding"
+      blocked_patterns:
+        - "No documentation needed"
+      error_message: "❌ BLOCKED: Documentation mandatory."
+
+    version_management:
+      - "Minor version bump (new search feature)"
+      - "package.json updated (0.4.0 → 0.5.0)"
+      error_message: "❌ BLOCKED: Minor version required."
+
+  workflow:
+    version_bump: true
+    version_type: "minor"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+
+  enforcement_rules:
+    - "ALL 9 execution steps completed"
+    - "Backend API testing before commit"
+    - "Search results page tested in browser"
+    - "TypeScript compilation must pass"
+
+# MCP Operations Extension Points
+mcp_operations:
+  memory:
+    condition: false
+    provider: "file-based"
+    operations:
+      - action: store_learning
+        topic: "search-integration"
+        content: "Backend product search API integration with React Router navigation and query params"
+    fallback: "file-based"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: Existing patterns identified (ProductCard, useSearchParams, navigate)
+  ☐ Step 2 - Implementation: API integrated, SearchResults created, Header updated, route added
+  ☐ Step 3 - Integration: API, routing, components integrated
+  ☐ Step 4 - Review: Search tested, results validated, states verified
+  ☐ Step 5 - Version: package.json bumped (0.4.0 → 0.5.0)
+  ☐ Step 6 - Documentation: CHANGELOG updated
+  ☐ Step 7 - Git Commit: Committed with search integration message
+  ☐ Step 8 - Git Push: Pushed to remote
+  ☐ Step 9 - Completion: All deliverables verified
+
+# ACCEPTANCE CRITERIA
+acceptance_criteria:
+  api_integration:
+    - endpoint_called: "GET /api/search/products?q={query} called from products.service.ts"
+    - url_encoding: "Query properly URL encoded (handles spaces, special chars)"
+    - response_handling: "Product[] array parsed from response"
+    - error_handling: "Failed API calls handled gracefully (return empty array or show error)"
+
+  search_results_page:
+    - component_created: "SearchResults.tsx created in src/components/pages/Shop/"
+    - query_param: "Reads 'q' param from URL using useSearchParams"
+    - heading_display: "'Search Results for: {query}' shown"
+    - result_count: "'{count} products found' displayed"
+    - grid_layout: "Products displayed in responsive grid (3-4 columns desktop, 2 tablet, 1 mobile)"
+    - product_cards: "Uses existing ProductCard component"
+    - product_links: "Each card links to /product/{slug}"
+
+  header_integration:
+    - navigation: "handleSearch calls navigate(`/search?q=${searchQuery}`)"
+    - url_encoding: "searchQuery properly encoded with encodeURIComponent"
+    - mobile_close: "Mobile search overlay closes after search"
+    - todo_removed: "TODO comment removed from handleSearch"
+
+  routing:
+    - route_added: "/search route added to App.tsx"
+    - route_public: "Route accessible without authentication"
+    - route_position: "Placed in public routes section"
+
+  ui_states:
+    - loading: "Skeleton grid shown during API call (6-8 product card skeletons)"
+    - empty: "'No products found for: {query}' with search icon and helpful message"
+    - error: "Error banner with retry button if API fails"
+    - success: "Grid of product cards with results"
+
+  edge_cases:
+    - empty_query: "Handle empty search query (prompt or redirect)"
+    - special_chars: "URL encoding handles spaces, &, %, etc."
+    - no_results: "Empty state displayed when backend returns []"
+    - long_query: "Long search queries handled gracefully"
+
+  ux_requirements:
+    - query_display: "Search query clearly visible in results page"
+    - result_feedback: "User knows how many results found"
+    - clear_search: "Option to clear search or search again"
+    - back_navigation: "Browser back button works correctly"
+    - shareable_urls: "Copy URL and share search results with others"
+
+# BACKEND API SPEC
+backend_api_specification:
+  endpoint: "GET /api/search/products"
+  method: "GET"
+  authentication: "None (public endpoint)"
+  query_parameters:
+    - name: "q"
+      type: "string"
+      required: true
+      description: "Search term to query products"
+      example: "royal"
+  response_format:
+    success:
+      status: 200
+      content_type: "application/json"
+      body: |
+        [
+          {
+            "id": "1",
+            "name": "Royal Canin Dog Food",
+            "brand": "Royal Canin",
+            "price": 2500,
+            "image": "/images/products/royal-canin.jpg",
+            "description": "Premium dog food...",
+            "sku": "RC-DOG-001",
+            "category": "dogs",
+            "subcategory": "food",
+            "in_stock": true,
+            "rating": 4.8,
+            "reviews": 125
+          }
+        ]
+    empty:
+      status: 200
+      body: "[]"
+    error:
+      status: 500
+      body: |
+        {
+          "error": "Search service unavailable"
+        }
+  example_usage: |
+    // In products.service.ts
+    async searchProducts(query: string): Promise<Product[]> {
+      try {
+        const response = await api.request<Product[]>(
+          `/search/products?q=${encodeURIComponent(query)}`,
+          { method: 'GET' }
+        );
+        return response.success && response.data ? response.data : [];
+      } catch (error) {
+        console.error('Search failed:', error);
+        return [];
+      }
+    }
+
+    // In SearchResults.tsx
+    const [searchParams] = useSearchParams();
+    const query = searchParams.get('q') || '';
+
+    useEffect(() => {
+      const fetchResults = async () => {
+        setLoading(true);
+        const results = await productsService.searchProducts(query);
+        setResults(results);
+        setLoading(false);
+      };
+      if (query) fetchResults();
+    }, [query]);

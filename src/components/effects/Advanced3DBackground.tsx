@@ -1,10 +1,19 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Float, Text, Sphere, Box, Cylinder, Torus } from '@react-three/drei';
+import * as THREE from 'three';
+
+interface Simple3DPetProps {
+  position: [number, number, number];
+  petType: string;
+  color: string;
+  size?: number;
+  index: number;
+}
 
 // Simplified 3D Pet Component
-const Simple3DPet = ({ position, petType, color, size = 1, index }) => {
-  const meshRef = useRef();
+const Simple3DPet: React.FC<Simple3DPetProps> = ({ position, petType, color, size = 1, index }) => {
+  const meshRef = useRef<THREE.Group>(null);
   const { mouse, viewport } = useThree();
   
   // Simplified movement pattern
@@ -69,7 +78,7 @@ const Simple3DPet = ({ position, petType, color, size = 1, index }) => {
     <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.6}>
       <group ref={meshRef} position={position} onClick={handleClick}>
         {/* Main pet body */}
-        <Sphere args={getPetGeometry()}>
+        <Sphere args={getPetGeometry() as [number, number, number]}>
           <meshStandardMaterial 
             color={color} 
             transparent 
@@ -139,9 +148,15 @@ const Simple3DPet = ({ position, petType, color, size = 1, index }) => {
   );
 };
 
+interface SimpleToyProps {
+  position: [number, number, number];
+  toyType: string;
+  index: number;
+}
+
 // Simplified Interactive Toy
-const SimpleToy = ({ position, toyType, index }) => {
-  const toyRef = useRef();
+const SimpleToy: React.FC<SimpleToyProps> = ({ position, toyType, index }) => {
+  const toyRef = useRef<THREE.Group>(null);
   
   useFrame((state) => {
     if (!toyRef.current) return;
@@ -211,20 +226,20 @@ const SimpleToy = ({ position, toyType, index }) => {
 const Advanced3DBackground = () => {
   // Simplified pets array
   const pets = useMemo(() => [
-    { id: 1, position: [-6, 2, -4], petType: 'dog', color: '#6CA6CD', size: 1.0 },
-    { id: 2, position: [6, 1, -3], petType: 'cat', color: '#F59E0B', size: 0.9 },
-    { id: 3, position: [-4, -2, -2], petType: 'bird', color: '#0EA5E9', size: 0.7 },
-    { id: 4, position: [4, -3, -1], petType: 'fish', color: '#FBBF24', size: 1.0 },
-    { id: 5, position: [0, 3, -6], petType: 'dog', color: '#87CEEB', size: 0.8 },
-    { id: 6, position: [-2, 0, -3], petType: 'cat', color: '#FCD34D', size: 1.1 },
+    { id: 1, position: [-6, 2, -4] as [number, number, number], petType: 'dog', color: '#6CA6CD', size: 1.0 },
+    { id: 2, position: [6, 1, -3] as [number, number, number], petType: 'cat', color: '#F59E0B', size: 0.9 },
+    { id: 3, position: [-4, -2, -2] as [number, number, number], petType: 'bird', color: '#0EA5E9', size: 0.7 },
+    { id: 4, position: [4, -3, -1] as [number, number, number], petType: 'fish', color: '#FBBF24', size: 1.0 },
+    { id: 5, position: [0, 3, -6] as [number, number, number], petType: 'dog', color: '#87CEEB', size: 0.8 },
+    { id: 6, position: [-2, 0, -3] as [number, number, number], petType: 'cat', color: '#FCD34D', size: 1.1 },
   ], []);
 
   // Simplified toys array
   const toys = useMemo(() => [
-    { id: 1, position: [-8, 1, -2], toyType: 'ball' },
-    { id: 2, position: [7, 0, -2], toyType: 'bone' },
-    { id: 3, position: [-1, 3, -4], toyType: 'ring' },
-    { id: 4, position: [3, -1, -5], toyType: 'ball' },
+    { id: 1, position: [-8, 1, -2] as [number, number, number], toyType: 'ball' },
+    { id: 2, position: [7, 0, -2] as [number, number, number], toyType: 'bone' },
+    { id: 3, position: [-1, 3, -4] as [number, number, number], toyType: 'ring' },
+    { id: 4, position: [3, -1, -5] as [number, number, number], toyType: 'ball' },
   ], []);
 
   return (

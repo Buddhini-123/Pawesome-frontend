@@ -1,4 +1,4 @@
-import StarRating from "./StarRating/StarRating.tsx";
+import StarRating from "./StarRating/StarRating";
 import { Link } from 'react-router-dom';
 
 interface Product {
@@ -7,6 +7,7 @@ interface Product {
   price: string;
   rating: number;
   image: string;
+  slug: string;
 }
 
 interface ProductGridProps {
@@ -17,7 +18,7 @@ const ProductGrid = ({ products }: ProductGridProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
       {products.map((product) => (
-        <Link key={product.id} to={`/product/${product.id}`} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow block">
+        <Link key={product.id} to={`/product/${product.slug}`} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow block">
           <div key={product.id} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
             <div className="aspect-square bg-gray-50 rounded-2xl mb-3 flex items-center justify-center">
               <img
@@ -26,13 +27,13 @@ const ProductGrid = ({ products }: ProductGridProps) => {
                 className="w-20 h-40 object-contain"
               />
             </div>
-            <h3 className="text-sm text-2xl text-natural-sage mb-1 text-center font-figtree font-semibold">
+            <h3 className="text-sm text-2xl text-mint-green mb-1 text-center font-fredoka font-semibold">
               {product.name}
             </h3>
             <div className="flex justify-center mb-2">
               <StarRating rating={product.rating} size="sm" />
             </div>
-            <p className="text-energetic-orange text-center text-base font-figtree">{product.price}</p>
+            <p className="text-vibrant-orange text-center text-base font-fredoka">{product.price}</p>
           </div>
         </Link>
       ))}

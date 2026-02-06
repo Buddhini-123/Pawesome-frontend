@@ -35,7 +35,7 @@ const EnhancedParticleSystem: React.FC<EnhancedParticleSystemProps> = ({
   ], []);
 
   // Safe particle generation
-  const generateParticle = useCallback((type: Particle['type'] = 'sparkle'): Particle => {
+  const generateParticle = useCallback((type: Particle['type'] = 'sparkle'): Particle | null => {
     if (!window || !window.innerWidth || !window.innerHeight) {
       return null;
     }
@@ -268,7 +268,7 @@ const EnhancedParticleSystem: React.FC<EnhancedParticleSystemProps> = ({
             ease: "easeInOut",
           }}
         >
-          <div className="w-full h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 opacity-20 blur-lg" />
+          <div className="w-full h-full rounded-full bg-gradient-to-r from-sunny-yellow to-vibrant-orange opacity-20 blur-lg" />
         </motion.div>
       )}
       

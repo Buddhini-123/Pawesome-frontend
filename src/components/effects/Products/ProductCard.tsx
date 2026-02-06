@@ -1,4 +1,4 @@
-import StarRating from "../StarRating/StarRating.tsx";
+import StarRating from "../StarRating/StarRating";
 
 interface Product {
   id: number;
@@ -14,13 +14,13 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   return (
-    <div className="flex flex-col items-center text-center hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
-      <div className="w-24 h-24 flex items-center justify-center mb-2">
+    <div className="flex flex-col items-center text-center hover:bg-gray-50 rounded-xl p-3 transition-colors cursor-pointer">
+      <div className="w-24 h-24 flex items-center justify-center mb-2 bg-gray-50 rounded-xl">
         <img src={product.image} alt={product.name}
           className="object-contain w-full h-16" />
       </div>
 
-      <h3 className="font-medium text-natural-sage text-sm mb-1 truncate">
+      <h3 className="font-fredoka font-medium text-mint-green text-sm mb-1 truncate">
         {product.name}
       </h3>
 
@@ -28,7 +28,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <StarRating rating={product.rating} size="sm" />
       </div>
 
-      <p className="font-medium text-orange-600 text-sm">
+      <p className="font-fredoka font-medium text-vibrant-orange text-sm">
         Rs. {product.price}
       </p>
     </div>

@@ -1,195 +1,654 @@
-import React, { useState } from 'react';
-import { Trash2, Plus, Minus } from 'lucide-react';
-
-interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-  brand: string;
-}
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence, easeInOut } from 'framer-motion';
+import {
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingBag,
+  Sparkles,
+  TrendingUp,
+  Gift,
+  Truck,
+  Shield,
+  Clock,
+  Heart,
+  Package,
+  Zap,
+  CheckCircle,
+  Lock,
+  Weight,
+  Ruler,
+  RefreshCw
+} from 'lucide-react';
+import { useCart } from '../../../hooks/useCart';
+import { useAuth } from '../../../hooks/useAuth';
+import { formatters } from '../../../utils/formatters';
+import { normalizeCartItem } from '../../../utils/cartNormalizer';
 
 const Cart: React.FC = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "Premium Dog Food - Adult",
-      price: 2499,
-      quantity: 2,
-      image: "/api/placeholder/80/80",
-      brand: "Royal Canin"
-    },
-    {
-      id: 2,
-      name: "Cat Litter - Clumping",
-      price: 899,
-      quantity: 1,
-      image: "/api/placeholder/80/80",
-      brand: "Ever Clean"
-    },
-    {
-      id: 3,
-      name: "Bird Seed Mix",
-      price: 599,
-      quantity: 3,
-      image: "/api/placeholder/80/80",
-      brand: "Vitakraft"
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { cart, removeItem, updateQuantity, totalItems, totalPrice, totalWeight, weightUnit, shippingCost, shippingBreakdown, clearCart, refreshCart } = useCart();
+  const [removingItem, setRemovingItem] = useState<string | null>(null);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [showPromo, setShowPromo] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Debug: Log cart data
+  React.useEffect(() => {
+    console.log('[Cart] Current cart:', cart);
+    console.log('[Cart] Is authenticated:', isAuthenticated);
+    console.log('[Cart] Cart items with weight:', cart.map(item => ({
+      id: item.id,
+      name: item.product.name,
+      weight: item.product.weight,
+      dimensions: item.product.dimensions
+    })));
+  }, [cart, isAuthenticated]);
+
+  const handleRefreshCart = async () => {
+    if (isAuthenticated && refreshCart) {
+      setIsRefreshing(true);
+      try {
+        await refreshCart();
+        console.log('[Cart] Cart refreshed from backend');
+      } catch (error) {
+        console.error('[Cart] Failed to refresh cart:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
     }
-  ]);
+  };
 
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity === 0) {
-      removeItem(id);
-      return;
+  useEffect(() => {
+    const timer = setTimeout(() => setShowPromo(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const getShippingCost = (): number => {
+    // Use shipping cost from backend (weight-based calculation)
+    // Falls back to 0 if not available
+    return shippingCost || 0;
+  };
+
+  const getTotalDiscount = (): number => {
+    return normalizedCart.reduce((total, item) => {
+      const originalPrice = (item.product as any).originalPrice || item.product.price;
+      const discount = (originalPrice - item.product.price) * item.quantity;
+      return total + discount;
+    }, 0);
+  };
+
+  const getFinalTotal = (): number => {
+    return totalPrice + getShippingCost();
+  };
+
+  const formatDimensions = (dimensions?: { length: number; width: number; height: number }): string => {
+    if (!dimensions) return '';
+    return `${dimensions.length} × ${dimensions.width} × ${dimensions.height} cm`;
+  };
+
+  const handleCheckout = () => {
+    navigate('/checkout');
+  };
+
+  const handleContinueShopping = () => {
+    navigate('/');
+  };
+
+  const handleRemoveItem = async (itemId: string) => {
+    setRemovingItem(itemId);
+    setTimeout(() => {
+      removeItem(itemId);
+      setRemovingItem(null);
+    }, 300);
+  };
+
+  const benefits = [
+    { icon: Truck, text: 'Free Shipping on Rs. 2,000+', color: 'bg-primary-blue' },
+    { icon: Shield, text: 'Secure Checkout', color: 'bg-mint-green' },
+    { icon: Clock, text: '24/7 Support', color: 'bg-lavender' },
+    { icon: Gift, text: 'Gift Wrapping Available', color: 'bg-coral-red' }
+  ];
+
+  const floatingAnimation = {
+    y: [0, -10, 0],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: easeInOut
     }
-    setCartItems(cartItems.map(item => 
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    ));
   };
+  const normalizedCart = cart.map(normalizeCartItem);
 
-  const removeItem = (id: number) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
-
-  const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const getShippingCost = () => {
-    const total = getTotalPrice();
-    return total >= 20000 ? 0 : 200;
-  };
-
-  const getFinalTotal = () => {
-    return getTotalPrice() + getShippingCost();
-  };
+  if (cart.length === 0) {
+    return (
+      <div className="min-h-screen bg-soft-gray">
+        <div className="container mx-auto px-4 py-8">
+          <motion.div 
+            className="mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-5xl font-fredoka font-bold text-charcoal mb-4">My Cart</h1>
+          </motion.div>
+          
+          <motion.div 
+            className="bg-white rounded-3xl shadow-xl p-12 text-center max-w-2xl mx-auto"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, type: "spring" }}
+          >
+            <motion.div
+              animate={floatingAnimation}
+              className="inline-block mb-6"
+            >
+              <div className="bg-sunny-yellow rounded-full p-8">
+                <ShoppingBag className="h-24 w-24 text-white" />
+              </div>
+            </motion.div>
+            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-4">Your cart is empty</h2>
+            <p className="text-medium-gray mb-8 text-lg">Let's fill it with amazing products for your furry friends!</p>
+            <motion.button 
+              onClick={handleContinueShopping}
+              className="bg-vibrant-orange hover:bg-vibrant-orange/90 text-white font-fredoka font-bold px-10 py-4 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="flex items-center">
+                <Sparkles className="w-5 h-5 mr-2" />
+                Start Shopping
+              </span>
+            </motion.button>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-off-white">
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">My Cart</h1>
-          <p className="text-lg text-gray-600">
-            {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
-          </p>
-        </div>
+        {/* Header */}
+        <motion.div 
+          className="mb-12"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-5xl font-fredoka font-bold text-charcoal mb-2">My Cart</h1>
+              <p className="text-xl text-medium-gray flex items-center">
+                <Package className="w-5 h-5 mr-2 text-sunny-yellow" />
+                {formatters.pluralize(totalItems, 'item')} ready for checkout
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
-        {cartItems.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <div className="text-6xl mb-6">🛒</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
-            <p className="text-gray-600 mb-8">Start shopping to add items to your cart</p>
-            <button className="bg-amber-400 hover:bg-amber-500 text-gray-800 font-medium px-8 py-3 rounded-full transition-colors">
-              Continue Shopping
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-md">
-                <div className="p-6 border-b">
-                  <h2 className="text-xl font-semibold text-gray-800">Cart Items</h2>
-                </div>
-                
-                <div className="divide-y">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="p-6 flex items-center space-x-4">
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                      
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">{item.name}</h3>
-                        <p className="text-sm text-gray-600">{item.brand}</p>
-                        <p className="text-lg font-bold text-green-600 mt-1">Rs.{item.price.toLocaleString()}</p>
-                      </div>
-                      
-                      <div className="flex items-center space-x-3">
-                        <button 
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="bg-gray-200 hover:bg-gray-300 p-1 rounded-full transition-colors"
-                        >
-                          <Minus className="h-4 w-4" />
-                        </button>
-                        
-                        <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                        
-                        <button 
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="bg-gray-200 hover:bg-gray-300 p-1 rounded-full transition-colors"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
-                      </div>
-                      
-                      <div className="text-right">
-                        <p className="font-bold text-gray-800">
-                          Rs.{(item.price * item.quantity).toLocaleString()}
-                        </p>
-                        <button 
-                          onClick={() => removeItem(item.id)}
-                          className="text-red-500 hover:text-red-700 mt-2 transition-colors"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+        {/* Benefits Banner */}
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          {benefits.map((benefit, index) => (
+            <motion.div
+              key={index}
+              className="bg-white rounded-2xl p-4 shadow-lg"
+              whileHover={{ scale: 1.05, y: -5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <div className={`${benefit.color} w-12 h-12 rounded-xl flex items-center justify-center mb-2`}>
+                <benefit.icon className="w-6 h-6 text-white" />
               </div>
-            </div>
-            
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-6">Order Summary</h2>
-                
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-semibold">Rs.{getTotalPrice().toLocaleString()}</span>
+              <p className="text-sm font-fredoka font-medium text-charcoal">{benefit.text}</p>
+            </motion.div>
+          ))}
+
+          {/* Total Weight Card */}
+          {totalWeight > 0 && (
+            <motion.div
+              className="bg-white rounded-2xl p-4 shadow-lg border-2 border-primary-blue"
+              whileHover={{ scale: 1.05, y: -5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <div className="bg-primary-blue w-12 h-12 rounded-xl flex items-center justify-center mb-2">
+                <Weight className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-sm font-fredoka font-medium text-charcoal mb-1">Total Weight</p>
+              <p className="text-lg font-fredoka font-bold text-primary-blue">
+                {totalWeight.toFixed(2)} {weightUnit}
+              </p>
+            </motion.div>
+          )}
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <motion.div 
+            className="lg:col-span-2"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+              <div className="p-8 bg-soft-gray flex justify-between items-center">
+                <div className="flex items-center">
+                  <div className="bg-vibrant-orange rounded-2xl p-3 mr-4">
+                    <ShoppingBag className="w-6 h-6 text-white" />
                   </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className="font-semibold">
-                      {getShippingCost() === 0 ? (
-                        <span className="text-green-600">FREE</span>
-                      ) : (
-                        `Rs.${getShippingCost()}`
-                      )}
-                    </span>
+                  <div>
+                    <h2 className="text-2xl font-fredoka font-bold text-charcoal">Shopping Cart</h2>
+                    <p className="text-sm text-medium-gray">{totalItems} items selected</p>
                   </div>
-                  
-                  {getTotalPrice() < 20000 && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                      <p className="text-sm text-amber-700">
-                        Add Rs.{(20000 - getTotalPrice()).toLocaleString()} more for FREE shipping!
-                      </p>
-                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {isAuthenticated && (
+                    <motion.button
+                      onClick={handleRefreshCart}
+                      disabled={isRefreshing}
+                      className="text-sm text-primary-blue hover:text-primary-blue/80 font-fredoka font-medium transition-colors flex items-center disabled:opacity-50"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </motion.button>
                   )}
-                  
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
-                      <span>Rs.{getFinalTotal().toLocaleString()}</span>
-                    </div>
-                  </div>
+                  <motion.button
+                    onClick={clearCart}
+                    className="text-sm text-coral-red hover:text-coral-red/80 font-fredoka font-medium transition-colors flex items-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Clear All
+                  </motion.button>
                 </div>
-                
-                <button className="w-full bg-amber-400 hover:bg-amber-500 text-gray-800 font-semibold py-3 rounded-lg transition-colors mb-4">
-                  Proceed to Checkout
-                </button>
-                
-                <button className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-lg transition-colors">
-                  Continue Shopping
-                </button>
+              </div>
+              
+              <div className="divide-y divide-light-gray">
+                <AnimatePresence>
+                  {normalizedCart.map((item, index) => (
+                    <motion.div 
+                      key={item.id} 
+                      className="p-6 hover:bg-soft-gray/30 transition-colors"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ 
+                        opacity: removingItem === item.id ? 0 : 1, 
+                        x: removingItem === item.id ? -100 : 0,
+                        scale: removingItem === item.id ? 0.8 : 1
+                      }}
+                      exit={{ opacity: 0, x: -100, scale: 0.8 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      onHoverStart={() => setHoveredItem(item.id)}
+                      onHoverEnd={() => setHoveredItem(null)}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <motion.div 
+                          className="relative"
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <img 
+                            src={item.product.image} 
+                            alt={item.product.name} 
+                            className="w-24 h-24 object-cover rounded-2xl shadow-lg"
+                          />
+                        </motion.div>
+                        
+                        <div className="flex-1">
+                          <h3 className="font-fredoka font-bold text-charcoal text-lg flex items-center">
+                            {item.product.name}
+                            {hoveredItem === item.id && (
+                              <motion.span
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="ml-2"
+                              >
+                                <Heart className="w-4 h-4 text-coral-red" />
+                              </motion.span>
+                            )}
+                          </h3>
+
+                          {/* Weight and Dimensions */}
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {item.product.weight && (
+                              <motion.div
+                                className="flex items-center bg-primary-blue/10 border border-primary-blue/30 rounded-lg px-3 py-1.5"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                <Weight className="w-4 h-4 mr-1.5 text-primary-blue" />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-fredoka font-semibold text-charcoal">
+                                    Weight: {item.product.weight} kg
+                                  </span>
+                                  {item.quantity > 1 && (
+                                    <span className="text-xs text-medium-gray font-fredoka">
+                                      Total: {(parseFloat(item.product.weight) * item.quantity).toFixed(2)} kg
+                                    </span>
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
+                            {item.product.dimensions && (
+                              <motion.div
+                                className="flex items-center bg-lavender/10 border border-lavender/30 rounded-lg px-3 py-1.5"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                <Ruler className="w-4 h-4 mr-1.5 text-lavender" />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-fredoka font-semibold text-charcoal">
+                                    Dimensions (L×W×H)
+                                  </span>
+                                  <span className="text-xs text-medium-gray font-fredoka">
+                                    {formatDimensions(item.product.dimensions)}
+                                  </span>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          <div className="mt-2">
+                            {(item.product as any).originalPrice && (item.product as any).originalPrice > item.product.price ? (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <motion.p
+                                    className="text-xl font-fredoka font-bold text-vibrant-orange"
+                                    animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
+                                  >
+                                    {formatters.currency(item.product.price)}
+                                  </motion.p>
+                                  <span className="text-sm line-through text-gray-400 font-fredoka">
+                                    {formatters.currency((item.product as any).originalPrice)}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-mint-green font-fredoka font-bold">
+                                  Save {formatters.currency(((item.product as any).originalPrice - item.product.price) * item.quantity)}
+                                </span>
+                              </>
+                            ) : (
+                              <motion.p
+                                className="text-xl font-fredoka font-bold text-mint-green"
+                                animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
+                              >
+                                {formatters.currency(item.product.price)}
+                              </motion.p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center bg-soft-gray rounded-full p-1">
+                          <motion.button 
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="bg-white hover:bg-light-gray p-2 rounded-full transition-all shadow-sm hover:shadow-md"
+                            disabled={item.quantity <= 1}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Minus className="h-4 w-4 text-charcoal" />
+                          </motion.button>
+                          
+                          <motion.span 
+                            className="w-12 text-center font-fredoka font-bold text-charcoal text-lg"
+                            key={item.quantity}
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            {item.quantity}
+                          </motion.span>
+                          
+                          <motion.button 
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="bg-white hover:bg-light-gray p-2 rounded-full transition-all shadow-sm hover:shadow-md"
+                            disabled={item.quantity >= 99}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Plus className="h-4 w-4 text-charcoal" />
+                          </motion.button>
+                        </div>
+                        
+                        <div className="text-right">
+                          <motion.p 
+                            className="font-fredoka font-bold text-2xl text-charcoal"
+                            animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
+                          >
+                            {formatters.currency(item.product.price * item.quantity)}
+                          </motion.p>
+                          <motion.button 
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-coral-red hover:text-coral-red/80 mt-2 transition-colors inline-flex items-center"
+                            title="Remove item"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </motion.button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             </div>
-          </div>
-        )}
+          </motion.div>
+          
+          <motion.div 
+            className="lg:col-span-1"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <div className="bg-white rounded-3xl shadow-xl p-8 sticky top-6">
+              <div className="flex items-center mb-8">
+                <div className="bg-lavender rounded-2xl p-3 mr-3">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-fredoka font-bold text-charcoal">Order Summary</h2>
+              </div>
+            
+              <div className="space-y-4 mb-8">
+                <motion.div
+                  className="flex justify-between items-center p-3 rounded-xl hover:bg-soft-gray transition-colors"
+                  whileHover={{ x: 5 }}
+                >
+                  <span className="text-charcoal font-fredoka font-medium">Subtotal</span>
+                  <motion.span
+                    className="font-fredoka font-bold text-lg"
+                    key={totalPrice}
+                    animate={{ scale: [1, 1.1, 1] }}
+                  >
+                    {formatters.currency(totalPrice)}
+                  </motion.span>
+                </motion.div>
+
+                {/* Total Discount */}
+                {getTotalDiscount() > 0 && (
+                  <motion.div
+                    className="flex justify-between items-center p-3 rounded-xl bg-mint-green/10 border border-mint-green/30"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ x: 5 }}
+                  >
+                    <span className="text-charcoal font-fredoka font-medium flex items-center">
+                      <Sparkles className="w-4 h-4 mr-2 text-mint-green" />
+                      Deal Discount
+                    </span>
+                    <motion.span
+                      className="font-fredoka font-bold text-lg text-mint-green"
+                      key={getTotalDiscount()}
+                      animate={{ scale: [1, 1.1, 1] }}
+                    >
+                      -{formatters.currency(getTotalDiscount())}
+                    </motion.span>
+                  </motion.div>
+                )}
+
+                {/* Total Weight */}
+                {totalWeight > 0 && (
+                  <motion.div
+                    className="flex justify-between items-center p-3 rounded-xl bg-soft-gray/50"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <span className="text-charcoal font-fredoka font-medium flex items-center">
+                      <Weight className="w-4 h-4 mr-2 text-primary-blue" />
+                      Total Weight
+                    </span>
+                    <span className="font-fredoka font-bold text-primary-blue">
+                      {totalWeight.toFixed(2)} {weightUnit}
+                    </span>
+                  </motion.div>
+                )}
+                
+                <motion.div
+                  className="flex justify-between items-center p-3 rounded-xl hover:bg-soft-gray transition-colors"
+                  whileHover={{ x: 5 }}
+                >
+                  <span className="text-charcoal font-fredoka font-medium flex items-center">
+                    <Truck className="w-4 h-4 mr-2 text-primary-blue" />
+                    Shipping
+                    {shippingBreakdown && (
+                      <span className="ml-2 text-xs text-medium-gray">
+                        ({shippingBreakdown.description})
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-fredoka font-bold">
+                    {formatters.currency(getShippingCost())}
+                  </span>
+                </motion.div>
+
+                {/* Shipping Info Banner */}
+                {shippingBreakdown && (
+                  <motion.div
+                    className="bg-primary-blue/10 border border-primary-blue/30 rounded-2xl p-4"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <div className="flex items-start">
+                      <Truck className="w-5 h-5 text-primary-blue mr-2 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-fredoka font-bold text-charcoal mb-2">
+                          Weight-Based Shipping
+                        </p>
+                        <div className="space-y-1 text-xs text-medium-gray">
+                          {shippingBreakdown.pricing_tiers.map((tier, index) => (
+                            <div key={index} className="flex justify-between items-center">
+                              <span>{tier.range}:</span>
+                              <span className={`font-fredoka font-medium ${
+                                shippingBreakdown.description === tier.range
+                                  ? 'text-primary-blue font-bold'
+                                  : ''
+                              }`}>
+                                Rs. {tier.cost}
+                                {shippingBreakdown.description === tier.range && ' ✓'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                
+                <div className="border-t-2 border-light-gray pt-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xl font-fredoka font-bold text-charcoal">Total</span>
+                    <motion.span 
+                      className="text-3xl font-fredoka font-bold text-charcoal"
+                      key={getFinalTotal()}
+                      animate={{ scale: [1, 1.05, 1] }}
+                    >
+                      {formatters.currency(getFinalTotal())}
+                    </motion.span>
+                  </div>
+                </div>
+              </div>
+            
+              <motion.button 
+                onClick={handleCheckout}
+                className="w-full bg-vibrant-orange hover:bg-vibrant-orange/90 text-white font-fredoka font-bold py-4 rounded-2xl flex items-center justify-center space-x-2 shadow-xl hover:shadow-2xl transition-all mb-4"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Sparkles className="w-5 h-5" />
+                <span className="text-lg">Proceed to Checkout</span>
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  →
+                </motion.div>
+              </motion.button>
+              
+              <motion.button 
+                onClick={handleContinueShopping}
+                className="w-full bg-white border-2 border-light-gray hover:border-sunny-yellow hover:bg-sunny-yellow/10 text-charcoal font-fredoka font-medium py-4 rounded-2xl transition-all duration-300"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Continue Shopping
+              </motion.button>
+              
+              {/* Security Features */}
+              <div className="mt-8 space-y-3">
+                <div className="flex items-center justify-center space-x-6 text-sm text-medium-gray">
+                  <div className="flex items-center">
+                    <Shield className="w-4 h-4 mr-1 text-mint-green" />
+                    Secure
+                  </div>
+                  <div className="flex items-center">
+                    <Lock className="w-4 h-4 mr-1 text-primary-blue" />
+                    Encrypted
+                  </div>
+                  <div className="flex items-center">
+                    <CheckCircle className="w-4 h-4 mr-1 text-lavender" />
+                    Verified
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Promo Card */}
+            <AnimatePresence>
+              {showPromo && (
+                <motion.div 
+                  className="mt-6 bg-lavender rounded-3xl shadow-xl p-6 text-white"
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <button
+                    className="absolute top-2 right-2 text-white/80 hover:text-white"
+                    onClick={() => setShowPromo(false)}
+                  >
+                    ×
+                  </button>
+                  <div className="flex items-center mb-3">
+                    <Gift className="w-8 h-8 mr-3" />
+                    <h3 className="text-xl font-fredoka font-bold">Special Offer!</h3>
+                  </div>
+                  <p className="text-white/90 mb-4">Get 10% off your next order with code PAWSOME10</p>
+                  <motion.button 
+                    className="bg-white text-lavender font-fredoka font-bold py-2 px-6 rounded-full text-sm"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Copy Code
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

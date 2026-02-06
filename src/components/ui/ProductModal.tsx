@@ -67,12 +67,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
           >
             {/* Header */}
             <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-2xl font-bold text-gray-800">Product Details</h2>
+              <h2 className="text-2xl font-fredoka font-bold text-charcoal">Product Details</h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-off-white rounded-full transition-colors"
               >
-                <X className="h-6 w-6 text-gray-600" />
+                <X className="h-6 w-6 text-charcoal" />
               </button>
             </div>
 
@@ -90,7 +90,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 {/* Product Info */}
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                    <h3 className="text-2xl font-fredoka font-bold text-charcoal mb-2">
                       {product.name}
                     </h3>
                     <div className="flex items-center mb-4">
@@ -100,13 +100,13 @@ const ProductModal: React.FC<ProductModalProps> = ({
                             key={i}
                             className={`h-5 w-5 ${
                               i < Math.floor(product.rating)
-                                ? 'text-yellow-400 fill-current'
-                                : 'text-gray-300'
+                                ? 'text-sunny-yellow fill-current'
+                                : 'text-light-gray'
                             }`}
                           />
                         ))}
                       </div>
-                      <span className="text-gray-600 ml-2">({product.rating})</span>
+                      <span className="text-charcoal ml-2">({product.rating})</span>
                     </div>
                   </div>
 
@@ -114,16 +114,16 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   <div className="space-y-2">
                     <div className="flex items-center space-x-3">
                       {product.originalPrice && (
-                        <span className="text-xl text-gray-500 line-through">
+                        <span className="text-xl text-charcoal line-through">
                           Rs. {product.originalPrice.toFixed(2)}
                         </span>
                       )}
-                      <span className="text-3xl font-bold text-gray-800">
+                      <span className="text-3xl font-fredoka font-bold text-charcoal">
                         Rs. {product.price.toFixed(2)}
                       </span>
                     </div>
                     {product.originalPrice && (
-                      <span className="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="inline-block bg-vibrant-orange/10 text-vibrant-orange px-3 py-1 rounded-full text-sm font-fredoka font-medium">
                         Save Rs. {(product.originalPrice - product.price).toFixed(2)}
                       </span>
                     )}
@@ -132,19 +132,19 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   {/* Description */}
                   {product.description && (
                     <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Description</h4>
-                      <p className="text-gray-600 leading-relaxed">{product.description}</p>
+                      <h4 className="font-fredoka font-semibold text-charcoal mb-2">Description</h4>
+                      <p className="text-charcoal leading-relaxed">{product.description}</p>
                     </div>
                   )}
 
                   {/* Features */}
                   {product.features && product.features.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Features</h4>
+                      <h4 className="font-fredoka font-semibold text-charcoal mb-2">Features</h4>
                       <ul className="space-y-1">
                         {product.features.map((feature, index) => (
-                          <li key={index} className="text-gray-600 flex items-center">
-                            <span className="w-2 h-2 bg-orange-500 rounded-full mr-3"></span>
+                          <li key={index} className="text-charcoal flex items-center">
+                            <span className="w-2 h-2 bg-vibrant-orange rounded-full mr-3"></span>
                             {feature}
                           </li>
                         ))}
@@ -154,20 +154,20 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
                   {/* Quantity Selector */}
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-3">Quantity</h4>
+                    <h4 className="font-fredoka font-semibold text-charcoal mb-3">Quantity</h4>
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={decrementQuantity}
-                        className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="p-2 border border-light-gray rounded-lg hover:bg-off-white transition-colors"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
-                      <span className="text-xl font-semibold min-w-[3rem] text-center">
+                      <span className="text-xl font-fredoka font-semibold min-w-[3rem] text-center">
                         {quantity}
                       </span>
                       <button
                         onClick={incrementQuantity}
-                        className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="p-2 border border-light-gray rounded-lg hover:bg-off-white transition-colors"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -181,7 +181,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                       whileTap={{ scale: 0.98 }}
                       onClick={handleAddToCart}
                       disabled={isAddingToCart || !product.inStock}
-                      className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center space-x-2 transition-colors"
+                      className="w-full bg-vibrant-orange hover:bg-vibrant-orange/90 disabled:bg-light-gray text-white font-fredoka font-bold py-4 px-6 rounded-xl flex items-center justify-center space-x-2 transition-colors"
                     >
                       {isAddingToCart ? (
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -198,7 +198,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full border-2 border-orange-500 text-orange-500 hover:bg-orange-50 font-bold py-4 px-6 rounded-xl flex items-center justify-center space-x-2 transition-colors"
+                      className="w-full border-2 border-vibrant-orange text-vibrant-orange hover:bg-vibrant-orange/10 font-fredoka font-bold py-4 px-6 rounded-xl flex items-center justify-center space-x-2 transition-colors"
                     >
                       <Heart className="h-5 w-5" />
                       <span>Add to Wishlist</span>

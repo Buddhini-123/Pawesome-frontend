@@ -1,0 +1,502 @@
+---
+# PRB Metadata
+prb_id: LOYALTY-INTEGRATION-PRB-001
+title: "Core Loyalty Checkout Integration - Redemption & Point Earning"
+parent_story: "LOYALTY-API-INTEGRATION"
+created_date: 2026-02-02
+complexity: 13
+size: medium
+status: ready
+
+# Workflow Settings
+workflow:
+  version_bump: true
+  version_type: "minor"
+  changelog_required: true
+  pr_required: false
+  merge_strategy: "direct_commit"
+  release_automation: false
+  auto_merge: false
+  coordination_required: false
+  breaking_change_assessment: false
+
+# Project Context
+complete_context:
+  system_nature: "CODE-BASED SYSTEM"
+  project_type: "React TypeScript E-commerce Frontend"
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  backend_api: "http://127.0.0.1:8000/api"
+
+  current_state: |
+    - 85% complete loyalty UI with beautiful components
+    - LoyaltyContext, LoyaltyDashboard, RedemptionSlider all exist
+    - ApiService class with bearer token injection exists
+    - Checkout flow exists with redemption UI
+    - Missing: Actual API calls to /api/loyalty/redeem and /api/loyalty/earn
+
+  critical_files:
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/services/loyalty.service.ts"
+      purpose: "Domain service for loyalty operations - needs redeemPoints() method"
+      sample: |
+        class LoyaltyService {
+          async getLoyaltyBalance(): Promise<LoyaltyBalance> {
+            const response = await api.get('/loyalty/balance');
+            return response.data;
+          }
+          // Missing: redeemPoints() method
+        }
+
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/components/pages/Shop/Checkout.tsx"
+      purpose: "Checkout page - needs to call redemption API before order creation"
+      sample: |
+        const handlePlaceOrder = async () => {
+          setProcessingOrder(true);
+          // Missing: await loyaltyService.redeemPoints() before order creation
+          const order = await orderService.createOrder(orderData);
+        }
+
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/services/order.service.ts"
+      purpose: "Order service - needs to trigger point earning after payment"
+      sample: |
+        async createOrder(orderData): Promise<Order> {
+          const response = await api.post('/orders', orderData);
+          // Missing: await api.post('/loyalty/earn') after payment confirmation
+          return response.data;
+        }
+
+    - path: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/services/api.ts"
+      purpose: "Base API service with auth token injection - already functional"
+      sample: |
+        class ApiService {
+          private getAuthToken(): string | null {
+            return localStorage.getItem('auth_token');
+          }
+          async post<T>(endpoint, body?): Promise<ApiResponse<T>> {
+            // Auto-injects Bearer token
+          }
+        }
+
+  backend_api_documentation: |
+    API Endpoints to integrate:
+
+    1. POST /api/loyalty/redeem
+       Request: { points: number, order_id: string, reason: string }
+       Response: { message: string, points_redeemed: number, new_balance: number }
+       Error: 422 (validation), 403 (insufficient points)
+
+    2. POST /api/loyalty/earn
+       Request: { order_id: number, amount_paid: number }
+       Response: { message: string, points_earned: number, new_balance: number }
+       Calculation: points = floor(amount_paid / 100)
+       Error: 403 (unauthorized order), 422 (validation)
+
+    Auth: Bearer token from localStorage.getItem('auth_token')
+    All endpoints require Authentication header
+
+  memory_patterns: |
+    Pattern 1: Backend API-First Architecture (Relevance: 95%)
+    - Don't calculate points on frontend (security risk)
+    - Call /api/pricing/calculate for totals
+    - Backend detects birthday from JWT token
+    - Frontend displays backend results only
+
+    Pattern 2: React Service Layer Error Handling (Relevance: 88%)
+    - Try/catch in service methods
+    - User-friendly error messages
+    - Loading states in components (setLoading)
+    - Finally block for cleanup
+
+    Pattern 3: Loyalty Points Calculation Flow (Relevance: 85%)
+    - Preview: /api/pricing/calculate shows "will_earn"
+    - Earning: /api/loyalty/earn after payment with order_id
+    - Redemption: Before order creation, not after
+
+  best_practices: |
+    Practice 1: Service Layer Architecture (Tier 1)
+    - Centralized ApiService with generic request<T>()
+    - Domain-specific services (LoyaltyService) wrapping API calls
+    - Typed ApiResponse<T> for all HTTP responses
+    - Automatic bearer token injection
+    - Quality Gate: All HTTP goes through ApiService
+
+    Practice 2: React API Integration with Error Handling (Tier 1)
+    - Custom useApi<T>() hook for data fetching
+    - Three UI states: loading, error, success
+    - ErrorAlert component with user-friendly messages
+    - Quality Gate: All fetches show loading state, errors display messages
+
+# Requirements
+user_requirements:
+  original_request: "Integrate loyalty API with frontend - focus on checkout redemption and point earning"
+  work_type: "implementation"
+
+  success_criteria:
+    - "Users can redeem loyalty points during checkout"
+    - "Points deducted from balance when redeemed"
+    - "Points automatically awarded after order payment"
+    - "Loyalty balance updates in real-time"
+    - "Error messages displayed on API failures"
+    - "No git operations until user testing complete"
+
+  clarifications:
+    - "Redemption must happen BEFORE order creation (apply discount first)"
+    - "Point earning happens AFTER payment confirmation"
+    - "Use existing RedemptionSlider UI component"
+    - "Backend APIs are fully functional and tested"
+
+  scope_limits:
+    - "NOT included: Transaction history pagination (PRB-002)"
+    - "NOT included: Birthday discount banner (PRB-002)"
+    - "NOT included: Enhanced loading states (PRB-002)"
+    - "NOT included: Git operations (user will test first)"
+
+functional_requirements:
+  core_features:
+    - feature_id: "F1"
+      description: "Add redeemPoints() method to LoyaltyService"
+      acceptance_criteria:
+        - "Method accepts points, orderId, reason parameters"
+        - "Calls POST /api/loyalty/redeem with correct payload"
+        - "Returns typed response with new_balance"
+        - "Throws user-friendly errors on API failures"
+
+    - feature_id: "F2"
+      description: "Integrate redemption in Checkout handlePlaceOrder()"
+      acceptance_criteria:
+        - "Check if pointsToRedeem > 0"
+        - "Call redeemPoints() BEFORE createOrder()"
+        - "Apply redemption value to order total"
+        - "Handle redemption failures gracefully"
+        - "Show error message if redemption fails"
+
+    - feature_id: "F3"
+      description: "Verify/update order point earning trigger"
+      acceptance_criteria:
+        - "After order payment confirmation, call /api/loyalty/earn"
+        - "Pass order_id and amount_paid correctly"
+        - "Update loyalty balance in LoyaltyContext"
+        - "Show success notification with points earned"
+        - "Don't fail order if loyalty API fails (log only)"
+
+    - feature_id: "F4"
+      description: "Add basic error handling for API failures"
+      acceptance_criteria:
+        - "Try/catch blocks in all service methods"
+        - "User-friendly error messages (not raw API errors)"
+        - "Specific messages for 401, 403, 422, 500 errors"
+        - "Fallback behavior when APIs unavailable"
+
+  technical_specifications:
+    - spec_id: "T1"
+      description: "TypeScript type definitions for API responses"
+      details: |
+        interface RedeemPointsRequest {
+          points: number;
+          order_id: string;
+          reason: string;
+        }
+
+        interface RedeemPointsResponse {
+          message: string;
+          points_redeemed: number;
+          new_balance: number;
+        }
+
+        interface EarnPointsRequest {
+          order_id: number;
+          amount_paid: number;
+        }
+
+        interface EarnPointsResponse {
+          message: string;
+          points_earned: number;
+          new_balance: number;
+        }
+
+    - spec_id: "T2"
+      description: "Error handling utility"
+      details: |
+        function handleLoyaltyApiError(error: any): string {
+          if (error.response?.status === 401) return 'Please log in to use loyalty points';
+          if (error.response?.status === 403) return 'Insufficient loyalty points or unauthorized';
+          if (error.response?.status === 422) return error.response.data.message || 'Invalid request';
+          return 'Loyalty service temporarily unavailable. Your order will still be processed.';
+        }
+
+  integration_points:
+    - component: "LoyaltyService"
+      changes: "Add redeemPoints() and improve error handling"
+
+    - component: "Checkout.tsx"
+      changes: "Call redeemPoints() before createOrder(), handle errors"
+
+    - component: "OrderService"
+      changes: "Call /api/loyalty/earn after payment, update balance"
+
+    - component: "LoyaltyContext"
+      changes: "Refresh balance after redemption and earning"
+
+processual_requirements:
+  execution_steps:
+    - step: 1
+      name: "Feature Branch Creation"
+      description: "Create feature/loyalty-checkout-integration branch"
+      commands:
+        - "git checkout -b feature/loyalty-checkout-integration"
+      validation: "Branch created successfully"
+
+    - step: 2
+      name: "Knowledge Base Search"
+      description: "Review LOYALTY_API_GUIDE.md and memory patterns"
+      validation: "API endpoints and patterns understood"
+
+    - step: 3
+      name: "Add TypeScript Types"
+      description: "Add RedeemPointsRequest/Response and EarnPointsRequest/Response types"
+      file: "src/types/loyalty.ts"
+      validation: "TypeScript compiles without errors"
+
+    - step: 4
+      name: "Implement redeemPoints() Method"
+      description: "Add redeemPoints() to LoyaltyService with error handling"
+      file: "src/services/loyalty.service.ts"
+      details: |
+        async redeemPoints(points: number, orderId: string, reason: string = 'Order discount'): Promise<RedeemPointsResponse> {
+          try {
+            const response = await api.post('/loyalty/redeem', {
+              points,
+              order_id: orderId,
+              reason
+            });
+
+            // Refresh loyalty balance after redemption
+            await this.getLoyaltyBalance();
+
+            return response.data;
+          } catch (error: any) {
+            console.error('Point redemption failed:', error);
+            throw new Error(handleLoyaltyApiError(error));
+          }
+        }
+      validation: "Method compiles, returns typed response"
+
+    - step: 5
+      name: "Integrate Redemption in Checkout"
+      description: "Update handlePlaceOrder() to call redeemPoints() before order creation"
+      file: "src/components/pages/Shop/Checkout.tsx"
+      details: |
+        const handlePlaceOrder = async () => {
+          try {
+            setProcessingOrder(true);
+            setError(null);
+
+            // 1. Redeem points FIRST (if any)
+            let redemptionSuccess = false;
+            if (pointsToRedeem > 0) {
+              try {
+                const redemptionResult = await loyaltyService.redeemPoints(
+                  pointsToRedeem,
+                  'ORDER_PENDING', // Will be updated with real order ID later
+                  'Checkout discount'
+                );
+                redemptionSuccess = true;
+                console.log('Points redeemed:', redemptionResult);
+              } catch (redemptionError: any) {
+                setError(redemptionError.message);
+                setProcessingOrder(false);
+                return; // Stop checkout if redemption fails
+              }
+            }
+
+            // 2. Create order with discounted total
+            const orderData = {
+              ...existingOrderData,
+              loyalty_discount: redemptionValue,
+              points_redeemed: pointsToRedeem
+            };
+
+            const order = await orderService.createOrder(orderData);
+
+            // 3. Show success
+            navigate('/order-confirmation', { state: { order } });
+
+          } catch (error: any) {
+            setError(error.message || 'Order creation failed');
+          } finally {
+            setProcessingOrder(false);
+          }
+        };
+      validation: "Redemption called before order, errors handled"
+
+    - step: 6
+      name: "Update Order Point Earning"
+      description: "Call /api/loyalty/earn after payment confirmation"
+      file: "src/services/order.service.ts"
+      details: |
+        async createOrder(orderData: CreateOrderRequest): Promise<Order> {
+          try {
+            // Create order first
+            const response = await api.post('/orders', orderData);
+            const order = response.data;
+
+            // Award points after payment confirmation
+            if (order.payment_status === 'paid' || order.payment_status === 'confirmed') {
+              try {
+                const earnResult = await api.post('/loyalty/earn', {
+                  order_id: order.id,
+                  amount_paid: order.total
+                });
+
+                console.log('Points earned:', earnResult.data);
+
+                // Show success notification
+                toast.success(
+                  `Order placed! You earned ${earnResult.data.points_earned} loyalty points!`,
+                  { duration: 5000 }
+                );
+
+                // Refresh loyalty balance
+                // LoyaltyContext will auto-refresh via useEffect
+
+              } catch (loyaltyError) {
+                // Don't fail order if loyalty API fails
+                console.warn('Loyalty points award failed (non-critical):', loyaltyError);
+              }
+            }
+
+            return order;
+          } catch (error) {
+            throw error;
+          }
+        }
+      validation: "Points awarded after payment, order not blocked on loyalty failure"
+
+    - step: 7
+      name: "Add Error Handling Utility"
+      description: "Create handleLoyaltyApiError() helper function"
+      file: "src/services/loyalty.service.ts"
+      details: |
+        function handleLoyaltyApiError(error: any): string {
+          if (error.response?.status === 401) {
+            return 'Please log in to use loyalty points';
+          }
+          if (error.response?.status === 403) {
+            return 'Insufficient loyalty points or unauthorized action';
+          }
+          if (error.response?.status === 422) {
+            return error.response.data.message || 'Invalid loyalty request';
+          }
+          if (error.response?.status >= 500) {
+            return 'Loyalty service temporarily unavailable. Your order will still be processed.';
+          }
+          return 'An unexpected error occurred with loyalty points';
+        }
+      validation: "All error codes handled with user-friendly messages"
+
+    - step: 8
+      name: "Testing & Validation"
+      description: "Test complete checkout flow with redemption and earning"
+      validation_checklist:
+        - "User can redeem points during checkout"
+        - "Redemption reduces loyalty balance correctly"
+        - "Order total reflects redemption discount"
+        - "Points awarded after order payment"
+        - "Loyalty balance updates after earning"
+        - "Error messages display on API failures"
+        - "Checkout doesn't break if loyalty API down"
+        - "TypeScript compiles without errors"
+        - "No console errors in browser"
+
+  quality_standards:
+    - "TypeScript strict mode compliance"
+    - "All async operations wrapped in try/catch"
+    - "User-friendly error messages (not raw API errors)"
+    - "Loading states prevent duplicate submissions"
+    - "Non-critical failures (loyalty) don't block critical operations (order)"
+
+  review_validation:
+    sme_role: "@Developer"
+    review_criteria:
+      - "Code follows service layer architecture pattern"
+      - "Error handling comprehensive and user-friendly"
+      - "Redemption happens before order creation"
+      - "Point earning doesn't block order on failure"
+      - "TypeScript types are accurate"
+
+# Assignments
+role_assignments:
+  primary_assignee: "@Developer"
+  secondary_assignees:
+    - "@Backend-Tester"
+
+  role_selection_rationale: |
+    @Developer selected for React TypeScript implementation (service layer + component updates).
+    @Backend-Tester for API integration validation and error scenario testing.
+
+    Two-factor analysis:
+    - Project Scope: CODE-BASED SYSTEM (React TypeScript frontend)
+    - Work Type: Implementation (API integration, service methods, checkout flow)
+
+    Dynamic specialist creation not required (core @Developer + @Backend-Tester sufficient).
+
+# Completion Criteria
+completion_definition:
+  done_when:
+    - "redeemPoints() method implemented in LoyaltyService"
+    - "Checkout calls redeemPoints() before order creation"
+    - "Order service calls /api/loyalty/earn after payment"
+    - "Loyalty balance updates after redemption and earning"
+    - "Error messages displayed on API failures"
+    - "All TypeScript compiles without errors"
+    - "Manual testing completed successfully"
+    - "No git operations performed (per user request)"
+
+  validation_checklist:
+    - item: "Redemption API Integration"
+      status: "pending"
+      evidence_required: "redeemPoints() method exists and calls correct endpoint"
+
+    - item: "Checkout Integration"
+      status: "pending"
+      evidence_required: "handlePlaceOrder() calls redeemPoints() before createOrder()"
+
+    - item: "Point Earning Integration"
+      status: "pending"
+      evidence_required: "createOrder() calls /api/loyalty/earn after payment"
+
+    - item: "Error Handling"
+      status: "pending"
+      evidence_required: "All error scenarios handled with user messages"
+
+    - item: "Testing Complete"
+      status: "pending"
+      evidence_required: "Manual testing shows redemption and earning working"
+
+# Dependencies & Blockers
+dependencies:
+  upstream:
+    - dependency: "Backend loyalty APIs functional"
+      status: "ready"
+      notes: "All endpoints tested and documented in LOYALTY_API_GUIDE.md"
+
+  downstream:
+    - dependency: "PRB-002 UX Enhancements"
+      status: "blocked"
+      notes: "Waiting for PRB-001 completion and user testing"
+
+blockers:
+  current: []
+  potential:
+    - blocker: "Backend API unavailable during development"
+      mitigation: "Use test tokens from LOYALTY_API_GUIDE.md, backend running locally"
+
+# Metadata
+tags:
+  - loyalty
+  - checkout
+  - api-integration
+  - redemption
+  - point-earning
+priority: "high"
+estimated_effort: "4-6 hours"
+---

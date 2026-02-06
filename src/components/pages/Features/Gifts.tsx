@@ -11,21 +11,21 @@ const Gifts: React.FC = () => {
   const newsletterRef = useRef(null);
 
   const heroInView = useInView(heroRef, { once: true });
-  const stepsInView = useInView(stepsRef, { once: true, threshold: 0.2 });
+  const stepsInView = useInView(stepsRef, { once: true });
   const ctaInView = useInView(ctaRef, { once: true });
   const newsletterInView = useInView(newsletterRef, { once: true });
 
   const steps = [
-    { id: 1, title: "Choose a Theme Card", color: "from-energetic-orange to-warm-orange" },
-    { id: 2, title: "Select Your Main Theme Pet Toy", color: "from-calm-blue to-sky-400" },
-    { id: 3, title: "Select Your Complementary Pet Toys", color: "from-natural-sage to-emerald-400" },
-    { id: 4, title: "Select Your Pet Treats", color: "from-warm-orange to-amber-400" },
-    { id: 5, title: "Select Pet Care Products", color: "from-periwinkle to-purple-400" },
-    { id: 6, title: "Select Pet Accessories & Clothings", color: "from-mint to-teal-400" },
-    { id: 7, title: "Add A Greeting Card", color: "from-soft-yellow to-yellow-400" }
+    { id: 1, title: "Choose a Theme Card", color: "from-vibrant-orange to-sunny-yellow" },
+    { id: 2, title: "Select Your Main Theme Pet Toy", color: "from-primary-blue to-primary-blue" },
+    { id: 3, title: "Select Your Complementary Pet Toys", color: "from-mint-green to-mint-green" },
+    { id: 4, title: "Select Your Pet Treats", color: "from-sunny-yellow to-vibrant-orange" },
+    { id: 5, title: "Select Pet Care Products", color: "from-lavender to-lavender" },
+    { id: 6, title: "Select Pet Accessories & Clothings", color: "from-mint-green to-mint-green" },
+    { id: 7, title: "Add A Greeting Card", color: "from-sunny-yellow to-sunny-yellow" }
   ];
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-amber-50">
+    <div className="min-h-screen bg-gradient-to-br from-soft-gray via-blue-50 to-yellow-50">
       {/* Hero Section */}
       <section ref={heroRef} className="relative pt-16 pb-12 px-4">
         <div className="container mx-auto max-w-6xl">
@@ -36,7 +36,7 @@ const Gifts: React.FC = () => {
             className="text-center"
           >
             <motion.h1
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-energetic-orange mb-8"
+              className="text-5xl md:text-6xl lg:text-7xl font-fredoka font-bold text-vibrant-orange mb-8"
               initial={{ scale: 0.9 }}
               animate={heroInView ? { scale: 1 } : {}}
               transition={{ duration: 1, ease: "backOut" }}
@@ -50,12 +50,12 @@ const Gifts: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="max-w-4xl mx-auto space-y-4"
             >
-              <p className="text-xl md:text-2xl text-charcoal-gray font-medium">
+              <p className="text-xl md:text-2xl text-charcoal font-fredoka font-medium">
                 Not into our pre-set pet gift boxes? Create your own masterpiece!
               </p>
-              <p className="text-lg md:text-xl text-charcoal-gray">
+              <p className="text-lg md:text-xl text-charcoal">
                 Mix and match toys, treats, grooming products, outfits, accessories, and a greeting card to build your very own
-                <span className="font-bold text-energetic-orange"> Pawsome Customized Box!</span>
+                <span className="font-fredoka font-bold text-vibrant-orange"> Pawsome Customized Box!</span>
               </p>
             </motion.div>
           </motion.div>
@@ -68,7 +68,7 @@ const Gifts: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={stepsInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
-            className="text-4xl md:text-5xl font-bold text-warm-orange mb-16 text-center"
+            className="text-4xl md:text-5xl font-fredoka font-bold text-sunny-yellow mb-16 text-center"
           >
             How It Works:
           </motion.h2>
@@ -88,12 +88,12 @@ const Gifts: React.FC = () => {
                   className="group"
                 >
                   <div className={`relative bg-gradient-to-r ${step.color} rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
-                    <div className="absolute -left-3 -top-3 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-4 border-energetic-orange">
-                      <span className="text-energetic-orange font-bold text-lg">{step.id}</span>
+                    <div className="absolute -left-3 -top-3 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-4 border-vibrant-orange">
+                      <span className="text-vibrant-orange font-fredoka font-bold text-lg">{step.id}</span>
                     </div>
 
                     <div className="ml-8">
-                      <h3 className="text-lg md:text-xl font-semibold text-white">
+                      <h3 className="text-lg md:text-xl font-fredoka font-semibold text-white">
                         Step {step.id}: {step.title}
                       </h3>
                     </div>
@@ -129,7 +129,7 @@ const Gifts: React.FC = () => {
             >
               <Link
                 to="/gifts/customize"
-                className="inline-block bg-gradient-to-r from-mint to-emerald-500 text-white font-bold text-xl md:text-2xl px-12 py-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
+                className="inline-block bg-gradient-to-r from-mint-green to-mint-green text-white font-fredoka font-bold text-xl md:text-2xl px-12 py-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
               >
                 Let's Start !
               </Link>
@@ -154,7 +154,7 @@ const Gifts: React.FC = () => {
             >
               <Link
                 to="/gifts/customize"
-                className="inline-block bg-gradient-to-r from-mint to-emerald-500 text-white font-bold text-xl md:text-2xl px-12 py-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
+                className="inline-block bg-gradient-to-r from-mint-green to-mint-green text-white font-fredoka font-bold text-xl md:text-2xl px-12 py-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
               >
                 Let's Start !
               </Link>
@@ -164,7 +164,7 @@ const Gifts: React.FC = () => {
       </section> */}
 
       {/* Pet Showcase Section */}
-      <section className="py-12 px-4 bg-gradient-to-r from-natural-sage/20 to-calm-blue/20">
+      <section className="py-12 px-4 bg-gradient-to-r from-mint-green/20 to-primary-blue/20">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -200,7 +200,7 @@ const Gifts: React.FC = () => {
         </div>
       </section>
       {/* Newsletter Section */}
-      {/* <section ref={newsletterRef} className="py-16 px-4 bg-gradient-to-r from-natural-sage to-calm-blue">
+      {/* <section ref={newsletterRef} className="py-16 px-4 bg-gradient-to-r from-mint-green to-primary-blue">
         <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -209,7 +209,7 @@ const Gifts: React.FC = () => {
             className="text-center text-white"
           >
             <motion.h3
-              className="text-2xl md:text-3xl font-bold mb-6"
+              className="text-2xl md:text-3xl font-fredoka font-bold mb-6"
               initial={{ scale: 0.9 }}
               animate={newsletterInView ? { scale: 1 } : {}}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -228,12 +228,12 @@ const Gifts: React.FC = () => {
                 placeholder="Your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-6 py-4 rounded-xl text-charcoal-gray border-none outline-none text-lg"
+                className="flex-1 px-6 py-4 rounded-xl text-charcoal border-none outline-none text-lg"
               />
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-energetic-orange to-warm-orange text-white font-bold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white font-fredoka font-bold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Subscribe
               </motion.button>
@@ -252,8 +252,8 @@ const Gifts: React.FC = () => {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <h4 className="text-xl font-bold text-charcoal-gray mb-6">Services</h4>
-              <ul className="space-y-3 text-gray-600">
+              <h4 className="text-xl font-fredoka font-bold text-charcoal mb-6">Services</h4>
+              <ul className="space-y-3 text-medium-gray">
                 <li>Custom Gift Boxes</li>
                 <li>Pet Toy Selection</li>
                 <li>Treat Curation</li>

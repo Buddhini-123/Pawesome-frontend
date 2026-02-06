@@ -1,0 +1,386 @@
+# Medium PRB Template - Multi-file Features (6-15 points)
+# REVISED: Integrates with actual backend pricing calculation API
+
+git_privacy: false
+id: "PRB-004-REVISED-checkout-pricing-api-integration-2026-01-22"
+type: medium-prb
+complexity: moderate
+priority: "HIGH"
+title: "@Developer Integrate checkout with backend pricing API for birthday discount and points preview"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend with Backend API)"
+  project_overview: "E-commerce platform. Integrating checkout with backend pricing calculation API that automatically applies birthday discounts and calculates loyalty points"
+  work_location: "Frontend codebase - Checkout component and pricing service"
+  key_context: "Backend API POST /api/pricing/calculate handles ALL pricing logic including birthday discount (10%) and points calculation (100 LKR = 1 point). Frontend calls API and displays results"
+  system_features: "Checkout, Pricing Calculation, Birthday Discounts, Loyalty Points Preview"
+  backend_api_available: true
+  backend_endpoints:
+    - endpoint: "POST /api/pricing/calculate"
+      request: "{ subtotal: 1000 }"
+      response: "{ subtotal: 1000, birthday_discount: { applies: true, amount: 100, percentage: 10, message: 'Happy Birthday!' }, total: 900, loyalty_points: { current_balance: 100, points_to_earn: 9, new_balance: 109 } }"
+      auth_required: true
+      business_logic: "Backend detects user's birthday from JWT token, calculates 10% discount if applicable, calculates points to earn"
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/pages/Shop/Checkout.tsx"
+      purpose: "Main checkout component with pricing breakdown - needs to call pricing API instead of calculating locally"
+      sample: "Multi-step checkout currently has local couponDiscount calculation. Need to integrate backend pricing API"
+    - path: "src/services/api.ts"
+      purpose: "Core API service with bearer token auth"
+      sample: "api.request() method for authenticated API calls"
+    - path: "src/types/index.ts"
+      purpose: "Main TypeScript types - needs PricingCalculation interface for API response"
+      sample: "User, Product, Order interfaces"
+  user_requirements:
+    original_request: "Checkout should call POST /api/pricing/calculate to get birthday discount (10% if applicable) and points preview (100 LKR = 1 point) from backend"
+    success_criteria:
+      - "Call POST /api/pricing/calculate with { subtotal: value } on checkout mount and cart changes"
+      - "Display birthday_discount.message if birthday_discount.applies === true"
+      - "Show birthday discount amount in pricing breakdown"
+      - "Display loyalty_points.points_to_earn in checkout summary"
+      - "Show 'You will earn X points' message"
+      - "Handle loading state while API calculates pricing"
+      - "Handle error state if API call fails"
+      - "Create PricingCalculation interface matching backend response"
+      - "Pricing updates reactively when cart contents change"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, REST API, Checkout Flow, Pricing Logic"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Create PricingCalculation TypeScript interface matching POST /api/pricing/calculate response"
+    - "Call POST /api/pricing/calculate with { subtotal } in Checkout component"
+    - "Display birthday discount if pricing.birthday_discount.applies === true"
+    - "Show birthday discount message (pricing.birthday_discount.message)"
+    - "Display points to earn from pricing.loyalty_points.points_to_earn"
+    - "Show birthday celebration banner when discount applies"
+    - "Handle authenticated API call (bearer token)"
+    - "Trigger API call on mount and when cart total changes"
+    - "Handle loading state (show skeleton while calculating)"
+    - "Handle error state (show error with retry)"
+    - "Update final total from pricing.total"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Single file modification scope (Checkout.tsx + new interface)"
+  technical:
+    - "Under 120 lines of changes"
+    - "TypeScript strict mode compliance"
+    - "Use existing api.request() pattern"
+    - "Async/await with proper error handling"
+    - "Debounce API calls (don't call on every keystroke)"
+    - "Cache API responses for same subtotal"
+
+# ========================================
+# EXECUTION PROCESS: 9 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: This PRB integrates with ACTUAL BACKEND PRICING API
+  - Backend handles ALL pricing logic (birthday detection, discount calculation, points calculation)
+  - Frontend sends subtotal, receives complete pricing breakdown
+  - POST /api/pricing/calculate
+  - Request: { subtotal: 1000 }
+  - Response: { subtotal, birthday_discount: { applies, amount, percentage, message }, total, loyalty_points: { current_balance, points_to_earn, new_balance } }
+  - Backend detects birthday from authenticated user's JWT token
+  - NO frontend birthday detection needed!
+  - NO frontend points calculation needed!
+
+  git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: |
+    Existing checkout patterns:
+    - Pricing state managed in checkout: subtotal, tax, total
+    - Discount rendering: conditional {discount > 0 && (...)}
+    - API calls use api.request() from services/api.ts
+    - Loading states: useState<boolean> for async operations
+    - Error handling: try/catch with error state display
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_files:
+    - path: "src/types/index.ts"
+      changes:
+        - "Add PricingCalculation interface export"
+        - |
+          Interface structure:
+          {
+            subtotal: number;
+            birthday_discount: {
+              applies: boolean;
+              amount: number;
+              percentage: number;
+              message: string;
+            } | null;
+            total: number;
+            loyalty_points: {
+              current_balance: number;
+              points_to_earn: number;
+              new_balance: number;
+            };
+          }
+        - "Add JSDoc comment describing backend pricing API response"
+
+    - path: "src/components/pages/Shop/Checkout.tsx"
+      changes:
+        - "Import PricingCalculation from types"
+        - "Add useState<PricingCalculation | null>(null) for pricing data"
+        - "Add useState<boolean>(false) for pricingLoading"
+        - "Add useState<string | null>(null) for pricingError"
+        - "Create fetchPricing async function calling POST /api/pricing/calculate"
+        - "Add useEffect to call fetchPricing when subscriptionSubtotal changes"
+        - "Debounce fetchPricing calls (500ms delay)"
+        - "Display pricing.birthday_discount if pricing?.birthday_discount?.applies"
+        - "Show birthday celebration banner with pricing.birthday_discount.message"
+        - "Display pricing.loyalty_points.points_to_earn"
+        - "Update final total to pricing.total"
+        - "Add loading skeleton during API call"
+        - "Add error message with retry if API fails"
+
+  validation: "Test API call with various subtotals, verify birthday discount shown on user's birthday, test points calculation accuracy, verify loading/error states"
+
+## STEP 3: INTEGRATION
+integration_points:
+  - api_integration: "Use api.request<PricingCalculation>() for authenticated POST call"
+  - cart_integration: "Trigger pricing recalculation when cart total changes"
+  - loyalty_integration: "Display points preview from API response"
+  - state_management: "Update all dependent UI when pricing data loads"
+
+## STEP 4: REVIEW
+review_checklist:
+  - "Functional requirements met - pricing API integrated, discounts displayed"
+  - "Birthday discount shown only when pricing.birthday_discount.applies === true"
+  - "Birthday message from API displayed in celebration banner"
+  - "Points to earn from API displayed correctly"
+  - "Total calculation uses pricing.total from API"
+  - "Loading state shows during API call"
+  - "Error handling works with retry option"
+  - "API calls debounced (not called excessively)"
+  - "TypeScript compilation passes"
+
+## STEP 5: VERSION
+version_bump:
+  type: "minor"
+  action: "Bump version (0.2.0 → 0.3.0) - checkout pricing API integration"
+
+## STEP 6: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Added
+      - Backend pricing calculation API integration (POST /api/pricing/calculate)
+      - Automatic birthday discount detection via backend (10% on user's birthday)
+      - Loyalty points preview from backend calculation (100 LKR = 1 point)
+      - Birthday celebration message when discount applies
+      - `PricingCalculation` TypeScript interface for API response
+      - Loading and error states for pricing API calls
+
+      ### Changed
+      - Checkout pricing now calculated by backend (was frontend)
+      - Birthday discount detected server-side (more secure)
+      - Points calculation handled by backend (accurate, consistent)
+    required: true
+  additional: "Document pricing API endpoint usage in checkout flow"
+  comments: "Add JSDoc to PricingCalculation interface explaining each field"
+
+## STEP 7: GIT COMMIT
+git_commit:
+  commit_message: |
+    PRB-004-REVISED: Integrate checkout with backend pricing calculation API
+
+    Backend Pricing API Integration:
+    - Added POST /api/pricing/calculate API call to checkout
+    - Created PricingCalculation interface matching backend response
+    - Moved all pricing logic to backend (birthday detection, points calculation)
+
+    Birthday Discount Feature:
+    - Backend detects user's birthday from authenticated token
+    - Automatically applies 10% discount if applicable
+    - Displays birthday celebration message from backend
+    - Shows discount amount in pricing breakdown
+
+    Points Preview Feature:
+    - Backend calculates points to earn (100 LKR = 1 point)
+    - Displays "You will earn X points with this order"
+    - Shows current balance and new balance after order
+
+    UX Improvements:
+    - Debounced API calls (avoid excessive requests)
+    - Loading state during pricing calculation
+    - Error handling with retry option
+    - Reactive pricing updates when cart changes
+
+    More secure and accurate than frontend calculation.
+  privacy_filter: false
+  action: "Commit changes"
+
+## STEP 8: GIT PUSH
+git_push:
+  action: "Push to remote on branch bugx/issue-fix"
+
+## STEP 9: COMPLETION
+completion_summary:
+  deliverables:
+    - "Backend pricing API integration"
+    - "Automatic birthday discount from backend"
+    - "Points preview from backend calculation"
+    - "Loading and error handling"
+  next_steps:
+    - "Test with users on their birthdays"
+    - "Verify API performance under load"
+    - "Monitor for pricing calculation errors"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive API integration message"
+      - "Git push to remote"
+      blocked_patterns:
+        - "No git operations needed"
+      error_message: "❌ BLOCKED: Git operations mandatory."
+
+    sme_review:
+      - "Backend API tested with actual checkout flow"
+      - "Birthday discount verified (test with birthday user)"
+      - "Points calculation accuracy verified"
+      - "Loading/error states tested"
+      - "TypeScript compilation passes"
+      blocked_patterns:
+        - "Skip backend testing"
+      error_message: "❌ BLOCKED: Backend API testing mandatory."
+
+    documentation:
+      - "CHANGELOG documents pricing API integration"
+      - "Version bump (0.2.0 → 0.3.0)"
+      - "JSDoc on PricingCalculation interface"
+      blocked_patterns:
+        - "No documentation needed"
+      error_message: "❌ BLOCKED: Documentation mandatory."
+
+    version_management:
+      - "Minor version bump (new API integration)"
+      - "package.json updated (0.2.0 → 0.3.0)"
+      error_message: "❌ BLOCKED: Minor version required."
+
+  workflow:
+    version_bump: true
+    version_type: "minor"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+
+  enforcement_rules:
+    - "ALL 9 execution steps completed"
+    - "Backend API testing before commit"
+    - "Documentation updates required"
+    - "TypeScript compilation must pass"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: API patterns identified
+  ☐ Step 2 - Implementation: PricingCalculation interface created, API integrated in checkout
+  ☐ Step 3 - Integration: API, cart, loyalty integrated
+  ☐ Step 4 - Review: Birthday discount tested, points verified
+  ☐ Step 5 - Version: package.json bumped (0.2.0 → 0.3.0)
+  ☐ Step 6 - Documentation: CHANGELOG updated
+  ☐ Step 7 - Git Commit: Committed with API message
+  ☐ Step 8 - Git Push: Pushed to remote
+  ☐ Step 9 - Completion: Deliverables verified
+
+# ACCEPTANCE CRITERIA
+acceptance_criteria:
+  api_integration:
+    - endpoint: "POST /api/pricing/calculate called with { subtotal }"
+    - authentication: "Bearer token in Authorization header"
+    - response: "PricingCalculation response parsed correctly"
+    - debouncing: "API calls debounced (500ms delay)"
+
+  birthday_discount:
+    - detection: "Birthday detected by backend (not frontend)"
+    - display: "Discount shown only if birthday_discount.applies === true"
+    - message: "birthday_discount.message displayed in celebration banner"
+    - amount: "birthday_discount.amount shown in pricing breakdown"
+    - icon: "Birthday icon (🎂) included"
+
+  points_preview:
+    - calculation: "Points from loyalty_points.points_to_earn (backend calculated)"
+    - display: "'You will earn X points' message shown"
+    - balance: "Current and new balance displayed"
+    - accuracy: "Points match backend calculation (100 LKR = 1 point)"
+
+  pricing_accuracy:
+    - total: "Final total from pricing.total (backend calculated)"
+    - breakdown: "All pricing components shown clearly"
+    - updates: "Pricing recalculates when cart changes"
+
+  ui_states:
+    - loading: "Loading skeleton during API call"
+    - error: "Error message with retry button if API fails"
+    - success: "Pricing displayed when API returns"
+
+# BACKEND API SPEC
+backend_api_specification:
+  endpoint: "POST /api/pricing/calculate"
+  method: "POST"
+  authentication: "Bearer token (Authorization: Bearer {token})"
+  request_format:
+    body: |
+      {
+        "subtotal": 1000
+      }
+  response_format:
+    success:
+      status: 200
+      body: |
+        {
+          "subtotal": 1000.00,
+          "birthday_discount": {
+            "applies": true,
+            "amount": 100.00,
+            "percentage": 10,
+            "message": "Happy Birthday! Enjoy 10% off!"
+          },
+          "total": 900.00,
+          "loyalty_points": {
+            "current_balance": 100,
+            "points_to_earn": 9,
+            "new_balance": 109
+          }
+        }
+    no_birthday:
+      status: 200
+      body: |
+        {
+          "subtotal": 1000.00,
+          "birthday_discount": null,
+          "total": 1000.00,
+          "loyalty_points": {
+            "current_balance": 100,
+            "points_to_earn": 10,
+            "new_balance": 110
+          }
+        }
+  example_usage: |
+    const response = await api.request<PricingCalculation>('/pricing/calculate', {
+      method: 'POST',
+      body: { subtotal: subscriptionSubtotal }
+    });
+    // response.data.birthday_discount?.applies
+    // response.data.loyalty_points.points_to_earn

@@ -234,7 +234,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
             ease: "easeInOut",
           }}
         >
-          <div className="w-full h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 opacity-20 blur-xl" />
+          <div className="w-full h-full rounded-full bg-gradient-to-r from-sunny-yellow to-vibrant-orange opacity-20 blur-xl" />
         </motion.div>
       )}
       

@@ -1,0 +1,328 @@
+# Tiny PRB Template - Simple Changes (3-5 points)
+# REVISED: Integrates with actual backend API endpoints
+
+git_privacy: false
+id: "PRB-003-REVISED-loyalty-balance-expiry-api-integration-2026-01-22"
+type: tiny-prb
+complexity: simple
+priority: "HIGH"
+title: "@Developer Integrate loyalty balance API and display dynamic expiry notice"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend with Backend API)"
+  project_overview: "E-commerce platform for premium pet care products. Integrating with backend loyalty balance API to display dynamic points expiry notice"
+  work_location: "Frontend codebase - Loyalty Dashboard component and API service layer"
+  key_context: "Backend API provides GET /api/loyalty/balance with dynamic expiry_date. Frontend needs to fetch and display this data instead of hardcoded expiry date"
+  system_features: "Loyalty System (API Integration, Dashboard, Balance Display), Backend REST API"
+  backend_api_available: true
+  backend_endpoints:
+    - endpoint: "GET /api/loyalty/balance"
+      response: "{ balance: 100, expiring_soon: 0, expiry_date: '2027-12-31 23:59:59' }"
+      auth_required: true
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/loyalty/LoyaltyDashboard.tsx"
+      purpose: "Main loyalty dashboard - needs to display dynamic expiry notice from API"
+      sample: "Credit card style loyalty card, tier progress, stats. Currently uses LoyaltyContext"
+    - path: "src/services/loyalty.service.ts"
+      purpose: "Loyalty API service layer - needs new method to fetch balance from backend"
+      sample: "Contains getLoyaltyCard, getPointsHistory, etc. Uses api.request() for backend calls"
+    - path: "src/types/loyalty.ts"
+      purpose: "Loyalty TypeScript interfaces - needs LoyaltyBalance interface for API response"
+      sample: "LoyaltyCard, PointTransaction, Badge, etc."
+  user_requirements:
+    original_request: "Show dynamic expiry notice from backend API: 'Points expire on {expiry_date}' using GET /api/loyalty/balance"
+    success_criteria:
+      - "Fetch loyalty balance from GET /api/loyalty/balance"
+      - "Display dynamic expiry_date from API response"
+      - "Show expiring_soon count if > 0"
+      - "Handle loading state while fetching balance"
+      - "Handle error state if API call fails"
+      - "Create LoyaltyBalance TypeScript interface matching API response"
+      - "Expiry notice updates when balance data refreshes"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, REST API Integration, Axios, State Management"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Add getLoyaltyBalance() method to loyalty.service.ts calling GET /api/loyalty/balance"
+    - "Create LoyaltyBalance interface: { balance: number; expiring_soon: number; expiry_date: string }"
+    - "Fetch balance data in LoyaltyDashboard component on mount"
+    - "Display expiry notice with dynamic expiry_date from API"
+    - "Show 'X points expiring soon' warning if expiring_soon > 0"
+    - "Handle authentication (API requires bearer token)"
+    - "Handle loading state (show skeleton/spinner)"
+    - "Handle error state (show error message with retry)"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Multi-file modification scope (3 files)"
+  technical:
+    - "Under 80 lines of changes total"
+    - "TypeScript strict mode compliance"
+    - "Use existing api.request() pattern from loyalty.service.ts"
+    - "Use axios bearer token authentication (already configured in api.ts)"
+    - "Format expiry_date for display (convert from '2027-12-31 23:59:59' to user-friendly format)"
+    - "Async/await with proper error handling"
+
+# ========================================
+# EXECUTION PROCESS: 7 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: This PRB integrates with ACTUAL BACKEND API
+  - Backend provides GET /api/loyalty/balance endpoint
+  - Response: { balance: 100, expiring_soon: 0, expiry_date: "2027-12-31 23:59:59" }
+  - Authentication: Bearer token (already configured in api.ts)
+  - Frontend fetches and displays dynamic expiry date
+  - NO hardcoded "Dec 31" dates - all data from backend!
+
+  git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: |
+    Existing API patterns found:
+    - api.request() in loyalty.service.ts for backend calls
+    - Bearer token auth configured in src/services/api.ts
+    - Async service methods return Promise<Type>
+    - Error handling with try/catch and console.error
+    - LoyaltyContext uses useEffect to fetch data on mount
+    - Dashboard displays loading/error states
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_files:
+    - path: "src/types/loyalty.ts"
+      changes:
+        - "Add LoyaltyBalance interface export"
+        - "Interface structure: { balance: number; expiring_soon: number; expiry_date: string }"
+        - "Add JSDoc comment describing API response structure"
+
+    - path: "src/services/loyalty.service.ts"
+      changes:
+        - "Import LoyaltyBalance from types/loyalty"
+        - "Add async getLoyaltyBalance() method"
+        - "Call api.request<LoyaltyBalance>('/loyalty/balance', { method: 'GET' })"
+        - "Return response.data or throw error"
+        - "Add error handling for 401 (unauthorized) and network errors"
+
+    - path: "src/components/loyalty/LoyaltyDashboard.tsx"
+      changes:
+        - "Import LoyaltyBalance from types/loyalty"
+        - "Import loyaltyService from services"
+        - "Add useState<LoyaltyBalance | null>(null) for balance data"
+        - "Add useState<boolean>(false) for balanceLoading"
+        - "Add useState<string | null>(null) for balanceError"
+        - "Add useEffect to fetch balance on mount: await loyaltyService.getLoyaltyBalance()"
+        - "Add expiry notice banner displaying balanceData.expiry_date"
+        - "Format expiry_date: new Date(expiryDate).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })"
+        - "Show expiring_soon warning if balanceData.expiring_soon > 0"
+        - "Add loading skeleton during fetch"
+        - "Add error message with retry button if fetch fails"
+
+  validation: "Test API call returns balance data, verify expiry date displays correctly, test loading/error states"
+
+## STEP 3: REVIEW
+review_checklist:
+  - "Functional requirements met - balance fetched from API, expiry displayed dynamically"
+  - "LoyaltyBalance interface matches backend response structure"
+  - "API call authenticated with bearer token"
+  - "Loading state displays during API call"
+  - "Error state displays if API call fails with retry option"
+  - "Expiry date formatted for user readability"
+  - "Expiring soon warning shows if expiring_soon > 0"
+  - "TypeScript compilation passes with no errors"
+  - "No hardcoded expiry dates"
+
+## STEP 4: VERSION
+version_bump:
+  type: "minor"
+  action: "Bump version number in package.json (0.1.2 → 0.2.0) - backend API integration"
+
+## STEP 5: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Added
+      - Backend API integration for loyalty balance (GET /api/loyalty/balance)
+      - Dynamic points expiry date display from backend
+      - Expiring soon warning when points are about to expire
+      - `LoyaltyBalance` TypeScript interface for API response
+      - Loading and error states for balance API calls
+
+      ### Changed
+      - Loyalty Dashboard now fetches expiry date from backend API (was hardcoded)
+      - Expiry notice displays dynamic date from server
+    required: true
+  additional: "Document new getLoyaltyBalance() API method in loyalty.service.ts"
+  comments: "Add JSDoc comments to LoyaltyBalance interface and getLoyaltyBalance method"
+
+## STEP 6: GIT COMMIT
+git_commit:
+  commit_message: |
+    PRB-003-REVISED: Integrate loyalty balance API with dynamic expiry
+
+    Backend API Integration:
+    - Added GET /api/loyalty/balance API call to loyalty.service.ts
+    - Created LoyaltyBalance interface matching backend response
+    - Integrated authenticated API call with bearer token
+
+    Loyalty Dashboard Enhancements:
+    - Fetch balance and expiry data from backend on mount
+    - Display dynamic expiry_date from API (not hardcoded)
+    - Show "X points expiring soon" warning if applicable
+    - Added loading state during API fetch
+    - Added error handling with retry option
+
+    User-Friendly Date Formatting:
+    - Convert API date string to readable format
+    - Example: "2027-12-31 23:59:59" → "Dec 31, 2027, 11:59 PM"
+
+    Improves accuracy and real-time expiry tracking.
+  privacy_filter: false
+  action: "Commit changes with descriptive message"
+
+## STEP 7: GIT PUSH
+git_push:
+  action: "Push to remote repository on branch bugx/issue-fix"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive message following PRB-003-REVISED: [DESCRIPTION] format"
+      - "Git push to remote with proper branch handling"
+      blocked_patterns:
+        - "No git operations needed"
+      error_message: "❌ BLOCKED: Git operations are mandatory."
+
+    sme_review:
+      - "API integration tested with actual backend"
+      - "Loading state verified in browser"
+      - "Error handling tested (disconnect network, test retry)"
+      - "Expiry date formatting validated"
+      - "TypeScript compilation passes"
+      blocked_patterns:
+        - "Skip API testing"
+        - "Backend not available"
+      error_message: "❌ BLOCKED: Backend API testing is mandatory."
+
+    documentation:
+      - "CHANGELOG entry documents API integration"
+      - "Version bump completed (0.1.2 → 0.2.0)"
+      - "JSDoc comments added to new interface and method"
+      blocked_patterns:
+        - "No documentation needed"
+      error_message: "❌ BLOCKED: Documentation updates are mandatory."
+
+    version_management:
+      - "Minor version bump (backend API integration is new feature)"
+      - "package.json version updated (0.1.2 → 0.2.0)"
+      blocked_patterns:
+        - "Patch is sufficient"
+      error_message: "❌ BLOCKED: Minor version bump required for API integration."
+
+  workflow:
+    version_bump: true
+    version_type: "minor"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+    release_automation: false
+    auto_merge: false
+    coordination_required: false
+    breaking_change_assessment: false
+
+  enforcement_rules:
+    - "ALL 7 execution steps must be completed in order"
+    - "MANDATORY backend API testing before commit"
+    - "REQUIRED documentation updates for API integration"
+    - "VERSION bump mandatory"
+    - "TypeScript compilation must pass"
+
+# MCP Operations Extension Points
+mcp_operations:
+  memory:
+    condition: false
+    provider: "file-based"
+    operations:
+      - action: store_learning
+        topic: "backend-api-integration"
+        content: "Integrating backend loyalty balance API with authenticated requests and dynamic expiry display"
+    fallback: "file-based"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: API patterns identified (api.request, bearer auth, async/await)
+  ☐ Step 2 - Implementation: LoyaltyBalance interface created, getLoyaltyBalance() added, Dashboard integrated
+  ☐ Step 3 - Review: API tested, loading/error states validated, date formatting verified
+  ☐ Step 4 - Version: package.json version bumped (0.1.2 → 0.2.0)
+  ☐ Step 5 - Documentation: CHANGELOG updated, JSDoc comments added
+  ☐ Step 6 - Git Commit: Changes committed with API integration message
+  ☐ Step 7 - Git Push: Changes pushed to remote branch bugx/issue-fix
+
+# ACCEPTANCE CRITERIA
+acceptance_criteria:
+  api_integration:
+    - endpoint_called: "GET /api/loyalty/balance called on dashboard mount"
+    - authentication: "Bearer token included in Authorization header"
+    - response_handling: "API response parsed correctly into LoyaltyBalance interface"
+    - error_handling: "401/403 auth errors handled, network errors handled"
+
+  expiry_notice:
+    - dynamic_date: "Expiry date from API displayed (not hardcoded)"
+    - date_formatting: "Date formatted user-friendly (e.g., 'Dec 31, 2027, 11:59 PM')"
+    - expiring_soon: "Warning shown if expiring_soon > 0"
+    - banner_styling: "Warning theme with coral-red/yellow accent"
+
+  ui_states:
+    - loading: "Loading spinner/skeleton shown during API call"
+    - error: "Error message shown if API fails with retry button"
+    - success: "Expiry notice displayed when data loads successfully"
+    - refresh: "Data refreshes if user manually triggers refresh"
+
+  typescript:
+    - interface_created: "LoyaltyBalance interface matches backend response"
+    - strict_types: "No 'any' types used, all typed correctly"
+    - compilation: "TypeScript compiles with zero errors"
+    - exports: "LoyaltyBalance exported from types/loyalty.ts"
+
+# BACKEND API SPEC
+backend_api_specification:
+  endpoint: "GET /api/loyalty/balance"
+  method: "GET"
+  authentication: "Bearer token (Authorization: Bearer {token})"
+  response_format:
+    success:
+      status: 200
+      body: |
+        {
+          "balance": 100,
+          "expiring_soon": 0,
+          "expiry_date": "2027-12-31 23:59:59"
+        }
+    error:
+      status: 401
+      body: |
+        {
+          "error": "Unauthenticated"
+        }
+  example_usage: |
+    const response = await api.request<LoyaltyBalance>('/loyalty/balance', {
+      method: 'GET'
+    });
+    // response.data = { balance: 100, expiring_soon: 0, expiry_date: "..." }

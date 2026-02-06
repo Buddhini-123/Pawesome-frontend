@@ -1,4 +1,4 @@
-import ProductCard from "./ProductCard.tsx";
+import ProductCard from "./ProductCard";
 import { Link } from 'react-router-dom';
 
 const ProductSidebar = () => {
@@ -27,8 +27,8 @@ const ProductSidebar = () => {
   ];
 
   return (
-    <div className="bg-white rounded-lg p-4">
-      <h2 className="text-lg font-medium text-gray-900 mb-4">Things you might like</h2>
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <h2 className="text-lg font-fredoka font-medium text-charcoal mb-4">Things you might like</h2>
       <div className="space-y-3">
         {relatedProducts.map((product) => (
           <Link key={product.id} to={`/product/${product.id}`} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow block">

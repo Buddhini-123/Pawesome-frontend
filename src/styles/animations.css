@@ -1,0 +1,233 @@
+/* Custom Animations and Effects for Pawsome */
+
+/* Paw Print Hover Effect */
+.paw-hover {
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.paw-hover::after {
+  content: '🐾';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  opacity: 0;
+  transform: scale(0) rotate(-15deg);
+  transition: all 0.3s ease;
+}
+
+.paw-hover:hover::after {
+  opacity: 1;
+  transform: scale(1) rotate(15deg);
+}
+
+/* Tail Wag Animation */
+@keyframes tail-wag {
+  0%, 100% { transform: rotate(-10deg); }
+  25% { transform: rotate(10deg); }
+  75% { transform: rotate(-5deg); }
+}
+
+.tail-wag {
+  animation: tail-wag 0.5s ease-in-out;
+}
+
+/* Floating Treats Animation */
+@keyframes float-treats {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.floating-treat {
+  position: fixed;
+  font-size: 2rem;
+  animation: float-treats 10s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Wave Pattern for Footer */
+.wave-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%232196F3' fill-opacity='1' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: cover;
+}
+
+/* Card Hover Effect with Color Shadow */
+.pet-card {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.pet-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFD93D;
+  opacity: 0;
+  border-radius: 20px;
+  filter: blur(20px);
+  transform: scale(0.9);
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+.pet-card:hover {
+  transform: translateY(-5px) scale(1.02);
+}
+
+.pet-card:hover::before {
+  opacity: 0.3;
+  transform: scale(1.1);
+}
+
+/* Loading Spinner - Hamster Wheel */
+@keyframes hamster-run {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.hamster-loader {
+  animation: hamster-run 1s linear infinite;
+}
+
+/* Confetti Burst */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: #FF6B35;
+  animation: confetti-fall 3s linear;
+  z-index: 9999;
+}
+
+/* Button Bounce Effect */
+.btn-bounce {
+  transition: all 0.3s ease;
+}
+
+.btn-bounce:hover {
+  animation: bounce 0.5s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Text Animation */
+.text-gradient-animate {
+  color: #FF6B35;
+  animation: color-shift 3s ease infinite;
+}
+
+@keyframes color-shift {
+  0% { color: #FF6B35; }
+  33% { color: #FFD93D; }
+  66% { color: #2196F3; }
+  100% { color: #FF6B35; }
+}
+
+/* Blob Shape Animation */
+@keyframes blob-morph {
+  0% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+  100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+}
+
+.blob-shape {
+  animation: blob-morph 8s ease-in-out infinite;
+}
+
+/* Pet Icon Animations */
+.pet-icon-bounce {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.pet-icon-bounce:hover {
+  transform: scale(1.2) rotate(10deg);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F5F5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FF6B35;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FFD93D;
+}
+
+/* Glassmorphism Effect */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Pet Sticker Badge */
+.pet-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #FFD93D;
+  color: #2C3E50;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transform: rotate(15deg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  .text-hero {
+    font-size: 3rem !important;
+  }
+  
+  .text-display {
+    font-size: 2rem !important;
+  }
+}

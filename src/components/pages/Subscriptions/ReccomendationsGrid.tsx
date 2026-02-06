@@ -1,69 +1,96 @@
-import FeaturedDeals from '../../effects/FeaturedDeals.tsx';
-import ProductGrid from '../../effects/ProductGrid.tsx';
+import React, { useEffect, useState } from 'react';
+import FeaturedDeals from '../../effects/FeaturedDeals';
+import ProductGrid from '../../effects/ProductGrid';
+import {api, host} from "../../../services/api"
 
 const ReccomendationsGrid = () => {
+  const [regularProducts, setRegularProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const topRecommendations = [
     {
       id: 1,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-1" // ✅ add slug
     },
     {
       id: 2,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-2"
     },
     {
       id: 3,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-3"
     },
     {
       id: 4,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-4"
     },
     {
       id: 5,
       name: "Pedigree Dog biscuit",
       price: "Rs. 2000.00",
       rating: 5,
-      image: "/pedigree.png"
+      image: "/pedigree.png",
+      slug: "pedigree-dog-biscuit-5"
     },
   ];
 
-  const regularProducts = Array.from({ length: 10 }, (_, index) => ({
-    id: index + 7,
-    name: "Pedigree Dog biscuit",
-    price: "Rs. 2000.00",
-    rating: 5,
-    image: "/pedigree.png"
-  }));
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get("/products");
+        const products = (res.data as any).data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: `Rs. ${parseFloat(p.price).toLocaleString()}`,
+          rating: parseFloat(p.rating_avg) || 0,
+          image: p.primary_image?.url 
+            ? `${host}${p.primary_image.url}`
+            : '/placeholder.png'  ,
+          slug: p.slug           
+        }));
+        setRegularProducts(products);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
 
   return (
     <div className="min-h-screen">
       <div className="max-w-8xl mx-auto">
         {/* Top Recommendations Section */}
-        <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mt-20">
+        {/* <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal-gray mt-20">
             Trending Hot Picks For Your Pet!
           </h2>
-        <div className="mt-10 bg-gradient-to-r from-energetic-orange to-calm-blue rounded-2xl p-8 md:p-12 text-center mb-10">
+        <div className="mt-10 bg-vibrant-orange rounded-2xl p-8 md:p-12 text-center mb-10">
           <ProductGrid products={topRecommendations} />
-        </div>
+        </div> */}
 
         {/* Regular Products Section */}
-          <h2 className="text-3xl md:text-4xl font-bold text-charcoal-gray mb-4">
+          {/* <h2 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal-gray mb-4">
             Products Your Furry Friend Will Love
           </h2>
-        <ProductGrid products={regularProducts} />
+        <ProductGrid products={regularProducts} /> */}
          {/* Featured Deals Section */}
         {/* <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6 mt-6 font-figtree">

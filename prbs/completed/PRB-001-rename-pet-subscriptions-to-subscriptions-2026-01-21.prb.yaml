@@ -1,0 +1,236 @@
+# Tiny PRB Template - Simple Changes (3-5 points)
+# For single-file modifications and straightforward features
+
+git_privacy: false
+id: "PRB-001-rename-pet-subscriptions-to-subscriptions-2026-01-21"
+type: tiny-prb
+complexity: simple
+priority: "MEDIUM"
+title: "@Developer Rename 'Pet Subscriptions' to 'Subscriptions' across codebase"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend)"
+  project_overview: "E-commerce platform for premium pet care products with subscription service, gift customization, shopping cart, and checkout functionality"
+  work_location: "Frontend codebase - UI text labels"
+  key_context: "Text replacement across 4 files to rename 'Pet Subscriptions' feature to simply 'Subscriptions'"
+  system_features: "Subscriptions, Gift Customization, Shopping Cart, Checkout, Loyalty Program, Product Catalog"
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/common/Footer/FooterColumns.tsx"
+      purpose: "Footer navigation links - contains 'Pet Subscriptions' link text"
+      sample: "Navigation section with services links including subscriptions"
+    - path: "src/components/pages/Home/HomeNew.tsx"
+      purpose: "New homepage component - contains 'Pet Subscriptions' feature title"
+      sample: "Feature showcase section highlighting subscription service"
+    - path: "src/components/pages/Home/Home.tsx"
+      purpose: "Original homepage component - contains 'Pet Subscriptions' feature title"
+      sample: "Feature cards displaying main platform features"
+    - path: "src/data/subscriptionProducts.ts"
+      purpose: "Subscription product data - contains comment 'Mixed/Multi-Pet Subscriptions'"
+      sample: "Product data definitions with categorization comments"
+  user_requirements:
+    original_request: "Rename 'Pet Subscriptions' to 'Subscriptions'"
+    success_criteria:
+      - "All 4 instances of 'Pet Subscriptions' replaced with 'Subscriptions'"
+      - "No remaining references to 'Pet Subscriptions' in codebase"
+      - "UI displays updated text correctly"
+      - "Comment in subscription data file updated"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, Frontend UI"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Replace text 'Pet Subscriptions' with 'Subscriptions' in all 4 files"
+    - "Maintain proper grammar and context in all replacements"
+    - "Verify all instances are replaced (no remaining 'Pet Subscriptions' text)"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Multi-file modification scope (4 files)"
+  technical:
+    - "Under 10 lines of changes total"
+    - "Simple text replacement only"
+    - "No logic changes required"
+
+# ========================================
+# EXECUTION PROCESS: 7 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: MANDATORY git_privacy validation BEFORE ALL git operations:
+  1. Load git_privacy setting from configuration (NEVER assume)
+  2. When git_privacy=true, strip ALL AI mentions from:
+     - Commit messages (remove "AI", "Claude", "agent", "Generated with Claude Code", etc.)
+     - PR descriptions and titles
+     - Release notes and changelogs
+     - Any git-visible text including co-author attributions
+  3. Use clean, professional language in all git operations
+  4. Block git operations if privacy setting not validated
+
+  Current Setting: git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: "No relevant patterns found - straightforward text replacement"
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_files:
+    - path: "src/components/common/Footer/FooterColumns.tsx"
+      line: 19
+      change: "Replace '{ text: 'Pet Subscriptions', icon: null }' with '{ text: 'Subscriptions', icon: null }'"
+    - path: "src/components/pages/Home/HomeNew.tsx"
+      line: 75
+      change: "Replace \"title: 'Pet Subscriptions'\" with \"title: 'Subscriptions'\""
+    - path: "src/components/pages/Home/Home.tsx"
+      line: 283
+      change: "Replace \"title: 'Pet Subscriptions'\" with \"title: 'Subscriptions'\""
+    - path: "src/data/subscriptionProducts.ts"
+      line: 331
+      change: "Replace comment '// Mixed/Multi-Pet Subscriptions' with '// Mixed/Multi-Animal Subscriptions' (maintain clarity)"
+  validation: "Run grep search to verify no 'Pet Subscriptions' text remains in codebase"
+
+## STEP 3: REVIEW
+review_checklist:
+  - "Functional requirements met - all 4 instances replaced"
+  - "Text replacements maintain proper context and grammar"
+  - "No unintended side effects - only text changes"
+  - "Grep search confirms zero remaining 'Pet Subscriptions' references"
+
+## STEP 4: VERSION
+version_bump:
+  type: "patch"
+  action: "Bump version number in package.json (increment patch version)"
+
+## STEP 5: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Changed
+      - Renamed 'Pet Subscriptions' to 'Subscriptions' across UI components and data files
+      - Updated navigation links, homepage feature titles, and code comments
+    required: true
+  additional: "No additional documentation affected - UI text change only"
+  comments: "No complex logic - simple text replacement"
+
+## STEP 6: GIT COMMIT
+git_commit:
+  commit_message: "PRB-001: Rename 'Pet Subscriptions' to 'Subscriptions'\n\nUpdated text across 4 files:\n- Footer navigation link\n- Homepage feature titles (Home.tsx and HomeNew.tsx)\n- Subscription data comment\n\nMaintains clarity while simplifying terminology."
+  privacy_filter: false
+  action: "Commit changes with descriptive message"
+
+## STEP 7: GIT PUSH
+git_push:
+  action: "Push to remote repository on branch bugx/issue-fix"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive message following PRB-001: [DESCRIPTION] format"
+      - "Git push to remote with proper branch handling"
+      - "Privacy filter applied per configuration (git_privacy=false)"
+      blocked_patterns:
+        - "No git operations needed"
+        - "Skip git workflow"
+        - "Direct commit to main"
+        - "No branching required"
+        - "Simple change, no git process"
+      error_message: "❌ BLOCKED: Git operations are mandatory. Branch protection and commit standards must be followed."
+
+    sme_review:
+      - "Self-review checklist completion with all items checked"
+      - "Text replacement quality validation"
+      - "Functional requirements verification"
+      - "Grep search validation for completeness"
+      blocked_patterns:
+        - "No review needed"
+        - "Skip validation steps"
+        - "Obvious changes"
+        - "Too small for review"
+        - "Self-evident implementation"
+      error_message: "❌ BLOCKED: SME review processes are mandatory for all PRBs regardless of size."
+
+    documentation:
+      - "CHANGELOG entry required for all changes"
+      - "Version bump completed in package.json"
+      blocked_patterns:
+        - "No documentation needed"
+        - "Self-documenting code"
+        - "Skip CHANGELOG"
+        - "No docs affected"
+        - "Too simple to document"
+      error_message: "❌ BLOCKED: Documentation updates are mandatory. CHANGELOG and version updates required."
+
+    version_management:
+      - "Version bump completed appropriately (patch level)"
+      - "package.json version updated"
+      blocked_patterns:
+        - "No version change needed"
+        - "Skip versioning"
+        - "Version not applicable"
+      error_message: "❌ BLOCKED: Version management is mandatory for all changes."
+
+  workflow:
+    version_bump: true
+    version_type: "patch"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+    release_automation: false
+    auto_merge: false
+    coordination_required: false
+    breaking_change_assessment: false
+
+  enforcement_rules:
+    - "ALL 7 execution steps must be completed in order"
+    - "NO bypass language or skip patterns allowed"
+    - "MANDATORY git workflow compliance per project configuration"
+    - "REQUIRED documentation updates for every change"
+    - "VERSION bump mandatory for all modifications"
+
+# MCP Operations Extension Points
+mcp_operations:
+  memory:
+    condition: false
+    provider: "file-based"
+    operations:
+      - action: store_learning
+        topic: "ui-text-changes"
+        content: "Simple text replacement pattern for renaming features across UI components"
+    fallback: "file-based"
+
+  issue_tracking:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+  documentation:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: Memory searched (none exists) and patterns identified (none applicable)
+  ☐ Step 2 - Implementation: Text replaced in all 4 files and grep validated
+  ☐ Step 3 - Review: Self-review checklist completed with grep verification
+  ☐ Step 4 - Version: package.json version bumped (patch)
+  ☐ Step 5 - Documentation: CHANGELOG updated with rename details
+  ☐ Step 6 - Git Commit: Changes committed with descriptive message
+  ☐ Step 7 - Git Push: Changes pushed to remote branch bugx/issue-fix

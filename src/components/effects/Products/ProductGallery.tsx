@@ -8,7 +8,7 @@ const ProductGallery = ({ images, selectedImage, onImageSelect }: ProductGallery
   return (
     <div className="space-y-4">
       {/* Main Image */}
-      <div className="bg-white rounded-lg p-6 border">
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
         <img
           src={images[selectedImage]}
           alt="Pedigree Dog Food"
@@ -22,9 +22,9 @@ const ProductGallery = ({ images, selectedImage, onImageSelect }: ProductGallery
           <button
             key={index}
             onClick={() => onImageSelect(index)}
-            className={`bg-white border rounded-lg p-2 transition-all ${
+            className={`bg-white border rounded-xl p-3 transition-all ${
               selectedImage === index
-                ? "border-orange-400"
+                ? "border-vibrant-orange"
                 : "border-gray-200 hover:border-gray-300"
             }`}
           >

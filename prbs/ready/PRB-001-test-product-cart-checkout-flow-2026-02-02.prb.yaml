@@ -1,0 +1,467 @@
+---
+prb_id: PRB-001-test-product-cart-checkout-flow-2026-02-02
+version: "1.0"
+status: ready
+created_date: 2026-02-02
+category: integration_testing
+priority: high
+
+# Work Context
+work_type: integration_testing
+complexity_score: 12
+size: medium
+system_nature: CODE-BASED SYSTEM
+project_root: /Users/vevomalik/Desktop/Pawsome/Pawesome-frontend
+
+# Requirements
+user_requirements:
+  original_request: |
+    Test the complete product to cart to checkout flow in the Pawsome frontend application.
+
+    Test Scope:
+    1. Product Browsing: Test product listing pages and product details
+    2. Add to Cart: Test adding products to cart with different quantities
+    3. Cart Management: View cart, update quantities, remove items, check cart persistence (localStorage)
+    4. Checkout Process: Navigate to checkout, test forms, loyalty points redemption, order summary, place order
+    5. Order Completion: Verify order creation, loyalty points awarded, order confirmation
+
+    What to Check:
+    - Cart shows correct items and quantities
+    - Cart total calculations are accurate
+    - Checkout form validation works
+    - Null safety for product images and data
+    - Loyalty integration works properly
+    - Error handling for missing data
+    - Console errors or warnings
+
+  work_scope: comprehensive_integration_testing
+  success_criteria:
+    - Complete end-to-end cart to checkout flow tested and documented
+    - All test cases executed with Pass/Fail results
+    - Any errors or issues identified with detailed descriptions
+    - Console output captured and analyzed
+    - Recommendations provided for any failures found
+  scope_limits:
+    - Focus on integration testing, not unit testing
+    - Testing frontend functionality only, not backend API
+    - Manual testing approach with detailed documentation
+
+# Roles
+roles:
+  primary: "@Backend-Tester"
+  supporting:
+    - "@QA-Engineer"
+
+# Critical Files
+critical_files:
+  - path: /Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/contexts/CartContext.tsx
+    purpose: Cart state management with localStorage persistence
+    relevance: Core cart functionality including add, remove, update, clear operations
+    sample: |
+      CartContext provides cart management:
+      - addItem(product, quantity): Add items with quantity validation (1-99)
+      - removeItem(id): Remove items from cart
+      - updateQuantity(id, quantity): Update item quantities
+      - clearCart(): Clear all cart items
+      - localStorage persistence with error handling
+      - Debug logging for cart operations
+
+  - path: /Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/components/pages/Shop/Cart.tsx
+    purpose: Cart page UI with item management and order summary
+    relevance: Cart display, quantity controls, shipping calculation, checkout navigation
+    sample: |
+      Cart page features:
+      - Empty cart state with "Start Shopping" CTA
+      - Cart items list with product details
+      - Quantity increment/decrement controls (1-99 limit)
+      - Remove item functionality with animation
+      - Free shipping calculation (₹2000+ threshold)
+      - Order summary with subtotal, shipping, total
+      - "Proceed to Checkout" button
+      - "Continue Shopping" button
+
+  - path: /Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/components/pages/Shop/Checkout.tsx
+    purpose: Multi-step checkout form with shipping, payment, and order placement
+    relevance: Checkout process, form validation, loyalty redemption, order creation
+    sample: |
+      Checkout features:
+      - Multi-step checkout (shipping, payment, review)
+      - Shipping address form with validation
+      - Saved addresses selection
+      - Payment method selection (card, UPI, COD, netbanking)
+      - Loyalty points redemption slider
+      - Coupon code application
+      - Pricing API integration for dynamic calculations
+      - Order submission with error handling
+      - Subscription order support
+
+  - path: /Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/src/utils/cartNormalizer.ts
+    purpose: Cart item normalization for null safety
+    relevance: Ensures product data has default values to prevent null/undefined errors
+
+  - path: /Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/best-practices/quality/frontend-api-testing.md
+    purpose: Testing best practices and patterns
+    relevance: Quality standards for frontend API testing and integration testing approaches
+
+# Technical Context
+technical_context:
+  technologies:
+    - React 19.0.0
+    - TypeScript 4.9.5
+    - React Router DOM 7.6.0
+    - Framer Motion 12.12.1 (animations)
+    - localStorage for cart persistence
+    - Context API for state management
+
+  architecture_patterns:
+    - Context-based state management (CartContext, AuthContext, LoyaltyContext)
+    - Custom hooks (useCart, useAuth, useLoyalty)
+    - Service layer architecture (orderService, loyaltyService, api)
+    - Multi-step form pattern for checkout
+    - localStorage persistence with error handling
+
+  recent_changes:
+    - Added null safety for product.primary_image in Checkout.tsx
+    - Fixed localStorage key consistency (auth_token, auth_user)
+    - Added debug logging to CartContext
+    - Implemented cartNormalizer for null safety
+
+# Test Plan
+test_scenarios:
+  1_product_browsing:
+    - Navigate to shop/product pages
+    - Verify product listings display correctly
+    - Check product images, names, prices render properly
+    - Test product detail views
+
+  2_add_to_cart:
+    - Add single product to cart
+    - Add multiple different products
+    - Add same product with different quantities
+    - Test quantity limits (1-99)
+    - Verify cart counter updates
+
+  3_cart_management:
+    - Navigate to cart page
+    - Verify all cart items display correctly
+    - Test quantity increment/decrement
+    - Test remove item functionality
+    - Test clear cart functionality
+    - Verify cart persists after page refresh (localStorage)
+    - Check cart calculations (subtotal, shipping, total)
+
+  4_checkout_process:
+    - Navigate to checkout from cart
+    - Test shipping address form validation
+    - Test saved addresses selection
+    - Test custom address entry
+    - Test payment method selection
+    - Test loyalty points redemption slider
+    - Test coupon code application
+    - Verify order summary displays correctly
+    - Check pricing calculations match cart totals
+
+  5_order_completion:
+    - Submit order with valid data
+    - Verify order creation success
+    - Check loyalty points awarded
+    - Verify order confirmation displays
+    - Test cart cleared after order
+    - Check console for errors
+
+# Best Practices Applied
+best_practices:
+  - name: "Frontend API Testing"
+    source: /Users/vevomalik/Desktop/Pawsome/Pawesome-frontend/best-practices/quality/frontend-api-testing.md
+    applies_to: medium
+    key_points:
+      - Test all error paths and edge cases
+      - Verify loading and error states
+      - Check null safety for data rendering
+      - Validate form inputs and error messages
+      - Test localStorage operations and error handling
+      - Monitor console for errors and warnings
+
+# Execution Steps
+execution_steps:
+  step_1_setup:
+    description: "Setup test environment and start application"
+    commands:
+      - "cd /Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+      - "npm start"
+    expected_output: "Application starts on localhost:3000 without errors"
+
+  step_2_product_browsing:
+    description: "Test product browsing and display"
+    test_cases:
+      - Navigate to shop page
+      - Verify product grid displays
+      - Check product images render
+      - Verify product names, prices display
+      - Click product for details view
+      - Check product detail page renders
+    validation: "All products display correctly without null/undefined errors"
+
+  step_3_add_to_cart:
+    description: "Test adding products to cart"
+    test_cases:
+      - Click "Add to Cart" on product
+      - Verify cart counter increments
+      - Add same product again
+      - Verify quantity increases
+      - Add different product
+      - Verify multiple items in cart
+      - Test adding with quantity selector
+      - Check localStorage 'cart' key updated
+    validation: "Cart counter and localStorage update correctly"
+
+  step_4_cart_page:
+    description: "Test cart page functionality"
+    test_cases:
+      - Navigate to /cart
+      - Verify all cart items display
+      - Check product images render (null safety)
+      - Verify quantities match additions
+      - Click quantity increment (+)
+      - Verify quantity increases and price updates
+      - Click quantity decrement (-)
+      - Verify quantity decreases and price updates
+      - Test decrement to 0 removes item
+      - Click remove item (trash icon)
+      - Verify item removed from cart
+      - Check subtotal calculation correct
+      - Check shipping calculation (free at ₹2000+)
+      - Check total calculation correct
+      - Test "Clear All" button
+      - Verify cart emptied
+      - Refresh page
+      - Verify cart persists (localStorage)
+    validation: "Cart operations work correctly, calculations accurate, persistence works"
+
+  step_5_checkout_navigation:
+    description: "Test navigation to checkout"
+    test_cases:
+      - Add items to cart
+      - Navigate to cart page
+      - Click "Proceed to Checkout"
+      - Verify redirect to /checkout
+      - Check authentication required or guest checkout
+    validation: "Navigation to checkout works correctly"
+
+  step_6_checkout_shipping:
+    description: "Test shipping address form"
+    test_cases:
+      - Verify shipping form displays
+      - Test form validation (empty fields)
+      - Fill in shipping address
+      - Verify form accepts valid input
+      - Check saved addresses dropdown (if logged in)
+      - Test selecting saved address
+      - Verify form populates with saved address
+      - Test custom address option
+      - Click "Continue to Payment"
+    validation: "Shipping form validation works, saved addresses load correctly"
+
+  step_7_checkout_payment:
+    description: "Test payment method selection"
+    test_cases:
+      - Verify payment methods display
+      - Select Card payment
+      - Verify card form displays
+      - Test card form validation
+      - Select UPI payment
+      - Verify UPI ID field displays
+      - Select COD payment
+      - Verify COD selected
+      - Select NetBanking
+      - Verify bank selection displays
+    validation: "Payment method selection and forms work correctly"
+
+  step_8_loyalty_redemption:
+    description: "Test loyalty points redemption"
+    test_cases:
+      - Check loyalty balance displays (if logged in)
+      - Locate redemption slider
+      - Drag slider to redeem points
+      - Verify discount applied to total
+      - Check order summary updates
+      - Verify max redemption limits respected
+    validation: "Loyalty redemption works correctly, totals update"
+
+  step_9_order_summary:
+    description: "Test order summary and calculations"
+    test_cases:
+      - Verify all cart items listed
+      - Check product details correct
+      - Verify subtotal matches cart total
+      - Check shipping cost displayed
+      - Verify loyalty discount applied
+      - Check coupon discount (if applicable)
+      - Verify final total calculation
+      - Check all totals match expected values
+    validation: "Order summary displays correctly, calculations accurate"
+
+  step_10_place_order:
+    description: "Test order placement"
+    test_cases:
+      - Click "Place Order" button
+      - Verify loading state displays
+      - Check order submission request
+      - Verify success response
+      - Check order confirmation displays
+      - Verify loyalty points awarded message
+      - Check cart cleared after order
+      - Navigate back to cart
+      - Verify cart empty
+    validation: "Order placement works, loyalty points awarded, cart cleared"
+
+  step_11_error_handling:
+    description: "Test error scenarios"
+    test_cases:
+      - Test adding product without price
+      - Test cart with missing product images
+      - Test checkout without shipping address
+      - Test payment submission failure
+      - Test network error handling
+      - Check console for error messages
+    validation: "Error handling works gracefully, user-friendly error messages"
+
+  step_12_console_review:
+    description: "Review browser console for errors"
+    test_cases:
+      - Open browser developer console
+      - Check for JavaScript errors
+      - Check for React warnings
+      - Check for network errors
+      - Review console.log debugging messages
+      - Verify no critical errors
+    validation: "Console clean or only expected debugging logs"
+
+# Test Report Template
+test_report_format: |
+  # Product to Cart to Checkout Flow - Test Report
+  Date: 2026-02-02
+  Tester: @Backend-Tester
+  Environment: Development (localhost:3000)
+
+  ## Executive Summary
+  [Overall assessment of the flow]
+
+  ## Test Execution
+
+  ### 1. Product Browsing
+  - Test Case: [description]
+  - Result: ✅ Pass / ❌ Fail
+  - Notes: [observations]
+  - Errors: [if any]
+
+  ### 2. Add to Cart
+  - Test Case: [description]
+  - Result: ✅ Pass / ❌ Fail
+  - Notes: [observations]
+  - Errors: [if any]
+
+  ### 3. Cart Management
+  - Test Case: [description]
+  - Result: ✅ Pass / ❌ Fail
+  - Notes: [observations]
+  - Errors: [if any]
+
+  ### 4. Checkout Process
+  - Test Case: [description]
+  - Result: ✅ Pass / ❌ Fail
+  - Notes: [observations]
+  - Errors: [if any]
+
+  ### 5. Order Completion
+  - Test Case: [description]
+  - Result: ✅ Pass / ❌ Fail
+  - Notes: [observations]
+  - Errors: [if any]
+
+  ## Console Output
+  [Screenshot or copy of console errors/warnings]
+
+  ## Issues Found
+  1. [Issue description]
+     - Severity: Critical / High / Medium / Low
+     - Steps to reproduce:
+     - Expected behavior:
+     - Actual behavior:
+
+  ## Recommendations
+  1. [Recommendation for fixes or improvements]
+
+  ## Test Metrics
+  - Total Test Cases: [number]
+  - Passed: [number]
+  - Failed: [number]
+  - Pass Rate: [percentage]
+
+# Quality Gates
+quality_gates:
+  functional_requirements:
+    - All cart operations (add, remove, update, clear) work correctly
+    - Cart persistence via localStorage functions properly
+    - Cart calculations (subtotal, shipping, total) are accurate
+    - Checkout form validation works as expected
+    - Payment method selection functions correctly
+    - Loyalty points redemption applies discounts correctly
+    - Order placement succeeds with valid data
+    - Cart cleared after successful order
+
+  non_functional_requirements:
+    - No JavaScript errors in console
+    - No React warnings for null/undefined rendering
+    - Null safety for product images and data
+    - Graceful error handling for API failures
+    - Loading states display during async operations
+    - Form validation provides clear error messages
+
+  test_coverage:
+    - All major user flows tested (happy path)
+    - Edge cases tested (quantity limits, empty states)
+    - Error scenarios tested (validation, API errors)
+    - localStorage operations validated
+    - Console output reviewed for errors
+
+# Expected Deliverables
+deliverables:
+  - Comprehensive test execution report following template format
+  - Documentation of all test results (Pass/Fail)
+  - Screenshots or console output of any errors found
+  - List of issues with severity ratings
+  - Recommendations for fixes and improvements
+  - Test metrics summary (total, passed, failed, pass rate)
+
+# Notes
+notes:
+  - This is manual integration testing, not automated testing
+  - Focus on user-facing functionality and integration points
+  - Document any unexpected behaviors or UI issues
+  - Pay special attention to null safety after recent fixes
+  - Check localStorage operations and persistence
+  - Verify loyalty integration works end-to-end
+  - Test report should be saved to docs/SESSION-MANAGEMENT-TEST-REPORT.md or similar
+
+# Workflow Settings
+workflow:
+  version_bump: false
+  version_type: patch
+  changelog_required: false
+  pr_required: false
+  merge_strategy: direct_commit
+  release_automation: false
+  auto_merge: false
+  coordination_required: false
+
+# Completion Criteria
+completion_criteria:
+  - All test scenarios executed systematically
+  - Test report generated with detailed results
+  - All Pass/Fail results documented
+  - Console output reviewed and documented
+  - Issues identified with clear descriptions
+  - Recommendations provided for any failures
+  - Test metrics calculated and reported
+---

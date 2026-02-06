@@ -29,7 +29,7 @@ const WhyPawsomeSection = () => (
       {/* Section Title with lines */}
       <div className="flex items-center justify-center mb-10">
         <hr className="flex-grow border-t-2 border-orange-500" />
-        <h2 className="mx-4 text-2xl md:text-3xl font-semibold text-gray-800">
+        <h2 className="mx-4 text-2xl md:text-3xl font-fredoka font-semibold text-gray-800">
           Why Pawsome ?
         </h2>
         <hr className="flex-grow border-t-2 border-orange-500" />
@@ -42,11 +42,11 @@ const WhyPawsomeSection = () => (
               {f.icon}
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-1">
+              <h3 className="text-lg font-fredoka font-bold text-gray-800 mb-1">
                 {f.title}
               </h3>
-              <button className="inline-flex items-center text-gray-600 hover:text-gray-800 font-medium">
-                <span>{f.description}</span>
+              <button className="inline-flex items-center text-gray-600 hover:text-gray-800 font-fredoka font-medium">
+                <span className="font-fredoka">{f.description}</span>
                 <ChevronRight className="w-4 h-4 ml-1" />
               </button>
             </div>

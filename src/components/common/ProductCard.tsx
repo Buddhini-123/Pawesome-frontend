@@ -1,6 +1,9 @@
-import React from 'react';
-import { Plus, Star } from 'lucide-react';
-import { useCart } from '../ui/CartContext.tsx';
+import React, { useState } from 'react';
+import { Plus, Star, Heart, ShoppingCart } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useCart } from '../../hooks/useCart';
+import { Product } from '../../types';
+import { formatters } from '../../utils/formatters';
 
 interface ProductCardProps {
   id: string;
@@ -30,77 +33,167 @@ const ProductCard: React.FC<ProductCardProps> = ({
   discount
 }) => {
   const { addItem } = useCart();
+  const [isLiked, setIsLiked] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
 
   const handleAddToCart = () => {
-    addItem({
+    const product: Product = {
       id,
       name,
       price,
-      quantity: 1,
       image,
-      brand
-    });
+      brand,
+      category: category || '',
+      subcategory: '',
+      inStock: true,
+      rating: rating || 0,
+      reviews: 0
+    };
+    addItem(product);
+    setIsAdded(true);
+    
+    // Reset after animation
+    setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsLiked(!isLiked);
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group">
-      <div className="relative">
-        <img 
-          src={image} 
-          alt={name}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5 }}
+      className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group pet-card"
+    >
+      <div className="relative overflow-hidden">
+        {/* Image Container */}
+        <div className="relative h-56 bg-soft-gray">
+          <img 
+            src={image} 
+            alt={name}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+          
+          {/* Gradient Overlay on Hover */}
+          <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </div>
+        
+        {/* Badges */}
         {discount && (
-          <div className="absolute top-2 left-2 bg-crimson text-white px-2 py-1 rounded-md text-sm font-semibold">
-            -{discount}%
+          <div className="pet-badge absolute top-3 left-3 bg-crimson text-white px-3 py-1.5 rounded-full text-sm font-fredoka font-bold shadow-lg transform -rotate-12">
+            -{discount}% OFF!
           </div>
         )}
+        
+        {/* Wishlist Button */}
+        <motion.button
+          onClick={handleLike}
+          whileTap={{ scale: 0.9 }}
+          className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+            isLiked 
+              ? 'bg-soft-pink text-white' 
+              : 'bg-white/90 backdrop-blur-sm text-medium-gray hover:text-soft-pink'
+          }`}
+        >
+          <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+        </motion.button>
+        
+        {/* Pet Category Indicator */}
+        <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5">
+          <span className="text-primary-blue">🐾</span>
+          <span className="text-xs font-nunito font-semibold text-charcoal capitalize">{category}</span>
+        </div>
+        
         {!inStock && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <span className="text-white font-semibold">Out of Stock</span>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-white rounded-2xl px-6 py-3">
+              <span className="text-charcoal font-fredoka font-bold">Out of Stock 😔</span>
+            </div>
           </div>
         )}
       </div>
       
-      <div className="p-4">
-        <p className="text-sm text-gray-600 mb-1">{brand}</p>
-        <h3 className="font-semibold text-charcoal-gray text-lg mb-2 line-clamp-2">{name}</h3>
+      <div className="p-5">
+        {/* Brand */}
+        <p className="text-sm text-primary-blue font-nunito font-semibold mb-1">{brand}</p>
         
-        <div className="flex items-center mb-3">
+        {/* Product Name */}
+        <h3 className="font-fredoka font-bold text-charcoal text-lg mb-3 line-clamp-2 leading-tight">
+          {name}
+        </h3>
+        
+        {/* Rating */}
+        <div className="flex items-center gap-2 mb-4">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
               <Star 
                 key={i} 
-                className={`h-4 w-4 ${i < Math.floor(rating) ? 'text-warm-orange fill-warm-orange' : 'text-gray-300'}`}
+                className={`h-4 w-4 ${i < Math.floor(rating) ? 'fill-sunny-yellow text-sunny-yellow' : 'text-light-gray'}`}
               />
             ))}
           </div>
-          <span className="text-sm text-gray-600 ml-2">({reviews})</span>
+          <span className="text-sm text-medium-gray font-nunito">({reviews} reviews)</span>
         </div>
         
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <span className="text-2xl font-bold text-natural-sage">Rs.{price.toLocaleString()}</span>
-            {originalPrice && (
-              <span className="text-sm text-gray-500 line-through ml-2">Rs.{originalPrice.toLocaleString()}</span>
-            )}
-          </div>
+        {/* Price */}
+        <div className="flex items-end gap-2 mb-4">
+          <span className="text-2xl font-fredoka font-bold text-vibrant-orange">
+            {formatters.currency(price)}
+          </span>
+          {originalPrice && (
+            <span className="text-sm text-medium-gray line-through font-nunito mb-1">
+              {formatters.currency(originalPrice)}
+            </span>
+          )}
         </div>
         
-        <button 
+        {/* Add to Cart Button */}
+        <motion.button 
           onClick={handleAddToCart}
           disabled={!inStock}
-          className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-full font-medium transition-colors ${
+          whileTap={{ scale: 0.95 }}
+          className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-full font-fredoka font-semibold transition-all duration-300 ${
             inStock 
-              ? 'bg-energetic-orange text-white hover:bg-orange-600' 
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? isAdded
+                ? 'bg-mint-green text-white'
+                : 'bg-warm-orange text-white hover:bg-sunny-yellow hover:shadow-lg hover:scale-105 btn-bounce transition-colors'
+              : 'bg-light-gray text-medium-gray cursor-not-allowed'
           }`}
         >
-          <Plus className="h-5 w-5" />
-          Add to Cart
-        </button>
+          {isAdded ? (
+            <>
+              <motion.span
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                className="text-xl"
+              >
+                ✓
+              </motion.span>
+              Added to Cart!
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-5 w-5" />
+              Add to Cart
+            </>
+          )}
+        </motion.button>
+        
+        {/* Quick Actions */}
+        <div className="flex items-center justify-center gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button className="text-sm text-medium-gray hover:text-primary-blue transition-colors font-nunito">
+            Quick View
+          </button>
+          <span className="text-light-gray">•</span>
+          <button className="text-sm text-medium-gray hover:text-primary-blue transition-colors font-nunito">
+            Compare
+          </button>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

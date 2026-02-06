@@ -1,0 +1,339 @@
+# Medium PRB Template - Multi-file Features (6-15 points)
+# For features requiring multiple file modifications
+
+git_privacy: false
+id: "PRB-004-checkout-birthday-discount-points-preview-2026-01-22"
+type: medium-prb
+complexity: moderate
+priority: "HIGH"
+title: "@Developer Add birthday discount and points earned preview to Checkout"
+
+# MANDATORY: Complete Context Section
+complete_context:
+  project_root: "/Users/vevomalik/Desktop/Pawsome/Pawesome-frontend"
+  system_nature: "CODE-BASED SYSTEM (React Frontend)"
+  project_overview: "E-commerce platform for premium pet care products with loyalty system. Enhancing checkout with birthday discounts and points preview calculation"
+  work_location: "Frontend codebase - Checkout component and pricing breakdown"
+  key_context: "Add birthday discount detection (10% if today matches user's birthDate) and points earned preview (100 LKR = 1 point) to checkout pricing breakdown"
+  system_features: "Checkout, Loyalty System (Points Calculation), Cart, Orders, Subscriptions"
+  configuration:
+    git_privacy: false
+    branch_protection: false
+    default_branch: "master"
+    branch_strategy: "direct_commit"
+  critical_files:
+    - path: "src/components/pages/Shop/Checkout.tsx"
+      purpose: "Main checkout component with 3-step process (shipping, payment, review) and pricing breakdown"
+      sample: "Multi-step checkout with subscriptionSubtotal, loyaltyDiscount, couponDiscount calculations. Currently has couponDiscount but no birthday discount"
+    - path: "src/hooks/useAuth.tsx"
+      purpose: "Authentication hook providing user data including birthDate"
+      sample: "useAuth hook returns: user (User object with birthDate field), isAuthenticated, login, logout"
+    - path: "src/types/loyalty.ts"
+      purpose: "Loyalty type definitions including points calculation constants"
+      sample: "LOYALTY_CONSTANTS.POINTS_PER_LKR: 0.1 (means 100 LKR = 1 point)"
+  user_requirements:
+    original_request: "Checkout should show: (1) birthday discount (10%) if today matches pet owner's birthday, (2) points earned preview (100 LKR = 1 point)"
+    success_criteria:
+      - "Birthday discount automatically applied when today = user.birthDate"
+      - "10% discount applied to order subtotal"
+      - "Birthday discount shown in pricing breakdown as separate line item"
+      - "Birthday discount highlighted with special birthday styling/icon"
+      - "Points earned preview calculated as: (subtotal after all discounts) / 100"
+      - "Points preview displayed in checkout summary (e.g., 'You will earn 50 points')"
+      - "Birthday discount only applies once per birthday (date check, not datetime)"
+      - "Validation: birthday discount cannot stack with other percentage discounts incorrectly"
+      - "Empty state: No birthday discount shown if user has no birthDate or not their birthday"
+
+  specialization_context:
+    technology_domains: "React, TypeScript, E-commerce Checkout, Pricing Logic, Date Handling"
+    specialist_creation: "ALWAYS create specialists when technology expertise is needed"
+    unlimited_domains: "Support ANY technology domain through dynamic specialist creation"
+    role_assignment: "PM + Specialist Architect determine when specialists should be created"
+
+# MANDATORY: Requirements Section
+requirements:
+  functional:
+    - "Detect if today matches user.birthDate (compare month/day only, ignore year/time)"
+    - "Apply 10% birthday discount to order subtotal if today is user's birthday"
+    - "Display birthday discount as separate line item in pricing breakdown"
+    - "Calculate points earned preview: Math.floor(finalTotal / 100) using LOYALTY_CONSTANTS"
+    - "Display points preview with clear messaging: 'You will earn X points with this order'"
+    - "Show birthday discount with celebration emoji/icon (🎂 or Gift icon)"
+    - "Ensure discount calculations work correctly with existing coupon/loyalty discounts"
+  processual:
+    - "Apply git_privacy setting for commit messages"
+    - "Follow branch protection strategy"
+    - "Single file modification scope (Checkout.tsx)"
+  technical:
+    - "Under 100 lines of changes"
+    - "TypeScript strict mode compliance"
+    - "Date comparison using native Date methods (getMonth, getDate)"
+    - "Reuse existing discount calculation patterns from couponDiscount"
+    - "Use existing Tailwind styling patterns from checkout"
+    - "Handle edge cases: missing birthDate, invalid dates, leap year birthdays"
+
+# ========================================
+# EXECUTION PROCESS: 9 CLEAR STEPS
+# ========================================
+
+execution_notes: |
+  CRITICAL: MANDATORY git_privacy validation BEFORE ALL git operations:
+  1. Load git_privacy setting from configuration (NEVER assume)
+  2. When git_privacy=true, strip ALL AI mentions from:
+     - Commit messages (remove "AI", "Claude", "agent", "Generated with Claude Code", etc.)
+     - PR descriptions and titles
+     - Release notes and changelogs
+     - Any git-visible text including co-author attributions
+  3. Use clean, professional language in all git operations
+  4. Block git operations if privacy setting not validated
+
+  Current Setting: git_privacy=false (standard commits allowed)
+
+## STEP 1: KNOWLEDGE
+knowledge_search:
+  memory_search: "No memory directory exists yet"
+  best_practices: "No best-practices directory exists yet"
+  patterns: |
+    Existing checkout patterns found:
+    - Discount state managed with useState: couponDiscount
+    - Discount calculations in subtotal: subscriptionSubtotal - couponDiscount
+    - Pricing breakdown displayed in Order Summary card
+    - Conditional rendering: {couponDiscount > 0 && (...)}
+    - Success message styling: text-green-600 with ✓ icon
+    - User data accessed via: const { user } = useAuth()
+    - Currency formatter: safeDisplayPrice(amount)
+
+## STEP 2: IMPLEMENTATION
+implementation:
+  target_file: "src/components/pages/Shop/Checkout.tsx"
+  changes_needed:
+    - change_1: "Add useState for birthday discount: const [birthdayDiscount, setBirthdayDiscount] = useState(0)"
+    - change_2: "Add useState for points preview: const [pointsToEarn, setPointsToEarn] = useState(0)"
+    - change_3: "Create birthday detection function: isTodayBirthday(user?.birthDate)"
+    - change_4: "Add useEffect to calculate birthday discount on component mount and subtotal changes"
+    - change_5: "Calculate birthday discount: setBirthdayDiscount(isTodayBirthday ? subscriptionSubtotal * 0.1 : 0)"
+    - change_6: "Update total calculation to include birthdayDiscount: const totalAfterDiscounts = subscriptionSubtotal - couponDiscount - birthdayDiscount - loyaltyRedemption.value"
+    - change_7: "Calculate points earned: setPointsToEarn(Math.floor(totalAfterDiscounts / 100))"
+    - change_8: "Add birthday discount line item to pricing breakdown (before tax, after coupon)"
+    - change_9: "Add points earned preview display after final total in Order Summary"
+    - change_10: "Add birthday celebration message/banner if discount applied"
+  validation: "Test with user birthDate = today, verify 10% discount applied, verify points calculated correctly, test with no birthDate"
+
+## STEP 3: INTEGRATION
+integration_points:
+  - auth_integration: "Use useAuth hook to access user.birthDate"
+  - loyalty_integration: "Import LOYALTY_CONSTANTS.POINTS_PER_LKR for accurate calculation"
+  - pricing_integration: "Ensure birthday discount works with existing coupon/loyalty discounts"
+  - state_management: "Update all dependent calculations when birthdayDiscount changes"
+
+## STEP 4: REVIEW
+review_checklist:
+  - "Functional requirements met - birthday discount and points preview working"
+  - "Birthday detection logic correct (month/day comparison only)"
+  - "10% discount calculation accurate"
+  - "Points calculation follows 100 LKR = 1 point formula"
+  - "UI displays discount and points preview clearly"
+  - "Edge cases handled: missing birthDate, invalid dates"
+  - "TypeScript compilation passes with no errors"
+  - "No layout shifts or visual bugs in checkout flow"
+
+## STEP 5: VERSION
+version_bump:
+  type: "minor"
+  action: "Bump version number in package.json (0.1.3 → 0.2.0) - new feature addition"
+
+## STEP 6: DOCUMENTATION
+documentation:
+  changelog:
+    entry: |
+      ### Added
+      - Birthday discount feature: Automatic 10% discount when today matches customer's birthday
+      - Points earned preview in checkout: Shows how many loyalty points customer will earn
+      - Birthday celebration message when discount is applied
+      - Points calculation: 100 LKR = 1 loyalty point
+
+      ### Changed
+      - Enhanced checkout pricing breakdown with birthday discount line item
+      - Improved order total calculation to include birthday discount
+    required: true
+  additional: "Update checkout documentation if exists in docs folder"
+  comments: "Add inline comments explaining birthday detection logic and points calculation formula"
+
+## STEP 7: GIT COMMIT
+git_commit:
+  commit_message: |
+    PRB-004: Add birthday discount and points preview to checkout
+
+    Birthday Discount Feature:
+    - Auto-detect customer birthday (compare month/day only)
+    - Apply 10% discount to order subtotal on customer's birthday
+    - Display discount with birthday celebration styling
+    - Integrate with existing coupon/loyalty discount calculations
+
+    Points Earned Preview:
+    - Calculate points: (final total) / 100 LKR per point
+    - Display "You will earn X points with this order"
+    - Uses LOYALTY_CONSTANTS for accurate calculation
+
+    Edge Cases Handled:
+    - Missing or invalid birthDate field
+    - Correct date comparison (ignores year/time)
+    - Proper discount stacking with coupons/loyalty redemption
+
+    Enhances customer experience with birthday rewards and points transparency.
+  privacy_filter: false
+  action: "Commit changes with descriptive message"
+
+## STEP 8: GIT PUSH
+git_push:
+  action: "Push to remote repository on branch bugx/issue-fix"
+
+## STEP 9: COMPLETION
+completion_summary:
+  deliverables:
+    - "Birthday discount detection and application logic"
+    - "Points earned preview calculation and display"
+    - "Enhanced pricing breakdown with birthday discount line"
+    - "Birthday celebration messaging"
+    - "Edge case handling and validation"
+  next_steps:
+    - "Test checkout flow with birthday users"
+    - "Verify points calculation accuracy"
+    - "Monitor for any discount calculation bugs"
+
+# MANDATORY: Validation Enforcement Section
+validation_enforcement:
+  mandatory_requirements:
+    git_operations:
+      - "Git commit with descriptive message following PRB-004: [DESCRIPTION] format"
+      - "Git push to remote with proper branch handling"
+      - "Privacy filter applied per configuration (git_privacy=false)"
+      blocked_patterns:
+        - "No git operations needed"
+        - "Skip git workflow"
+      error_message: "❌ BLOCKED: Git operations are mandatory."
+
+    sme_review:
+      - "Self-review checklist completion with all items checked"
+      - "Birthday discount logic verified with test dates"
+      - "Points calculation accuracy verified"
+      - "TypeScript compilation validation (no errors)"
+      - "UI rendering validation in browser"
+      blocked_patterns:
+        - "No review needed"
+        - "Skip validation steps"
+        - "Testing not necessary"
+      error_message: "❌ BLOCKED: SME review and testing are mandatory."
+
+    documentation:
+      - "CHANGELOG entry required documenting new features"
+      - "Version bump completed in package.json (0.1.3 → 0.2.0)"
+      - "Inline code comments for birthday logic and points calculation"
+      blocked_patterns:
+        - "No documentation needed"
+        - "Skip CHANGELOG"
+        - "Code is self-documenting"
+      error_message: "❌ BLOCKED: Documentation updates are mandatory."
+
+    version_management:
+      - "Minor version bump completed (new feature addition)"
+      - "package.json version updated (0.1.3 → 0.2.0)"
+      blocked_patterns:
+        - "No version change needed"
+        - "Patch is sufficient"
+      error_message: "❌ BLOCKED: Minor version bump required for new features."
+
+  workflow:
+    version_bump: true
+    version_type: "minor"
+    changelog_required: true
+    pr_required: false
+    merge_strategy: "direct_commit"
+    release_automation: false
+    auto_merge: false
+    coordination_required: false
+    breaking_change_assessment: false
+
+  enforcement_rules:
+    - "ALL 9 execution steps must be completed in order"
+    - "NO bypass language or skip patterns allowed"
+    - "MANDATORY git workflow compliance per project configuration"
+    - "REQUIRED documentation updates for every change"
+    - "VERSION bump mandatory for all modifications"
+    - "TypeScript compilation must pass before commit"
+    - "Manual testing of birthday discount and points calculation required"
+
+# MCP Operations Extension Points
+mcp_operations:
+  memory:
+    condition: false
+    provider: "file-based"
+    operations:
+      - action: store_learning
+        topic: "checkout-enhancements"
+        content: "Birthday discount detection and points preview calculation in e-commerce checkout"
+    fallback: "file-based"
+
+  issue_tracking:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+  documentation:
+    condition: false
+    provider: "file-based"
+    operations: []
+    fallback: "file-based"
+
+# EXECUTION CHECKLIST
+execution_checklist: |
+  ☐ Step 1 - Knowledge: Existing checkout patterns identified (discount state, pricing breakdown)
+  ☐ Step 2 - Implementation: Birthday detection added, discount calculation implemented, points preview added
+  ☐ Step 3 - Integration: Auth, loyalty constants, pricing calculations integrated
+  ☐ Step 4 - Review: Birthday logic verified, points calculation tested, TypeScript passed
+  ☐ Step 5 - Version: package.json version bumped (0.1.3 → 0.2.0)
+  ☐ Step 6 - Documentation: CHANGELOG updated, inline comments added
+  ☐ Step 7 - Git Commit: Changes committed with descriptive message
+  ☐ Step 8 - Git Push: Changes pushed to remote branch bugx/issue-fix
+  ☐ Step 9 - Completion: All deliverables verified, next steps documented
+
+# ACCEPTANCE CRITERIA
+acceptance_criteria:
+  birthday_discount:
+    - detection: "Birthday detected when today's month/day matches user.birthDate month/day"
+    - calculation: "10% discount calculated from subscriptionSubtotal"
+    - display: "Birthday discount shown as separate line item with celebration icon"
+    - messaging: "Birthday celebration message displayed when discount applied"
+    - validation: "No discount if user.birthDate is missing/null/invalid"
+    - date_logic: "Comparison ignores year and time (month/day only)"
+
+  points_preview:
+    - calculation: "Points = Math.floor(finalTotalAfterDiscounts / 100)"
+    - formula: "Uses 100 LKR = 1 point ratio from LOYALTY_CONSTANTS"
+    - display: "Preview shown in Order Summary: 'You will earn X points with this order'"
+    - accuracy: "Calculation includes all discounts (birthday, coupon, loyalty)"
+    - styling: "Clear, prominent display with points icon/badge"
+
+  pricing_integration:
+    - discount_stacking: "Birthday discount works correctly with coupon/loyalty discounts"
+    - total_calculation: "Final total = subtotal - couponDiscount - birthdayDiscount - loyaltyDiscount + tax + shipping"
+    - breakdown: "All discounts shown as separate line items"
+    - accuracy: "No calculation errors or rounding issues"
+
+  edge_cases:
+    - no_birthday: "No discount applied if user.birthDate is null/undefined"
+    - invalid_date: "Graceful handling of invalid birthDate values"
+    - leap_year: "Feb 29 birthdays handled correctly (show discount on Feb 28 in non-leap years OR only on Feb 29)"
+    - timezone: "Birthday detection works regardless of user timezone"
+
+  ui_validation:
+    - no_layout_shift: "Adding discount doesn't cause layout jumps"
+    - loading_state: "Graceful loading if user data delayed"
+    - error_handling: "Checkout still works if birthday calculation fails"
+    - responsive: "Birthday discount and points preview display correctly on mobile/tablet/desktop"
+
+  empty_states:
+    - no_birthday_set: "No birthday discount shown if user hasn't set birthDate"
+    - not_birthday: "No birthday message shown when it's not user's birthday"
+    - zero_points: "Handle case where order total results in 0 points earned"
