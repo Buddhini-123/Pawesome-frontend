@@ -15,8 +15,8 @@ const BadgesGrid: React.FC = () => {
     if (!loyaltyCard) return '';
 
     if (badge.requiredPoints) {
-      const progress = (loyaltyCard.totalEarned / badge.requiredPoints) * 100;
-      return `${Math.min(100, Math.round(progress))}% complete (${loyaltyCard.totalEarned.toLocaleString()}/${badge.requiredPoints.toLocaleString()} points)`;
+      const progress = ((loyaltyCard.totalEarned ?? 0) / badge.requiredPoints) * 100;
+      return `${Math.min(100, Math.round(progress))}% complete (${(loyaltyCard.totalEarned ?? 0).toLocaleString()}/${badge.requiredPoints.toLocaleString()} points)`;
     }
     
     if (badge.requiredOrders) {

@@ -78,7 +78,7 @@ const RedemptionSlider: React.FC<RedemptionSliderProps> = ({
                 Use Loyalty Points
               </h3>
               <p className="text-sm text-medium-gray">
-                You have {loyaltyCard.points.toLocaleString()} points available
+                You have {(loyaltyCard.points ?? 0).toLocaleString()} points available
               </p>
             </div>
           </div>
@@ -116,7 +116,7 @@ const RedemptionSlider: React.FC<RedemptionSliderProps> = ({
             <Info className="h-5 w-5 text-lavender mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-fredoka text-charcoal">
-                Redeem up to {maxRedeemablePoints.toLocaleString()} points 
+                Redeem up to {(maxRedeemablePoints ?? 0).toLocaleString()} points
                 ({formatters.currency(maxRedeemableValue)}) for this order
               </p>
               <p className="text-xs text-medium-gray mt-1">
@@ -169,7 +169,7 @@ const RedemptionSlider: React.FC<RedemptionSliderProps> = ({
             <div className="flex justify-between mt-2">
               <span className="text-xs text-medium-gray font-fredoka">0</span>
               <span className="text-xs text-medium-gray font-fredoka">
-                {maxRedeemablePoints.toLocaleString()}
+                {(maxRedeemablePoints ?? 0).toLocaleString()}
               </span>
             </div>
           </div>

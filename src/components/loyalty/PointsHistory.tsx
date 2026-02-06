@@ -139,7 +139,7 @@ const PointsHistory: React.FC = () => {
             <div>
               <p className="text-sm font-fredoka text-medium-gray">Points Earned</p>
               <p className="text-2xl font-fredoka font-bold text-mint-green">
-                +{summaryStats.earned.toLocaleString()}
+                +{(summaryStats.earned ?? 0).toLocaleString()}
               </p>
             </div>
             <TrendingUp className="h-8 w-8 text-mint-green" />
@@ -156,7 +156,7 @@ const PointsHistory: React.FC = () => {
             <div>
               <p className="text-sm font-fredoka text-medium-gray">Points Redeemed</p>
               <p className="text-2xl font-fredoka font-bold text-vibrant-orange">
-                -{summaryStats.redeemed.toLocaleString()}
+                -{(summaryStats.redeemed ?? 0).toLocaleString()}
               </p>
             </div>
             <TrendingDown className="h-8 w-8 text-vibrant-orange" />
@@ -173,7 +173,7 @@ const PointsHistory: React.FC = () => {
             <div>
               <p className="text-sm font-fredoka text-medium-gray">Current Balance</p>
               <p className="text-2xl font-fredoka font-bold text-lavender">
-                {loyaltyCard.points.toLocaleString()}
+                {(loyaltyCard.points ?? 0).toLocaleString()}
               </p>
             </div>
             <Gift className="h-8 w-8 text-lavender" />

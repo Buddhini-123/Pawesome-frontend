@@ -39,6 +39,7 @@ export const normalizeCartItem = (item: any) => {
       id: String(product.id ?? item.id),
       name: product.name ?? 'Unknown Product',
       price: Number(product.price ?? 0),
+      originalPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
 
       image: normalizeImage(rawImage),
 

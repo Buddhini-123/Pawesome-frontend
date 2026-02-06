@@ -160,7 +160,7 @@ const LoyaltyCards: React.FC = () => {
                 <div>
                   <p className="text-sm opacity-90 font-fredoka">Available Points</p>
                   <p className="text-4xl font-fredoka font-bold">
-                    {loyaltyCard?.points?.toLocaleString() || 0}
+                    {(loyaltyCard?.points ?? 0).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -180,10 +180,10 @@ const LoyaltyCards: React.FC = () => {
             <div className="border-t border-white/20 pt-4 mt-4">
               <p className="text-xs opacity-75 mb-2 font-fredoka">Points Value</p>
               <p className="text-2xl font-fredoka font-bold">
-                LKR {((loyaltyCard?.points || 0) * 0.1).toFixed(2)}
+                Rs. {((loyaltyCard?.points ?? 0) * 0.1).toFixed(2)}
               </p>
               <p className="text-xs opacity-75 mt-1 font-fredoka">
-                (1 point = LKR 0.10)
+                (1 point = Rs. 0.10)
               </p>
             </div>
           </div>

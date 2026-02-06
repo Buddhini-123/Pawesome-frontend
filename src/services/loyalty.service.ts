@@ -162,10 +162,61 @@ class LoyaltyService {
   // Get loyalty card by user ID
   async getLoyaltyCard(userId: string): Promise<LoyaltyCard | null> {
     try {
-      const response = await api.request<LoyaltyCard>(`/loyalty/card/${userId}`);
+      // Call the current user's card endpoint (no userId param needed)
+      const response = await api.request<{
+        user: {
+          id: number;
+          name: string;
+          email: string;
+          member_since: string;
+        };
+        card: {
+          card_number: string;
+          tier: string;
+          tier_code: string;
+          current_points: number;
+          lifetime_earned: number;
+          expiring_soon: number;
+          expiry_warning_days: number;
+        };
+        tier_progress: {
+          current_tier: string;
+          next_tier: string;
+          points_to_next_tier: number;
+          progress_percentage: number;
+        };
+        benefits: {
+          multiplier: string;
+          perks: string[];
+        };
+        qr_code_data: any;
+      }>('/loyalty/card');
 
       if (response.success && response.data) {
-        return response.data;
+        // Backend returns {success: true, data: {user, card, ...}}
+        // api.request wraps it, so response.data contains the backend's full response
+        const backendResponse = response.data as any;
+
+        // Extract the actual data from the nested structure
+        const backendData = backendResponse.data || backendResponse;
+
+        // Transform backend response to frontend LoyaltyCard type
+        const transformedCard: LoyaltyCard = {
+          id: backendData.card?.card_number || 'unknown', // Use card number as ID
+          userId: backendData.user?.id?.toString() || '',
+          cardNumber: backendData.card?.card_number || '',
+          points: backendData.card?.current_points ?? 0, // Use nullish coalescing for 0 values
+          tier: this.mapTierToEnum(backendData.card?.tier_code || 'bronze'),
+          joinDate: backendData.user?.member_since ? new Date(backendData.user.member_since) : new Date(),
+          totalEarned: backendData.card?.lifetime_earned ?? 0,
+          totalRedeemed: 0, // Backend doesn't provide this yet
+          totalDonated: 0, // Backend doesn't provide this yet
+          lastActivity: new Date(), // Backend doesn't provide this yet
+          isActive: true
+        };
+
+        console.log('[LoyaltyService] Loyalty card loaded - Points:', transformedCard.points);
+        return transformedCard;
       }
       return null;
     } catch (error: any) {
@@ -183,13 +234,24 @@ class LoyaltyService {
     }
   }
 
+  // Helper method to map backend tier strings to frontend enum
+  private mapTierToEnum(tierCode: string): LoyaltyTier {
+    const tierMap: Record<string, LoyaltyTier> = {
+      'bronze': LoyaltyTier.BRONZE,
+      'silver': LoyaltyTier.SILVER,
+      'gold': LoyaltyTier.GOLD,
+      'platinum': LoyaltyTier.PLATINUM
+    };
+    return tierMap[tierCode.toLowerCase()] || LoyaltyTier.BRONZE;
+  }
+
   /**
    * Get loyalty balance with expiry information from backend API
-   * GET /api/loyalty/balance
+   * GET /api/loyalty/points
    * Requires authentication (bearer token)
    */
   async getLoyaltyBalance(): Promise<LoyaltyBalance> {
-    const response = await api.request<LoyaltyBalance>('/loyalty/balance', {
+    const response = await api.request<LoyaltyBalance>('/loyalty/points', {
       method: 'GET'
     });
 
@@ -256,7 +318,7 @@ class LoyaltyService {
 
   /**
    * Get paginated points history from backend API
-   * GET /api/loyalty/ledger?page={page}
+   * GET /api/loyalty/history?page={page}
    *
    * @param page - Page number (default: 1)
    * @returns Paginated transaction data with metadata
@@ -271,50 +333,52 @@ class LoyaltyService {
     };
   }> {
     try {
-      const response = await api.request<{
-        data: Array<{
-          id: number;
-          type: string;
-          points: number;
-          description: string;
-          created_at: string;
-          expires_at: string | null;
-          reference?: { id?: number };
-        }>;
-        meta: {
-          current_page: number;
-          per_page: number;
-          total: number;
-        };
-      }>(`/loyalty/ledger?page=${page}`, {
+      const response = await api.request<any>(`/loyalty/history?page=${page}`, {
         method: 'GET'
       });
 
+      console.log('[LoyaltyService] Transaction history - success:', response.success);
+
       if (response.success && response.data) {
+        // Backend returns {success: true, data: {data: [...], meta: {...}}}
+        // api.request wraps it, so we need to access the nested data
+        const apiResponse = response.data as any;
+
+        // Check if apiResponse itself has a 'data' property (double nested)
+        const backendData = (apiResponse.data !== undefined) ? apiResponse.data : apiResponse;
+
         // Transform backend response to frontend PointTransaction type
-        const transformedData: PointTransaction[] = response.data.data.map(tx => ({
-          id: tx.id.toString(),
+        const transactions = Array.isArray(backendData.data) ? backendData.data :
+                           Array.isArray(backendData) ? backendData : [];
+
+        console.log('[LoyaltyService] Transactions count:', transactions.length);
+
+        const transformedData: PointTransaction[] = transactions.map((tx: any) => ({
+          id: tx.id?.toString() || '',
           loyaltyCardId: '', // Backend doesn't send this, frontend doesn't need it for display
           type: tx.type as 'earned' | 'redeemed' | 'expired' | 'donated' | 'bonus',
-          points: tx.points,
-          description: tx.description,
-          createdAt: new Date(tx.created_at),
+          points: tx.points || 0,
+          description: tx.description || '',
+          createdAt: tx.created_at ? new Date(tx.created_at) : new Date(),
           expiresAt: tx.expires_at ? new Date(tx.expires_at) : undefined,
           orderId: tx.reference?.id?.toString(),
           balance: 0 // Backend doesn't send balance per transaction in ledger endpoint
         }));
 
+        const meta = backendData.meta || { current_page: 1, per_page: 20, total: 0 };
+
         return {
           data: transformedData,
           meta: {
-            current_page: response.data.meta.current_page,
-            per_page: response.data.meta.per_page,
-            total: response.data.meta.total,
-            last_page: Math.ceil(response.data.meta.total / response.data.meta.per_page)
+            current_page: meta.current_page || 1,
+            per_page: meta.per_page || 20,
+            total: meta.total || 0,
+            last_page: Math.ceil((meta.total || 0) / (meta.per_page || 20)) || 1
           }
         };
       }
 
+      console.log('[LoyaltyService] No data in response');
       // Fallback to empty data
       return {
         data: [],
@@ -325,8 +389,8 @@ class LoyaltyService {
           last_page: 1
         }
       };
-    } catch (error) {
-      console.error('Failed to fetch points history:', error);
+    } catch (error: any) {
+      console.error('[LoyaltyService] Transaction history error:', error.message);
       // Return empty data on error with proper structure
       return {
         data: [],
@@ -354,11 +418,51 @@ class LoyaltyService {
     return finalPoints;
   }
 
-  // Award points for order
+  /**
+   * Earn loyalty points for a completed order
+   * POST /api/loyalty/earn
+   * This should be called after order is successfully created and paid
+   *
+   * @param orderId - The order ID
+   * @param amountPaid - Total amount paid for the order
+   * @returns Transaction details with points earned
+   */
+  async earnPointsForOrder(orderId: number | string, amountPaid: number): Promise<{
+    points_earned: number;
+    new_balance: number;
+    transaction_id: number;
+  }> {
+    try {
+      const response = await api.request<{
+        points_earned: number;
+        new_balance: number;
+        transaction_id: number;
+      }>('/loyalty/earn', {
+        method: 'POST',
+        body: {
+          order_id: orderId,
+          amount_paid: amountPaid
+        }
+      });
+
+      if (response.success && response.data) {
+        const result = (response.data as any).data || response.data;
+        console.log('[LoyaltyService] Points earned:', result.points_earned);
+        return result;
+      }
+
+      throw new Error('Failed to earn points');
+    } catch (error: any) {
+      console.error('[LoyaltyService] Failed to earn points for order:', error.message);
+      throw error;
+    }
+  }
+
+  // Award points for order (legacy method - kept for backwards compatibility)
   async awardPoints(
-    loyaltyCardId: string, 
-    orderId: string, 
-    amount: number, 
+    loyaltyCardId: string,
+    orderId: string,
+    amount: number,
     description: string
   ): Promise<PointTransaction> {
     try {
@@ -399,11 +503,11 @@ class LoyaltyService {
       card.totalEarned += points;
       card.lastActivity = new Date();
       this.updateTier(card);
-      
+
       // Save changes
       this.saveLoyaltyCard(card);
       this.saveTransaction(transaction);
-      
+
       return transaction;
     }
   }

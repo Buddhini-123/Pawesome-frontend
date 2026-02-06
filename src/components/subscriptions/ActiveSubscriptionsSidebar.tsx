@@ -32,6 +32,11 @@ interface Subscription {
   items: SubscriptionItem[];
   deliveryAddress: string;
   savedAmount: number;
+  totalDeliveries?: number;
+  completedDeliveries?: number;
+  remainingDeliveries?: number;
+  perDeliveryCost?: number;
+  totalSubscriptionCost?: number;
 }
 
 interface ActiveSubscriptionsSidebarProps {
@@ -177,8 +182,8 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
                                 <div>
                                   <p className="text-xs text-medium-gray">Next Delivery</p>
                                   <p className="font-fredoka font-medium text-sm text-charcoal">
-                                    {new Date(subscription.nextDelivery).toLocaleDateString('en-US', { 
-                                      month: 'short', 
+                                    {new Date(subscription.nextDelivery).toLocaleDateString('en-US', {
+                                      month: 'short',
                                       day: 'numeric',
                                       year: 'numeric'
                                     })}
@@ -186,13 +191,50 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
                                 </div>
                               </div>
                               <div className="text-right">
-                                <p className="text-xs text-medium-gray">Total</p>
+                                <p className="text-xs text-medium-gray">
+                                  {subscription.totalSubscriptionCost ? 'Per Delivery' : 'Total'}
+                                </p>
                                 <p className="font-fredoka font-bold text-lg text-primary-blue">
-                                  LKR {subscription.total}
+                                  Rs. {subscription.perDeliveryCost || subscription.total}
                                 </p>
                               </div>
                             </div>
                           </div>
+
+                          {/* Delivery Progress */}
+                          {subscription.totalDeliveries && subscription.totalDeliveries > 0 && (
+                            <div className="bg-mint-green/10 rounded-xl p-3 mb-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-fredoka font-medium text-charcoal">
+                                  Delivery Progress
+                                </span>
+                                <span className="text-xs font-fredoka font-bold text-mint-green">
+                                  {subscription.completedDeliveries || 0} / {subscription.totalDeliveries}
+                                </span>
+                              </div>
+                              {/* Progress Bar */}
+                              <div className="w-full bg-soft-gray rounded-full h-2 overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{
+                                    width: `${((subscription.completedDeliveries || 0) / subscription.totalDeliveries) * 100}%`
+                                  }}
+                                  transition={{ duration: 0.8, ease: "easeOut" }}
+                                  className="bg-gradient-to-r from-mint-green to-primary-blue h-full rounded-full"
+                                />
+                              </div>
+                              <div className="flex items-center justify-between mt-2">
+                                <span className="text-xs text-medium-gray">
+                                  {subscription.remainingDeliveries || 0} remaining
+                                </span>
+                                {subscription.totalSubscriptionCost && (
+                                  <span className="text-xs font-fredoka font-bold text-primary-blue">
+                                    Total: Rs. {subscription.totalSubscriptionCost.toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
 
                           {/* Actions */}
                           <div className="flex gap-2">

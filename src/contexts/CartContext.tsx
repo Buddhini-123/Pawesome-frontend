@@ -58,6 +58,28 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return backendCart.items.map(item => cartService.convertToCartItem(item));
   }, []);
 
+  // Helper: Load original prices from localStorage
+  const loadOriginalPrices = useCallback((): Record<string, number> => {
+    try {
+      const saved = localStorage.getItem('cart_original_prices');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('[CartContext] Failed to load original prices:', error);
+    }
+    return {};
+  }, []);
+
+  // Helper: Save original prices to localStorage
+  const saveOriginalPrices = useCallback((prices: Record<string, number>) => {
+    try {
+      localStorage.setItem('cart_original_prices', JSON.stringify(prices));
+    } catch (error) {
+      console.error('[CartContext] Failed to save original prices:', error);
+    }
+  }, []);
+
   // Helper: Load cart from localStorage (for guest users)
   const loadLocalCart = useCallback((): CartItem[] => {
     try {
@@ -107,11 +129,28 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
       if (backendCart) {
         const items = convertBackendCart(backendCart);
-        setCart(items);
+
+        // Merge original prices from localStorage
+        const originalPrices = loadOriginalPrices();
+        const itemsWithPrices = items.map(item => {
+          const originalPrice = originalPrices[item.product.id];
+          if (originalPrice && originalPrice > item.product.price) {
+            return {
+              ...item,
+              product: {
+                ...item.product,
+                originalPrice
+              }
+            };
+          }
+          return item;
+        });
+
+        setCart(itemsWithPrices);
         setShippingCost(parseFloat(backendCart.shipping_cost));
         setShippingBreakdown(backendCart.shipping_breakdown);
         setTaxAmount(parseFloat(backendCart.tax_amount));
-        console.log('[CartContext] ✅ Backend cart loaded:', backendCart);
+        console.log('[CartContext] ✅ Backend cart loaded with original prices merged:', backendCart);
       } else {
         console.log('[CartContext] No backend cart found');
         setCart([]);
@@ -127,7 +166,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, user, convertBackendCart, loadLocalCart]);
+  }, [isAuthenticated, user, convertBackendCart, loadLocalCart, loadOriginalPrices]);
 
   // Initialize cart on mount and when authentication changes
   useEffect(() => {
@@ -206,6 +245,14 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       return;
     }
 
+    // Save originalPrice if present
+    if ((product as any).originalPrice) {
+      const originalPrices = loadOriginalPrices();
+      originalPrices[product.id] = (product as any).originalPrice;
+      saveOriginalPrices(originalPrices);
+      console.log('[CartContext] Saved originalPrice for product', product.id, ':', (product as any).originalPrice);
+    }
+
     if (isAuthenticated && product.id) {
       // Use backend API
       try {
@@ -216,11 +263,28 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         const backendCart = await cartService.addItem(productSlug, quantity);
 
         const items = convertBackendCart(backendCart);
-        setCart(items);
+
+        // Merge original prices from localStorage
+        const originalPrices = loadOriginalPrices();
+        const itemsWithPrices = items.map(item => {
+          const originalPrice = originalPrices[item.product.id];
+          if (originalPrice && originalPrice > item.product.price) {
+            return {
+              ...item,
+              product: {
+                ...item.product,
+                originalPrice
+              }
+            };
+          }
+          return item;
+        });
+
+        setCart(itemsWithPrices);
         setShippingCost(parseFloat(backendCart.shipping_cost));
         setShippingBreakdown(backendCart.shipping_breakdown);
         setTaxAmount(parseFloat(backendCart.tax_amount));
-        console.log('[CartContext] ✅ Item added to backend cart successfully');
+        console.log('[CartContext] ✅ Item added to backend cart successfully with original prices merged');
       } catch (error: any) {
         console.warn('[CartContext] Backend cart add failed, using local cart instead');
         console.warn('[CartContext] Error details:', error.message);
@@ -240,7 +304,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       console.log('[CartContext] Using local cart (guest user or no auth)');
       addToLocalCart(product, quantity);
     }
-  }, [isAuthenticated, convertBackendCart]);
+  }, [isAuthenticated, convertBackendCart, loadOriginalPrices, saveOriginalPrices]);
 
   const addToLocalCart = (product: Product, quantity: number) => {
     setCart(prevCart => {
@@ -261,6 +325,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Remove item from cart
   const removeItem = useCallback(async (id: string) => {
+    // Find product ID before removal to clean up originalPrice
+    const item = cart.find(item => item.id === id);
+    const productId = item?.product.id;
+
     if (isAuthenticated) {
       // Use backend API
       try {
@@ -268,10 +336,34 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         const backendCart = await cartService.removeItem(id);
 
         const items = convertBackendCart(backendCart);
-        setCart(items);
+
+        // Merge original prices from localStorage
+        const originalPrices = loadOriginalPrices();
+        const itemsWithPrices = items.map(item => {
+          const originalPrice = originalPrices[item.product.id];
+          if (originalPrice && originalPrice > item.product.price) {
+            return {
+              ...item,
+              product: {
+                ...item.product,
+                originalPrice
+              }
+            };
+          }
+          return item;
+        });
+
+        setCart(itemsWithPrices);
         setShippingCost(parseFloat(backendCart.shipping_cost));
         setShippingBreakdown(backendCart.shipping_breakdown);
         setTaxAmount(parseFloat(backendCart.tax_amount));
+
+        // Clean up originalPrice for removed product
+        if (productId) {
+          const updatedPrices = loadOriginalPrices();
+          delete updatedPrices[productId];
+          saveOriginalPrices(updatedPrices);
+        }
       } catch (error) {
         console.error('[CartContext] Failed to remove item via backend:', error);
         // Fall back to local removal
@@ -282,8 +374,15 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } else {
       // Guest user: use local cart
       setCart(prevCart => prevCart.filter(item => item.id !== id));
+
+      // Clean up originalPrice for removed product
+      if (productId) {
+        const updatedPrices = loadOriginalPrices();
+        delete updatedPrices[productId];
+        saveOriginalPrices(updatedPrices);
+      }
     }
-  }, [isAuthenticated, convertBackendCart]);
+  }, [isAuthenticated, cart, convertBackendCart, loadOriginalPrices, saveOriginalPrices]);
 
   // Update item quantity
   const updateQuantity = useCallback(async (id: string, quantity: number) => {
@@ -309,7 +408,24 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         const backendCart = await cartService.updateItemQuantity(id, quantity);
 
         const items = convertBackendCart(backendCart);
-        setCart(items);
+
+        // Merge original prices from localStorage
+        const originalPrices = loadOriginalPrices();
+        const itemsWithPrices = items.map(item => {
+          const originalPrice = originalPrices[item.product.id];
+          if (originalPrice && originalPrice > item.product.price) {
+            return {
+              ...item,
+              product: {
+                ...item.product,
+                originalPrice
+              }
+            };
+          }
+          return item;
+        });
+
+        setCart(itemsWithPrices);
         setShippingCost(parseFloat(backendCart.shipping_cost));
         setShippingBreakdown(backendCart.shipping_breakdown);
         setTaxAmount(parseFloat(backendCart.tax_amount));
@@ -332,7 +448,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         )
       );
     }
-  }, [isAuthenticated, removeItem, convertBackendCart]);
+  }, [isAuthenticated, removeItem, convertBackendCart, loadOriginalPrices]);
 
   // Clear cart
   const clearCart = useCallback(async () => {
@@ -345,18 +461,23 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         setShippingCost(0);
         setShippingBreakdown(null);
         setTaxAmount(0);
+
+        // Clear original prices
+        saveOriginalPrices({});
       } catch (error) {
         console.error('[CartContext] Failed to clear cart via backend:', error);
         // Fall back to local clear
         setCart([]);
+        saveOriginalPrices({});
       } finally {
         setIsLoading(false);
       }
     } else {
       // Guest user: use local cart
       setCart([]);
+      saveOriginalPrices({});
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, saveOriginalPrices]);
 
   // Refresh cart
   const refreshCart = useCallback(async () => {

@@ -64,17 +64,24 @@ export const LoyaltyProvider: React.FC<LoyaltyProviderProps> = ({ children }) =>
     }
   }, [isAuthenticated, user]);
 
-  // Check for birthday bonus
+  // Check for birthday bonus (only once when card is first loaded)
   useEffect(() => {
-    if (loyaltyCard && user) {
+    let hasCheckedBirthday = false;
+
+    if (loyaltyCard && user && !hasCheckedBirthday) {
+      hasCheckedBirthday = true;
       const checkBirthdayBonus = async () => {
-        await loyaltyService.awardBirthdayBonus(user.id, user);
-        // Refresh data to show any new bonus
-        refreshLoyaltyData();
+        try {
+          await loyaltyService.awardBirthdayBonus(user.id, user);
+          // Don't refresh here to avoid infinite loop
+          // Birthday bonus will show on next page load
+        } catch (error) {
+          console.warn('[LoyaltyContext] Birthday bonus check failed:', error);
+        }
       };
       checkBirthdayBonus();
     }
-  }, [loyaltyCard, user]);
+  }, [loyaltyCard?.id, user?.id]); // Only depend on IDs, not full objects
 
   const refreshLoyaltyData = async () => {
     if (!user) return;
@@ -93,16 +100,9 @@ export const LoyaltyProvider: React.FC<LoyaltyProviderProps> = ({ children }) =>
       }
 
       if (card) {
-        // Fetch REAL points balance from backend
-        try {
-          const balanceData = await loyaltyService.getLoyaltyBalance();
-          // Override localStorage points with actual backend balance
-          card.points = balanceData.balance;
-          console.log('[LoyaltyContext] Updated points from backend:', balanceData.balance);
-        } catch (balanceError) {
-          console.warn('[LoyaltyContext] Failed to fetch balance from backend, using localStorage:', balanceError);
-          // Continue with localStorage points if backend fails
-        }
+        // The card from getLoyaltyCard already contains the current points from backend
+        // Only fetch separate balance if we need additional info (expiring points, etc.)
+        console.log('[LoyaltyContext] Loaded loyalty card with points:', card.points);
 
         setLoyaltyCard(card);
 

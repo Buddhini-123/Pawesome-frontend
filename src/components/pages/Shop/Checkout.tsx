@@ -138,7 +138,10 @@ const Checkout: React.FC = () => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      console.warn('[Checkout] Invalid dates - start:', startDate, 'end:', endDate);
+      return 0;
+    }
 
     let count = 0;
     let next = new Date(start);
@@ -148,37 +151,50 @@ const Checkout: React.FC = () => {
 
       if (intervalType === "weekly") {
         next.setDate(next.getDate() + 7 * intervalValue);
-      } 
+      }
       else if (intervalType === "days") {
         next.setDate(next.getDate() + intervalValue);
       }
       else if (intervalType === "monthly") {
         next.setMonth(next.getMonth() + intervalValue);
-      } 
+      }
       else {
+        console.warn('[Checkout] Unknown interval type:', intervalType);
         break;
       }
     }
 
+    console.log(`[Checkout] Calculated ${count} deliveries (${intervalType}, ${startDate} to ${endDate})`);
     return count;
   };
-  
-  const deliveryCount = isSubscription && scheduleData
+
+  let deliveryCount = isSubscription && scheduleData
     ? calculateDeliveryCount(
         scheduleData.startDate,
         scheduleData.endDate,
-        scheduleData.deliveryPeriod,
-        1
+        scheduleData.deliveryPeriod || scheduleData.intervalType, // Check both fields
+        scheduleData.intervalValue || 1
       )
     : 1;
+
+  // Safety check: if calculation returned 0, default to 1
+  if (deliveryCount === 0) {
+    console.warn('[Checkout] Delivery count was 0 (invalid dates?), defaulting to 1');
+    deliveryCount = 1;
+  }
 
   const subscriptionSubtotal = isSubscription
     ? selectedProducts.reduce((sum: number, p: any) => {
         const price = Number(p.subscription_price || 0);
         const quantity = p.quantity || 1;
-        return sum + price * quantity * deliveryCount;
+        const productTotal = price * quantity * deliveryCount;
+        return sum + productTotal;
       }, 0)
     : totalPrice;
+
+  if (isSubscription) {
+    console.log(`[Checkout] Subscription total: Rs. ${subscriptionSubtotal} (${selectedProducts.length} products × ${deliveryCount} deliveries)`);
+  }
 
   // Helper function to get currency display
   const getCurrencyDisplay = (currencyObj: any): string => {
@@ -525,7 +541,7 @@ const Checkout: React.FC = () => {
         const payload = {
           products: selectedProducts.map((product: any) => ({
             product_id: product.id,
-            quantity: deliveryCount,
+            quantity: product.quantity || 1, // Quantity per delivery
             preferences: product.preferences || {},
           })),
           subscription_data: {
@@ -539,7 +555,8 @@ const Checkout: React.FC = () => {
               gift_wrap: "test",
               delivery_time: "morning",
             },
-            subtotal: subscriptionSubtotal
+            subtotal: subscriptionSubtotal,
+            total_deliveries: deliveryCount // Add total delivery count for reference
           },
         };
 
@@ -604,6 +621,23 @@ const Checkout: React.FC = () => {
       const order = await orderService.createOrder(orderData);
       toast.success("Order placed successfully!");
 
+      // Award loyalty points for the order
+      try {
+        const { loyaltyService } = await import('../../../services/loyalty.service');
+        const pointsResult = await loyaltyService.earnPointsForOrder(
+          order.id,
+          finalTotal
+        );
+        console.log('[Checkout] Loyalty points earned:', pointsResult.points_earned);
+        toast.success(`🎉 You earned ${pointsResult.points_earned} loyalty points!`, {
+          autoClose: 5000
+        });
+      } catch (loyaltyError: any) {
+        console.warn('[Checkout] Failed to earn loyalty points:', loyaltyError.message);
+        // Don't fail the checkout if loyalty points fail
+        // The order is already created successfully
+      }
+
       clearCart();
 
       navigate(`/order-confirmation/${order.id}`);
@@ -636,6 +670,14 @@ const Checkout: React.FC = () => {
   };
   const normalizedCart = cart.map(normalizeCartItem);
 
+  // Calculate total discount from original prices
+  const getTotalDiscount = (): number => {
+    return normalizedCart.reduce((total, item) => {
+      const originalPrice = (item.product as any).originalPrice || item.product.price;
+      const discount = (originalPrice - item.product.price) * item.quantity;
+      return total + discount;
+    }, 0);
+  };
 
   const applyCoupon = () => {
     // Mock coupon logic
@@ -1397,33 +1439,58 @@ const Checkout: React.FC = () => {
                         />
                         <div>
                           <p className="font-fredoka font-semibold text-charcoal">{String(product?.name || 'Product')}</p>
-                          <p className="text-sm text-medium-gray">Qty: {deliveryCount} </p>
+                          <p className="text-sm text-medium-gray">
+                            Qty: {product.quantity || 1} × {deliveryCount} deliveries
+                          </p>
                         </div>
                       </div>
                       <p className="font-fredoka font-semibold text-charcoal">
-                        {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice((product?.subscription_price || 0) * deliveryCount)}
+                        {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice((product?.subscription_price || 0) * (product.quantity || 1) * deliveryCount)}
                       </p>
                     </div>
                   ))
                 ) : (
-                normalizedCart.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
-                    <div className="flex items-center space-x-4">
-                      <img
-                        src={item.product?.image || '/placeholder.png'}
-                        alt={item.product?.name || 'Product'}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
-                      <div>
-                        <p className="font-fredoka font-semibold text-charcoal">{String(item.product?.name || 'Product')}</p>
-                        <p className="text-sm text-medium-gray">Qty: {item.quantity} </p>
+                normalizedCart.map((item) => {
+                  const originalPrice = (item.product as any).originalPrice || item.product.price;
+                  const hasDiscount = originalPrice > item.product.price;
+
+                  return (
+                    <div key={item.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
+                      <div className="flex items-center space-x-4">
+                        <img
+                          src={item.product?.image || '/placeholder.png'}
+                          alt={item.product?.name || 'Product'}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                        <div>
+                          <p className="font-fredoka font-semibold text-charcoal">{String(item.product?.name || 'Product')}</p>
+                          <p className="text-sm text-medium-gray">Qty: {item.quantity}</p>
+                          {hasDiscount && (
+                            <p className="text-xs text-mint-green font-fredoka font-bold">
+                              Save {formatters.currency((originalPrice - item.product.price) * item.quantity)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {hasDiscount ? (
+                          <>
+                            <p className="font-fredoka font-semibold text-charcoal">
+                              {currentCurrency} {safeDisplayPrice((item.product?.price || 0) * item.quantity)}
+                            </p>
+                            <p className="text-sm line-through text-gray-400">
+                              {currentCurrency} {safeDisplayPrice(originalPrice * item.quantity)}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="font-fredoka font-semibold text-charcoal">
+                            {currentCurrency} {safeDisplayPrice((item.product?.price || 0) * item.quantity)}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <p className="font-fredoka font-semibold text-charcoal">
-                      {currentCurrency} {safeDisplayPrice((item.product?.price || 0) * item.quantity)}
-                    </p>
-                  </div>
-                ))
+                  );
+                })
                 )}
               </div>
             </div>
@@ -1605,38 +1672,57 @@ const Checkout: React.FC = () => {
                   {isSubscription
                     ? selectedProducts?.map((product: any) => {
                         const currencyDisplay = getCurrencyDisplay(product.currency);
-                        const priceDisplay = safeDisplayPrice(product.subscription_price);
-                        
+                        const unitPrice = safeDisplayPrice(product.subscription_price);
+                        const quantity = product.quantity || 1;
+                        const totalForProduct = (product.subscription_price || 0) * quantity * deliveryCount;
+
                         return (
                           <div key={product.id} className="flex justify-between items-start text-sm">
                             <div className="flex-1">
                               <p className="font-fredoka font-medium text-charcoal">{String(product.name)}</p>
                               <p className="text-medium-gray">
-                                Qty: {deliveryCount} × {String(currencyDisplay)} {priceDisplay}
+                                {quantity} unit{quantity > 1 ? 's' : ''} × {deliveryCount} delivery{deliveryCount > 1 ? 'ies' : 'y'}
                               </p>
-                              <p className="text-medium-gray">
-                                (Quantity for the time period is {deliveryCount})
+                              <p className="text-medium-gray text-xs">
+                                {String(currencyDisplay)} {unitPrice} per unit
                               </p>
                             </div>
                             <p className="font-fredoka font-semibold text-charcoal ml-2">
-                              {String(currencyDisplay)} {priceDisplay}
+                              {String(currencyDisplay)} {safeDisplayPrice(totalForProduct)}
                             </p>
                           </div>
                         );
                       })
-                    : cart.map((item) => (
-                        <div key={item.id} className="flex justify-between items-start text-sm">
-                          <div className="flex-1">
-                            <p className="font-fredoka font-medium text-charcoal">{String(item.product.name)}</p>
-                            <p className="text-medium-gray">
-                              Qty: {item.quantity} × {currentCurrency} {safeDisplayPrice(item.product.price)}
-                            </p>
+                    : normalizedCart.map((item) => {
+                        const originalPrice = (item.product as any).originalPrice || item.product.price;
+                        const hasDiscount = originalPrice > item.product.price;
+
+                        return (
+                          <div key={item.id} className="flex justify-between items-start text-sm">
+                            <div className="flex-1">
+                              <p className="font-fredoka font-medium text-charcoal">{String(item.product.name)}</p>
+                              <p className="text-medium-gray">
+                                Qty: {item.quantity} × {currentCurrency} {safeDisplayPrice(item.product.price)}
+                              </p>
+                              {hasDiscount && (
+                                <p className="text-xs text-mint-green font-fredoka font-bold">
+                                  Save {formatters.currency((originalPrice - item.product.price) * item.quantity)}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right ml-2">
+                              <p className="font-fredoka font-semibold text-charcoal">
+                                {currentCurrency} {safeDisplayPrice(item.product.price * item.quantity)}
+                              </p>
+                              {hasDiscount && (
+                                <p className="text-xs line-through text-gray-400">
+                                  {currentCurrency} {safeDisplayPrice(originalPrice * item.quantity)}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <p className="font-fredoka font-semibold text-charcoal ml-2">
-                            {currentCurrency} {safeDisplayPrice(item.product.price * item.quantity)}
-                          </p>
-                        </div>
-                      ))
+                        );
+                      })
                   }
                 </div>
 
@@ -1671,6 +1757,20 @@ const Checkout: React.FC = () => {
                       <p className="text-xs text-medium-gray ml-10">
                         {pricing.birthday_discount.message}
                       </p>
+                    </div>
+                  )}
+
+                  {getTotalDiscount() > 0 && (
+                    <div className="p-3 bg-gradient-to-r from-mint-green/10 to-mint-green/20 rounded-xl border-2 border-mint-green/30">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <span className="text-xl mr-2">✨</span>
+                          <span className="font-fredoka font-semibold text-mint-green">Deal Discount</span>
+                        </div>
+                        <span className="font-fredoka font-bold text-mint-green">
+                          -{currentCurrency} {safeDisplayPrice(getTotalDiscount())}
+                        </span>
+                      </div>
                     </div>
                   )}
 

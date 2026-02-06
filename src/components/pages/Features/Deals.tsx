@@ -155,8 +155,12 @@ const Deals: React.FC = () => {
     const fetchDeals = async () => {
       try {
         const response = await api.get('/deals/active');
-        setDeals((response.data as any).data || []);
+        const dealsData = (response.data as any).data || [];
+        console.log('[Deals Page] Total deals fetched:', dealsData.length);
+        console.log('[Deals Page] Deals data:', dealsData);
+        setDeals(dealsData);
       } catch (err) {
+        console.error('[Deals Page] Error fetching deals:', err);
         setError('Failed to load deals');
       } finally {
         setLoading(false);
@@ -173,10 +177,22 @@ const Deals: React.FC = () => {
   if (loading) return <div className="text-center py-20">Loading deals...</div>;
   if (error) return <div className="text-center text-red-500 py-20">{error}</div>;
 
-  const productDeals = deals.filter(d => d.deal_type === 'product');
-  const brandDeals = deals.filter(d => d.deal_type === 'brand');
-  const categoryDeals = deals.filter(d => d.deal_type === 'category');
+  // Group deals by type - matching actual backend values
+  const flashSaleDeals = deals.filter(d => ['flash_sale', 'clearance', 'weekend_sale'].includes(d.deal_type));
+  const brandDeals = deals.filter(d => d.deal_type === 'brand_deal');
+  const categoryDeals = deals.filter(d => d.deal_type === 'category_sale');
   const bogoDeals = deals.filter(d => d.deal_type === 'bogo');
+  const specialDeals = deals.filter(d => ['new_customer', 'bulk_buy', 'product_deal'].includes(d.deal_type));
+
+  console.log('[Deals Page] Filtered deals:', {
+    total: deals.length,
+    flashSale: flashSaleDeals.length,
+    brand: brandDeals.length,
+    category: categoryDeals.length,
+    bogo: bogoDeals.length,
+    special: specialDeals.length,
+    dealTypes: deals.map(d => ({ title: d.title, deal_type: d.deal_type }))
+  });
 
   return (
     <div className="min-h-screen bg-off-white">
@@ -202,10 +218,25 @@ const Deals: React.FC = () => {
         <WhyPawsomeSection />
 
         <div className="space-y-16">
-          <DealSection title="🐶 Active Product Deals" deals={productDeals} onDealClick={handleDealClick} />
-          <DealSection title="🏷️ Active Brand Deals" deals={brandDeals} onDealClick={handleDealClick} />
-          <DealSection title="📦 Active Category Deals" deals={categoryDeals} onDealClick={handleDealClick} />
-          <DealSection title="🎁 Buy One Get One Deals" deals={bogoDeals} onDealClick={handleDealClick} />
+          {deals.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="text-6xl mb-4">🎁</div>
+              <h2 className="text-2xl font-fredoka font-bold text-charcoal mb-2">
+                No Active Deals Available
+              </h2>
+              <p className="text-medium-gray font-fredoka">
+                Check back soon for amazing deals on pet products!
+              </p>
+            </div>
+          ) : (
+            <>
+              <DealSection title="⚡ Flash Sales & Limited Time Offers" deals={flashSaleDeals} onDealClick={handleDealClick} />
+              <DealSection title="🏷️ Brand Exclusive Deals" deals={brandDeals} onDealClick={handleDealClick} />
+              <DealSection title="📦 Category Special Deals" deals={categoryDeals} onDealClick={handleDealClick} />
+              <DealSection title="🎁 Buy One Get One Free" deals={bogoDeals} onDealClick={handleDealClick} />
+              <DealSection title="🌟 Special Offers & Promotions" deals={specialDeals} onDealClick={handleDealClick} />
+            </>
+          )}
         </div>
 
         <CategoryCarousel />

@@ -56,7 +56,14 @@ interface Subscription {
     discount_percentage: number;
     tax_amount: number;
     total_amount: number;
+    total_subscription_cost?: number;
+    per_delivery_cost?: number;
     currency: string;
+  };
+  delivery_schedule?: {
+    total_deliveries: number;
+    completed_deliveries: number;
+    remaining_deliveries: number;
   };
   items: any[];
   total_items: number;
@@ -68,7 +75,7 @@ interface Subscription {
   deliveryAddress: string;
   nextDelivery: string | null;
    total: number;
-  savedAmount: number; 
+  savedAmount: number;
 }
 
 interface Category {
@@ -116,6 +123,11 @@ interface MappedSubscription {
   status: any;
   deliveryAddress: string;
   savedAmount: any;
+  totalDeliveries?: number;
+  completedDeliveries?: number;
+  remainingDeliveries?: number;
+  perDeliveryCost?: number;
+  totalSubscriptionCost?: number;
   items: {
     name: string;
     quantity: number;
@@ -186,6 +198,12 @@ const Subscriptions = () => {
               ? `Address ID: ${item.delivery.address_id}`
               : "Default Address",
             savedAmount: item.items?.reduce((sum: number, subItem: any) => sum + (subItem.pricing?.total_savings || 0), 0) || 0,
+            // Enhanced delivery schedule tracking
+            totalDeliveries: item.delivery_schedule?.total_deliveries,
+            completedDeliveries: item.delivery_schedule?.completed_deliveries || 0,
+            remainingDeliveries: item.delivery_schedule?.remaining_deliveries,
+            perDeliveryCost: item.pricing?.per_delivery_cost,
+            totalSubscriptionCost: item.pricing?.total_subscription_cost,
             items: item.items?.map((subItem: any) => ({
               name: subItem.product?.name || "Unknown Product",
               quantity: subItem.quantity || 1,
@@ -330,11 +348,27 @@ const Subscriptions = () => {
       return;
     }
 
+    // Attach quantities and calculate subscription price for each product
+    const productsWithQuantities = selectedProducts.map(product => {
+      const quantity = productQuantities[product.id] || 1;
+      const discountPercent = product.subscription_discount_percentage || 0;
+      const discountMultiplier = 1 - (discountPercent / 100);
+      const subscriptionPrice = Math.floor(product.price * discountMultiplier);
+
+      return {
+        ...product,
+        quantity,
+        subscription_price: subscriptionPrice
+      };
+    });
+
+    console.log(`[Subscriptions] Creating subscription: ${productsWithQuantities.length} products, ${scheduleData.intervalType} from ${scheduleData.startDate} to ${scheduleData.endDate || 'ongoing'}`);
+
     navigate('/checkout', {
       state: {
         type: "subscription",
         scheduleData,
-        selectedProducts
+        selectedProducts: productsWithQuantities
       },
     });
   };
@@ -365,19 +399,25 @@ const Subscriptions = () => {
   }
 
   const handleViewProductDetails = async (product: Product) => {
-    
-  try {
-    const response = await api.get(`/products/${product}`);
-    if ((response.data as any).success) {
-      console.log((response.data as any).data.product);
-      
-      setSelectedProduct((response.data as any)?.data?.product);
-      setShowProductModal(true);
+    try {
+      // Use slug instead of id for product details endpoint
+      const response = await api.get(`/products/${product.slug || product.id}`);
+
+      if (response.success && response.data) {
+        const productData = (response.data as any)?.data?.product || (response.data as any);
+        setSelectedProduct(productData);
+        setShowProductModal(true);
+      } else {
+        // Product not found or API error
+        const errorMsg = (response as any).error || 'Product not found';
+        console.error("Failed to load product:", errorMsg);
+        toast.error(`Product not available`);
+      }
+    } catch (error) {
+      console.error("Error fetching product details:", error);
+      toast.error("Failed to load product details");
     }
-  } catch (error) {
-    console.error("Error fetching product details:", error);
-  }
-};
+  };
 
  const handleCancel = async (subscriptionId: number) => {
   if (!window.confirm("Are you sure you want to cancel this subscription?")) return;
@@ -833,7 +873,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                                 : "https://via.placeholder.com/300x200?text=No+Image"
                             }
                             alt={product.name}
-                            className="w-full h-full object-cover rounded-md"
+                            className="w-full h-full object-cover rounded-xl"
                           />
                           <div className="absolute top-2 right-2 bg-vibrant-orange text-white text-xs px-2 py-1 rounded-full">
                             Save 10%
@@ -884,7 +924,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           <div className="bg-soft-gray rounded-xl p-3">
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-fredoka font-medium text-charcoal">Quantity</span>
-                              <div className="flex items-center gap-3 bg-white rounded-lg px-3 py-1 shadow-sm">
+                              <div className="flex items-center gap-3 bg-white rounded-2xl px-3 py-1 shadow-sm">
                                 <button
                                  onClick={() => handleQuantityChange(String(product.id), -1)}
                                   className="w-8 h-8 rounded-full bg-light-gray hover:bg-vibrant-orange hover:text-white flex items-center justify-center transition-all"
@@ -895,7 +935,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                                   {productQuantities[product.id] || 1}
                                 </span>
                                 <button
-                                  onClick={() => handleQuantityChange(String(product.id), -1)}
+                                  onClick={() => handleQuantityChange(String(product.id), 1)}
                                   className="w-8 h-8 rounded-full bg-light-gray hover:bg-vibrant-orange hover:text-white flex items-center justify-center transition-all"
                                 >
                                   <Plus className="h-4 w-4" />
@@ -965,7 +1005,27 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
 
                     {/* Action Buttons */}
                     <div className="space-y-4">
-                      <button 
+                      <button
+                        onClick={() => {
+                          if (startDate && endDate) {
+                            // Map deliveryFrequency to intervalType expected by checkout
+                            const intervalTypeMap: Record<string, string> = {
+                              'daily': 'days',
+                              'weekly': 'weekly',
+                              'monthly': 'monthly'
+                            };
+
+                            handleConfirmSelection({
+                              intervalType: intervalTypeMap[deliveryFrequency] || 'weekly',
+                              intervalValue: 1,
+                              startDate,
+                              endDate,
+                              deliveryPeriod: intervalTypeMap[deliveryFrequency] || 'weekly'
+                            });
+                          } else {
+                            toast.error('Please select both start and end dates');
+                          }
+                        }}
                         disabled={!startDate || !endDate}
                         className={`w-full font-bold text-lg py-4 rounded-2xl transition-all duration-300 shadow-lg ${
                           startDate && endDate
@@ -973,8 +1033,8 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                             : 'bg-light-gray text-medium-gray cursor-not-allowed'
                         }`}
                       >
-                        {startDate && endDate 
-                          ? 'Proceed to Checkout' 
+                        {startDate && endDate
+                          ? 'Proceed to Checkout'
                           : 'Please select subscription dates'
                         }
                       </button>
@@ -1105,7 +1165,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           <button
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
-                            className={`p-2 rounded-lg transition-all ${
+                            className={`p-2 rounded-2xl transition-all ${
                               currentPage === 1
                                 ? 'bg-light-gray text-medium-gray cursor-not-allowed'
                                 : 'bg-white text-charcoal hover:bg-vibrant-orange hover:text-white'
@@ -1132,7 +1192,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                                 <button
                                   key={pageNum}
                                   onClick={() => handlePageChange(pageNum)}
-                                  className={`px-3 py-1 rounded-lg font-fredoka font-medium transition-all ${
+                                  className={`px-3 py-1 rounded-2xl font-fredoka font-medium transition-all ${
                                     currentPage === pageNum
                                       ? 'bg-vibrant-orange text-white'
                                       : 'bg-white text-charcoal hover:bg-light-gray'
@@ -1148,7 +1208,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           <button
                             onClick={() => handlePageChange(currentPage + 1)}
                             disabled={currentPage === totalPages}
-                            className={`p-2 rounded-lg transition-all ${
+                            className={`p-2 rounded-2xl transition-all ${
                               currentPage === totalPages
                                 ? 'bg-light-gray text-medium-gray cursor-not-allowed'
                                 : 'bg-white text-charcoal hover:bg-vibrant-orange hover:text-white'
@@ -1240,7 +1300,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                 {/* Delivery Frequency Type */}
                 <label className="block font-medium">Delivery Frequency</label>
                 <select
-                  className="w-full border rounded-lg p-2 mt-1 mb-4"
+                  className="w-full border rounded-2xl p-2 mt-1 mb-4"
                   value={intervalType}
                   onChange={e => {
                     const type = e.target.value as 'weekly' | 'monthly' | 'custom';
@@ -1257,7 +1317,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                 {/* Interval Value Selection */}
                 <label className="block font-medium">Delivery Interval</label>
                 <select
-                  className="w-full border rounded-lg p-2 mt-1 mb-4"
+                  className="w-full border rounded-2xl p-2 mt-1 mb-4"
                   value={intervalValue}
                   onChange={e => setIntervalValue(Number(e.target.value))}
                 >
@@ -1294,7 +1354,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                 <label className="block font-medium mt-4">Start Date</label>
                 <input
                   type="date"
-                  className="w-full border rounded-lg p-2 mt-1"
+                  className="w-full border rounded-2xl p-2 mt-1"
                   value={startDate}
                   min={new Date().toISOString().split("T")[0]}
                   onChange={e => setStartDate(e.target.value)}
@@ -1304,7 +1364,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                 <label className="block font-medium mt-4">End Date (Optional)</label>
                 <input
                   type="date"
-                  className="w-full border rounded-lg p-2 mt-1"
+                  className="w-full border rounded-2xl p-2 mt-1"
                   min={startDate || new Date().toISOString().split("T")[0]}
                   value={endDate}
                   onChange={e => setEndDate(e.target.value)}
@@ -1327,7 +1387,8 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                         intervalType,
                         intervalValue,
                         startDate,
-                        endDate
+                        endDate,
+                        deliveryPeriod: intervalType // Add this for consistency
                       });
                     }}
                     disabled={!startDate}
@@ -1404,17 +1465,17 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                   <div className="mb-6">
                     <h3 className="font-semibold text-lg text-charcoal mb-3">Delivery Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-soft-gray p-4 rounded-lg">
+                      <div className="bg-soft-gray p-4 rounded-2xl">
                         <p className="text-sm text-medium-gray mb-1">Frequency</p>
                         <p className="font-medium">{selectedSubscription.frequency}</p>
                       </div>
-                      <div className="bg-soft-gray p-4 rounded-lg">
+                      <div className="bg-soft-gray p-4 rounded-2xl">
                         <p className="text-sm text-medium-gray mb-1">Next Delivery</p>
                         <p className="font-medium text-mint-green">
                           {selectedSubscription.nextDelivery ? new Date(selectedSubscription.nextDelivery).toLocaleDateString() : "N/A"}
                         </p>
                       </div>
-                      <div className="bg-soft-gray p-4 rounded-lg md:col-span-2">
+                      <div className="bg-soft-gray p-4 rounded-2xl md:col-span-2">
                         <p className="text-sm text-medium-gray mb-1">Delivery Address</p>
                         <p className="font-medium">{selectedSubscription.deliveryAddress}</p>
                       </div>
@@ -1426,7 +1487,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                     <h3 className="font-semibold text-lg text-charcoal mb-3">Products ({selectedSubscription.items.length})</h3>
                     <div className="space-y-3">
                       {selectedSubscription.items.map((item, index) => (
-                        <div key={index} className="bg-soft-gray p-4 rounded-lg flex justify-between items-center">
+                        <div key={index} className="bg-soft-gray p-4 rounded-2xl flex justify-between items-center">
                           <div>
                             <p className="font-medium text-charcoal">{item.name}</p>
                             <p className="text-sm text-medium-gray">Quantity: {item.quantity}</p>
@@ -1442,15 +1503,21 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-medium-gray">Subtotal</span>
-                        <span>{selectedProduct?.currency} {selectedSubscription.total + selectedSubscription.savedAmount}</span>
+                        <span>
+                          {typeof selectedProduct?.currency === 'object' ? (selectedProduct.currency as any)?.code || 'Rs.' : selectedProduct?.currency || 'Rs.'} {selectedSubscription.total + selectedSubscription.savedAmount}
+                        </span>
                       </div>
                       <div className="flex justify-between text-green-600">
                         <span>Subscription Discount (10%)</span>
-                        <span>-{selectedProduct?.currency} {selectedSubscription.savedAmount}</span>
+                        <span>
+                          -{typeof selectedProduct?.currency === 'object' ? (selectedProduct.currency as any)?.code || 'Rs.' : selectedProduct?.currency || 'Rs.'} {selectedSubscription.savedAmount}
+                        </span>
                       </div>
                       <div className="flex justify-between pt-2 border-t border-yellow-400">
                         <span className="font-semibold">Total per {selectedSubscription.frequency}</span>
-                        <span className="font-bold text-lg text-vibrant-orange">{selectedProduct?.currency}{selectedSubscription.total}</span>
+                        <span className="font-bold text-lg text-vibrant-orange">
+                          {typeof selectedProduct?.currency === 'object' ? (selectedProduct.currency as any)?.code || 'Rs.' : selectedProduct?.currency || 'Rs.'}{selectedSubscription.total}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1591,7 +1658,9 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           {selectedProduct.name}
                         </h2>
                         <p className="text-lg text-medium-gray flex items-center gap-2">
-                          by <span className="font-fredoka font-semibold text-vibrant-orange">{selectedProduct.brand}</span>
+                          by <span className="font-fredoka font-semibold text-vibrant-orange">
+                            {typeof selectedProduct.brand === 'object' ? (selectedProduct.brand as any)?.name : selectedProduct.brand}
+                          </span>
                         </p>
                       </div>
 
@@ -1628,7 +1697,11 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       <div className="mb-6">
                         <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-2">Description</h3>
                         <p className="text-medium-gray leading-relaxed">
-                          {selectedProduct.description || `Premium ${selectedProduct.category} for your beloved pet. This high-quality product from ${selectedProduct.brand} is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
+                          {selectedProduct.description || `Premium ${
+                            typeof selectedProduct.category === 'object' ? (selectedProduct.category as any)?.name : selectedProduct.category
+                          } for your beloved pet. This high-quality product from ${
+                            typeof selectedProduct.brand === 'object' ? (selectedProduct.brand as any)?.name : selectedProduct.brand
+                          } is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
                         </p>
                       </div>
 
@@ -1682,7 +1755,9 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           </div> */}
                           <div className="flex items-baseline gap-2">
                             <span className="text-3xl font-fredoka font-bold text-charcoal">
-                              {selectedProduct?.currency} {selectedProduct.price}
+                              {typeof selectedProduct?.currency === 'object'
+                                ? (selectedProduct.currency as any)?.code || 'Rs.'
+                                : selectedProduct?.currency || 'Rs.'} {selectedProduct.price}
                             </span>
                             {/* {selectedProduct.price && (
                               <span className="text-lg text-gray-400 line-through">
@@ -1749,7 +1824,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                               quantity: parseInt(e.target.value, 10),
                             })
                           }
-                          className="border rounded-md px-3 py-2 w-24"
+                          className="border rounded-xl px-3 py-2 w-24"
                         />
                       </div>
                       {/* Action Buttons */}
@@ -1820,7 +1895,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`relative bg-white rounded-lg border-2 transition-all ${
+      className={`relative bg-white rounded-2xl border-2 transition-all ${
         isSelected ? 'border-vibrant-orange shadow-lg' : 'border-light-gray hover:border-medium-gray'
       }`}
     >
@@ -1852,7 +1927,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
               : "https://via.placeholder.com/300x200?text=No+Image"
           }
           alt={product.name}
-          className="w-full h-full object-cover rounded-md"
+          className="w-full h-full object-cover rounded-xl"
         />
       </div>
 
@@ -1895,7 +1970,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
               e.stopPropagation();
               onViewDetails(product);
             }}
-            className="flex-1 bg-primary-blue hover:bg-blue-700 text-white text-xs font-fredoka font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+            className="flex-1 bg-primary-blue hover:bg-blue-700 text-white text-xs font-fredoka font-medium py-2 px-3 rounded-2xl transition-colors flex items-center justify-center gap-1"
           >
             <Eye className="h-3 w-3" />
             View Details
@@ -1905,7 +1980,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
               e.stopPropagation();
               onToggle(product);
             }}
-            className={`flex-1 text-xs font-fredoka font-medium py-2 px-3 rounded-lg transition-colors ${
+            className={`flex-1 text-xs font-fredoka font-medium py-2 px-3 rounded-2xl transition-colors ${
               isSelected 
                 ? 'bg-red-500 hover:bg-red-600 text-white' 
                 : 'bg-warm-orange hover:bg-vibrant-yellow text-white'

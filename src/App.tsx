@@ -10,6 +10,7 @@ import Header from './components/common/Header';
 import Footer from './components/common/Footer/Footer';
 import AdminProtectedRoute from './components/common/AdminProtectedRoute';
 import AdminLayout from './components/admin/AdminLayout';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // Pages
 import Home from './components/pages/Home/HomeNew';
@@ -60,6 +61,7 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
+      <ScrollToTop />
       {!hideLayout && <Header />}
       <main className="relative">
         <Routes>

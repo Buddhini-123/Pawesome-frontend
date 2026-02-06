@@ -72,6 +72,14 @@ const Cart: React.FC = () => {
     return shippingCost || 0;
   };
 
+  const getTotalDiscount = (): number => {
+    return normalizedCart.reduce((total, item) => {
+      const originalPrice = (item.product as any).originalPrice || item.product.price;
+      const discount = (originalPrice - item.product.price) * item.quantity;
+      return total + discount;
+    }, 0);
+  };
+
   const getFinalTotal = (): number => {
     return totalPrice + getShippingCost();
   };
@@ -345,12 +353,33 @@ const Cart: React.FC = () => {
                             )}
                           </div>
 
-                          <motion.p
-                            className="text-xl font-fredoka font-bold text-mint-green mt-2"
-                            animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
-                          >
-                            {formatters.currency(item.product.price)}
-                          </motion.p>
+                          <div className="mt-2">
+                            {(item.product as any).originalPrice && (item.product as any).originalPrice > item.product.price ? (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <motion.p
+                                    className="text-xl font-fredoka font-bold text-vibrant-orange"
+                                    animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
+                                  >
+                                    {formatters.currency(item.product.price)}
+                                  </motion.p>
+                                  <span className="text-sm line-through text-gray-400 font-fredoka">
+                                    {formatters.currency((item.product as any).originalPrice)}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-mint-green font-fredoka font-bold">
+                                  Save {formatters.currency(((item.product as any).originalPrice - item.product.price) * item.quantity)}
+                                </span>
+                              </>
+                            ) : (
+                              <motion.p
+                                className="text-xl font-fredoka font-bold text-mint-green"
+                                animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
+                              >
+                                {formatters.currency(item.product.price)}
+                              </motion.p>
+                            )}
+                          </div>
                         </div>
                         
                         <div className="flex items-center bg-soft-gray rounded-full p-1">
@@ -437,6 +466,28 @@ const Cart: React.FC = () => {
                     {formatters.currency(totalPrice)}
                   </motion.span>
                 </motion.div>
+
+                {/* Total Discount */}
+                {getTotalDiscount() > 0 && (
+                  <motion.div
+                    className="flex justify-between items-center p-3 rounded-xl bg-mint-green/10 border border-mint-green/30"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ x: 5 }}
+                  >
+                    <span className="text-charcoal font-fredoka font-medium flex items-center">
+                      <Sparkles className="w-4 h-4 mr-2 text-mint-green" />
+                      Deal Discount
+                    </span>
+                    <motion.span
+                      className="font-fredoka font-bold text-lg text-mint-green"
+                      key={getTotalDiscount()}
+                      animate={{ scale: [1, 1.1, 1] }}
+                    >
+                      -{formatters.currency(getTotalDiscount())}
+                    </motion.span>
+                  </motion.div>
+                )}
 
                 {/* Total Weight */}
                 {totalWeight > 0 && (

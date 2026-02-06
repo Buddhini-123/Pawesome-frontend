@@ -201,7 +201,7 @@ const LoyaltyDashboard: React.FC = () => {
             {/* Middle Row - Points Balance */}
             <div className="text-center">
               <p className="text-3xl font-fredoka font-bold tracking-wider">
-                {loyaltyCard.points.toLocaleString()}
+                {(loyaltyCard.points ?? 0).toLocaleString()}
               </p>
               <p className="text-sm font-fredoka opacity-90">POINTS AVAILABLE</p>
             </div>
@@ -253,7 +253,7 @@ const LoyaltyDashboard: React.FC = () => {
             />
           </div>
           <p className="text-sm text-medium-gray font-fredoka">
-            {(nextTier.minPoints - loyaltyCard.totalEarned).toLocaleString()} points to unlock {nextTier.tier} benefits
+            {(nextTier.minPoints - (loyaltyCard.totalEarned ?? 0)).toLocaleString()} points to unlock {nextTier.tier} benefits
           </p>
         </motion.div>
       )}
@@ -267,12 +267,12 @@ const LoyaltyDashboard: React.FC = () => {
       >
         <div className="bg-white rounded-xl p-4 shadow-lg text-center">
           <TrendingUp className="h-8 w-8 mx-auto mb-2 text-mint-green" />
-          <p className="text-xl font-fredoka font-bold text-charcoal">{loyaltyCard.totalEarned.toLocaleString()}</p>
+          <p className="text-xl font-fredoka font-bold text-charcoal">{(loyaltyCard.totalEarned ?? 0).toLocaleString()}</p>
           <p className="text-xs text-medium-gray font-fredoka">Total Earned</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-lg text-center">
           <Gift className="h-8 w-8 mx-auto mb-2 text-vibrant-orange" />
-          <p className="text-xl font-fredoka font-bold text-charcoal">{loyaltyCard.totalRedeemed.toLocaleString()}</p>
+          <p className="text-xl font-fredoka font-bold text-charcoal">{(loyaltyCard.totalRedeemed ?? 0).toLocaleString()}</p>
           <p className="text-xs text-medium-gray font-fredoka">Redeemed</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-lg text-center">
