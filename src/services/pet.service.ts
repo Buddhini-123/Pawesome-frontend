@@ -403,6 +403,7 @@ class PetService {
       allergies: backendPet.allergies || [],
       medications: backendPet.medications || [],
       dateOfBirth: backendPet.date_of_birth ? new Date(backendPet.date_of_birth) : undefined,
+      timeline: [], // Initialize empty timeline (timeline feature to be implemented later)
       createdAt: backendPet.created_at ? new Date(backendPet.created_at) : new Date(),
       updatedAt: backendPet.updated_at ? new Date(backendPet.updated_at) : new Date(),
     };
