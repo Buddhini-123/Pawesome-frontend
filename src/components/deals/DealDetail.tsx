@@ -248,9 +248,9 @@ const DealDetail: React.FC = () => {
       <div className="min-h-screen bg-off-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-fredoka font-bold text-charcoal mb-4">Deal Not Found</h1>
-          <button 
+          <button
             onClick={() => navigate('/deals')}
-            className="bg-vibrant-orange text-white px-6 py-3 rounded-lg font-fredoka hover:bg-vibrant-orange/90 transition-colors"
+            className="bg-vibrant-orange text-white px-6 py-3 rounded-2xl font-fredoka hover:bg-vibrant-orange/90 transition-colors"
           >
             Back to Deals
           </button>
@@ -352,7 +352,7 @@ const DealDetail: React.FC = () => {
                 <button
                   onClick={handleAddDealToCart}
                   disabled={addingToCart || products.length === 0}
-                  className={`w-full px-8 py-4 rounded-lg font-fredoka font-semibold transition-all flex justify-center items-center gap-2
+                  className={`w-full px-8 py-4 rounded-2xl font-fredoka font-semibold transition-all flex justify-center items-center gap-2
                     ${addingToCart || products.length === 0
                       ? 'bg-gray-400 text-white cursor-not-allowed'
                       : 'bg-primary-blue text-white hover:bg-primary-blue/90 hover:scale-105 shadow-lg'}`}
@@ -377,7 +377,7 @@ const DealDetail: React.FC = () => {
 
                 <button
                   onClick={toggleShowMore}
-                  className="w-full border-2 border-vibrant-orange text-vibrant-orange px-8 py-4 rounded-lg font-fredoka font-semibold hover:bg-vibrant-orange hover:text-white transition-all flex justify-center items-center gap-2"
+                  className="w-full border-2 border-vibrant-orange text-vibrant-orange px-8 py-4 rounded-2xl font-fredoka font-semibold hover:bg-vibrant-orange hover:text-white transition-all flex justify-center items-center gap-2"
                 >
                   Learn More
                   {showMore ? <ChevronUp className="w-5 h-5 transition-transform" /> : <ChevronDown className="w-5 h-5 transition-transform" />}

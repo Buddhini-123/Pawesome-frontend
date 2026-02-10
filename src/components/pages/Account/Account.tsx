@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Package, 
-  Heart, 
-  Settings, 
-  LogOut, 
+import {
+  User,
+  Package,
+  Heart,
+  Settings,
+  LogOut,
   Camera,
   Mail,
   Phone,
   MapPin,
+  Home,
+  Building,
+  Navigation,
   Calendar,
   Shield,
   Bell,
@@ -55,6 +58,9 @@ import { useNavigate } from 'react-router-dom';
 import { Pet, PetForm, PetTimelineEntry, TimelineEntryType, TimelineCategory } from '../../../types';
 import { v4 as uuidv4 } from 'uuid';
 import {api} from "../../../services/api"
+import AddressManagement from './AddressManagement';
+import { petService, BackendPet } from '../../../services/pet.service';
+import { toast } from 'react-toastify';
 
 const Account: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -72,14 +78,23 @@ const Account: React.FC = () => {
     address: ""
   });
   const [loading, setLoading] = useState(false);
+
+  // Default Address State
+  const [defaultAddress, setDefaultAddress] = useState<any>(null);
+  const [loadingAddress, setLoadingAddress] = useState(false);
+
   // Pet Management State
   const [pets, setPets] = useState<Pet[]>(user?.pets || []);
+  const [loadingPets, setLoadingPets] = useState(false);
+  const [savingPet, setSavingPet] = useState(false);
   const [showAddPet, setShowAddPet] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [showPetProfile, setShowPetProfile] = useState(false);
   const [showAddTimelineEntry, setShowAddTimelineEntry] = useState(false);
   const [timelineFilter, setTimelineFilter] = useState<TimelineCategory | 'all'>('all');
+  const [petImage, setPetImage] = useState<File | null>(null);
+  const [petImagePreview, setPetImagePreview] = useState<string>('');
   const [petFormData, setPetFormData] = useState<PetForm>({
     name: '',
     type: 'dog',
@@ -148,6 +163,7 @@ const Account: React.FC = () => {
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User, color: 'text-primary-blue' },
+    { id: 'addresses', name: 'Addresses', icon: MapPin, color: 'text-mint-green' },
     { id: 'pets', name: 'My Pets', icon: PawPrint, color: 'text-sunny-yellow' },
     { id: 'orders', name: 'My Orders', icon: Package, color: 'text-vibrant-orange' },
     { id: 'wishlist', name: 'Wishlist', icon: Heart, color: 'text-coral-red' },
@@ -185,6 +201,30 @@ const Account: React.FC = () => {
 
     fetchProfile();
   }, []);
+
+  // Fetch default address
+  const fetchDefaultAddress = async () => {
+    try {
+      setLoadingAddress(true);
+      const response = await api.get('/users/addresses');
+      if (response.success && response.data) {
+        const addresses = (response.data as any).data || [];
+        const defaultAddr = addresses.find((addr: any) => addr.is_default);
+        setDefaultAddress(defaultAddr || addresses[0] || null);
+      }
+    } catch (error) {
+      console.error('[Account] Failed to fetch default address:', error);
+    } finally {
+      setLoadingAddress(false);
+    }
+  };
+
+  // Fetch default address when on profile tab
+  useEffect(() => {
+    if (activeTab === 'profile') {
+      fetchDefaultAddress();
+    }
+  }, [activeTab]);
 
   const handleSaveProfile = async () => {
     try {
@@ -234,9 +274,37 @@ const Account: React.FC = () => {
     navigate('/');
   };
 
+  // Fetch pets from API
+  const fetchPets = async () => {
+    try {
+      setLoadingPets(true);
+      console.log('[Account] Fetching pets from API...');
+      const backendPets = await petService.getPets();
+      console.log('[Account] Fetched pets:', backendPets);
+
+      // Convert backend pets to frontend format
+      const frontendPets = backendPets.map(bp => petService.convertToFrontendPet(bp));
+      setPets(frontendPets);
+    } catch (error: any) {
+      console.error('[Account] Failed to fetch pets:', error);
+      toast.error('Failed to load pets');
+    } finally {
+      setLoadingPets(false);
+    }
+  };
+
+  // Fetch pets when pets tab is active
+  useEffect(() => {
+    if (activeTab === 'pets') {
+      fetchPets();
+    }
+  }, [activeTab]);
+
   // Pet Management Functions
   const handleAddPet = () => {
     setEditingPet(null);
+    setPetImage(null);
+    setPetImagePreview('');
     setPetFormData({
       name: '',
       type: 'dog',
@@ -259,6 +327,8 @@ const Account: React.FC = () => {
 
   const handleEditPet = (pet: Pet) => {
     setEditingPet(pet);
+    setPetImage(null);
+    setPetImagePreview(pet.image || '');
     setPetFormData({
       name: pet.name,
       type: pet.type,
@@ -279,40 +349,93 @@ const Account: React.FC = () => {
     setShowAddPet(true);
   };
 
-  const handleSavePet = () => {
-    const petData: Pet = {
-      id: editingPet?.id || uuidv4(),
-      name: petFormData.name,
-      type: petFormData.type,
-      breed: petFormData.breed || undefined,
-      age: petFormData.age ? parseInt(petFormData.age) : undefined,
-      ageUnit: petFormData.ageUnit,
-      weight: petFormData.weight ? parseFloat(petFormData.weight) : undefined,
-      weightUnit: petFormData.weightUnit,
-      gender: petFormData.gender,
-      color: petFormData.color || undefined,
-      dateOfBirth: petFormData.dateOfBirth ? new Date(petFormData.dateOfBirth) : undefined,
-      isNeutered: petFormData.isNeutered,
-      microchipId: petFormData.microchipId || undefined,
-      medicalNotes: petFormData.medicalNotes || undefined,
-      allergies: petFormData.allergies ? petFormData.allergies.split(',').map(a => a.trim()).filter(a => a) : undefined,
-      medications: petFormData.medications ? petFormData.medications.split(',').map(m => m.trim()).filter(m => m) : undefined,
-      createdAt: editingPet?.createdAt || new Date(),
-      updatedAt: new Date()
-    };
-
-    if (editingPet) {
-      setPets(pets.map(pet => pet.id === editingPet.id ? petData : pet));
-    } else {
-      setPets([...pets, petData]);
+  const handlePetImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPetImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPetImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-    
-    setShowAddPet(false);
-    setEditingPet(null);
   };
 
-  const handleDeletePet = (petId: string) => {
-    setPets(pets.filter(pet => pet.id !== petId));
+  const handleSavePet = async () => {
+    try {
+      setSavingPet(true);
+
+      // Validate required fields
+      if (!petFormData.name || !petFormData.type) {
+        toast.error('Please fill in required fields (Name and Species)');
+        return;
+      }
+
+      // Prepare backend data
+      const backendData = {
+        name: petFormData.name,
+        species: petFormData.type,
+        breed: petFormData.breed || undefined,
+        date_of_birth: petFormData.dateOfBirth || undefined,
+        gender: petFormData.gender || undefined,
+        weight: petFormData.weight ? parseFloat(petFormData.weight) : undefined,
+        weight_unit: petFormData.weightUnit || undefined,
+        color: petFormData.color || undefined,
+        is_neutered: petFormData.isNeutered,
+        microchip_id: petFormData.microchipId || undefined,
+        medical_notes: petFormData.medicalNotes || undefined,
+        allergies: petFormData.allergies ? petFormData.allergies.split(',').map(a => a.trim()).filter(a => a) : undefined,
+        medications: petFormData.medications ? petFormData.medications.split(',').map(m => m.trim()).filter(m => m) : undefined,
+        image: petImage || undefined,
+      };
+
+      console.log('[Account] Saving pet:', backendData);
+
+      let savedPet: BackendPet;
+
+      if (editingPet) {
+        // Update existing pet
+        savedPet = await petService.updatePet(editingPet.id, backendData);
+        toast.success('Pet updated successfully!');
+      } else {
+        // Add new pet
+        savedPet = await petService.addPet(backendData);
+        toast.success('Pet added successfully!');
+      }
+
+      console.log('[Account] Pet saved:', savedPet);
+
+      // Refresh pets list
+      await fetchPets();
+
+      setShowAddPet(false);
+      setEditingPet(null);
+      setPetImage(null);
+      setPetImagePreview('');
+    } catch (error: any) {
+      console.error('[Account] Failed to save pet:', error);
+      toast.error(error.message || 'Failed to save pet');
+    } finally {
+      setSavingPet(false);
+    }
+  };
+
+  const handleDeletePet = async (petId: string) => {
+    if (!window.confirm('Are you sure you want to delete this pet?')) {
+      return;
+    }
+
+    try {
+      console.log('[Account] Deleting pet:', petId);
+      await petService.deletePet(petId);
+      toast.success('Pet deleted successfully');
+
+      // Refresh pets list
+      await fetchPets();
+    } catch (error: any) {
+      console.error('[Account] Failed to delete pet:', error);
+      toast.error(error.message || 'Failed to delete pet');
+    }
   };
 
   const handlePetFormChange = (field: keyof PetForm, value: any) => {
@@ -672,19 +795,103 @@ const Account: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="mt-6">
-              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                <MapPin className="inline h-4 w-4 mr-2" />
-                Address
-              </label>
-              <textarea
-                disabled={!isEditing}
-                value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
-                className={`w-full border ${isEditing ? 'border-primary-blue' : 'border-light-gray'} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-blue transition-all`}
-                rows={3}
-              />
+
+            {/* Default Address Section */}
+            <div className="mt-8 pt-8 border-t-2 border-light-gray">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-fredoka font-bold text-charcoal flex items-center">
+                  <MapPin className="inline h-5 w-5 mr-2 text-mint-green" />
+                  Default Delivery Address
+                </h3>
+                <button
+                  onClick={() => setActiveTab('addresses')}
+                  className="text-primary-blue hover:text-primary-blue/80 font-fredoka font-medium text-sm flex items-center gap-1 transition-colors"
+                >
+                  <Edit3 className="h-4 w-4" />
+                  Manage Addresses
+                </button>
+              </div>
+
+              {loadingAddress ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-blue"></div>
+                </div>
+              ) : defaultAddress ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-br from-mint-green/10 to-primary-blue/5 rounded-2xl p-6 border-2 border-mint-green/30"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-mint-green/20 rounded-xl">
+                      {defaultAddress.type === 'home' ? (
+                        <Home className="h-6 w-6 text-mint-green" />
+                      ) : defaultAddress.type === 'work' ? (
+                        <Building className="h-6 w-6 text-mint-green" />
+                      ) : (
+                        <MapPin className="h-6 w-6 text-mint-green" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-fredoka font-bold text-charcoal text-lg">
+                          {defaultAddress.type.charAt(0).toUpperCase() + defaultAddress.type.slice(1)} Address
+                        </h4>
+                        <span className="px-2 py-1 bg-mint-green/20 text-mint-green text-xs rounded-full font-fredoka font-medium flex items-center gap-1">
+                          <Star className="h-3 w-3 fill-mint-green" />
+                          Default
+                        </span>
+                      </div>
+                      <p className="font-fredoka font-semibold text-charcoal mb-1">
+                        {defaultAddress.full_name}
+                      </p>
+                      <p className="text-medium-gray font-fredoka text-sm">
+                        {defaultAddress.address_line1}
+                        {defaultAddress.address_line2 && `, ${defaultAddress.address_line2}`}
+                      </p>
+                      <p className="text-medium-gray font-fredoka text-sm">
+                        {defaultAddress.city}, {defaultAddress.district} - {defaultAddress.postal_code}
+                      </p>
+                      {defaultAddress.landmark && (
+                        <p className="text-medium-gray font-fredoka text-xs mt-1 flex items-center gap-1">
+                          <Navigation className="h-3 w-3" />
+                          Near {defaultAddress.landmark}
+                        </p>
+                      )}
+                      <p className="text-medium-gray font-fredoka text-sm mt-2 flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {defaultAddress.phone}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="bg-soft-gray/50 rounded-2xl p-8 text-center">
+                  <MapPin className="h-12 w-12 text-medium-gray mx-auto mb-3" />
+                  <p className="text-medium-gray font-fredoka mb-4">
+                    No default address added yet
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('addresses')}
+                    className="inline-flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-2xl font-fredoka font-medium hover:bg-primary-blue/90 transition-colors"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Add Address
+                  </button>
+                </div>
+              )}
             </div>
+          </motion.div>
+        );
+
+      case 'addresses':
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl shadow-xl p-8"
+          >
+            <AddressManagement />
           </motion.div>
         );
 
@@ -712,9 +919,18 @@ const Account: React.FC = () => {
                 </button>
               </div>
 
+              {/* Loading State */}
+              {loadingPets && (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunny-yellow"></div>
+                  <p className="text-medium-gray font-fredoka">Loading pets...</p>
+                </div>
+              )}
+
               {/* Pets Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pets.map((pet) => (
+              {!loadingPets && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {pets.map((pet) => (
                   <motion.div
                     key={pet.id}
                     whileHover={{ y: -5 }}
@@ -723,8 +939,16 @@ const Account: React.FC = () => {
                     {/* Pet Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-sunny-yellow/20 rounded-full flex items-center justify-center text-2xl">
-                          {getPetTypeEmoji(pet.type)}
+                        <div className="w-12 h-12 bg-sunny-yellow/20 rounded-full flex items-center justify-center text-2xl overflow-hidden">
+                          {pet.image ? (
+                            <img
+                              src={pet.image}
+                              alt={pet.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span>{getPetTypeEmoji(pet.type)}</span>
+                          )}
                         </div>
                         <div>
                           <h3 className="font-fredoka font-bold text-lg text-charcoal">{pet.name}</h3>
@@ -822,6 +1046,7 @@ const Account: React.FC = () => {
                   </div>
                 )}
               </div>
+              )}
             </div>
 
             {/* Add/Edit Pet Modal */}
@@ -915,6 +1140,34 @@ const Account: React.FC = () => {
                               <option value="female">Female</option>
                             </select>
                           </div>
+                        </div>
+                      </div>
+
+                      {/* Pet Image */}
+                      <div>
+                        <h4 className="text-lg font-fredoka font-semibold text-charcoal mb-4">Pet Photo</h4>
+                        <div className="flex flex-col items-center space-y-4">
+                          {petImagePreview && (
+                            <div className="relative">
+                              <img
+                                src={petImagePreview}
+                                alt="Pet preview"
+                                className="w-32 h-32 rounded-full object-cover border-4 border-sunny-yellow shadow-lg"
+                              />
+                            </div>
+                          )}
+                          <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-light-gray rounded-xl p-6 cursor-pointer hover:border-sunny-yellow hover:bg-soft-gray/30 transition-all">
+                            <Upload className="h-8 w-8 text-medium-gray mb-2" />
+                            <span className="text-sm font-fredoka text-medium-gray">
+                              {petImagePreview ? 'Change photo' : 'Upload pet photo'}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handlePetImageUpload}
+                              className="hidden"
+                            />
+                          </label>
                         </div>
                       </div>
 
@@ -1053,11 +1306,20 @@ const Account: React.FC = () => {
                         </button>
                         <button
                           onClick={handleSavePet}
-                          disabled={!petFormData.name.trim()}
+                          disabled={!petFormData.name.trim() || savingPet}
                           className="flex-1 px-6 py-3 bg-sunny-yellow hover:bg-sunny-yellow/90 disabled:bg-light-gray disabled:text-medium-gray text-charcoal rounded-xl font-fredoka font-medium transition-all flex items-center justify-center space-x-2"
                         >
-                          <Save className="h-5 w-5" />
-                          <span>{editingPet ? 'Update Pet' : 'Add Pet'}</span>
+                          {savingPet ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-charcoal"></div>
+                              <span>Saving...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-5 w-5" />
+                              <span>{editingPet ? 'Update Pet' : 'Add Pet'}</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>

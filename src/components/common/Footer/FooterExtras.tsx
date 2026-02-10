@@ -90,7 +90,7 @@ const FooterExtras: React.FC = () => {
                         <span className="text-primary-blue ml-2">🐾</span>
                     </p>
                     <p className="text-sm text-medium-gray mt-2">
-                        © 2025 Pawsome. All rights reserved.
+                        © 2026 Pawsome. All rights reserved.
                     </p>
                 </div>
             </div>
