@@ -6,7 +6,8 @@ import { formatters } from '../../../utils/formatters';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     password: '',
@@ -74,7 +75,7 @@ const Register: React.FC = () => {
 
   try {
     // Use AuthContext register function which handles authentication state
-    await register(formData.email, formData.password, formData.name, formData.phone, formData.referralCode, formData.termsAccepted);
+    await register(formData.email, formData.password, formData.firstName, formData.lastName, formData.phone, formData.referralCode, formData.termsAccepted);
 
     // User is now automatically logged in via AuthContext
     // Redirect to home page
@@ -149,17 +150,31 @@ const Register: React.FC = () => {
 
         {/* Registration form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-              required
-              disabled={isLoading}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <input
+                type="text"
+                name="firstName"
+                placeholder="First Name"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Last Name"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                required
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           <div>

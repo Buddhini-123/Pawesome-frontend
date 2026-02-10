@@ -117,7 +117,7 @@ const Header: React.FC = () => {
           className="block px-4 py-3 text-sm text-charcoal hover:bg-primary-blue/10 transition-colors rounded-xl mx-2"
           onClick={() => setShowUserMenu(false)}
         >
-          👤 My Account
+          👤 {user?.name || 'My Account'}
         </Link>
         <Link
           to="/orders"
@@ -185,7 +185,7 @@ const Header: React.FC = () => {
                     className="block px-4 py-2 text-charcoal hover:bg-soft-gray rounded-lg transition-colors text-base"
                     onClick={() => setShowMobileMenu(false)}
                   >
-                    👤 My Account
+                    👤 {user?.name || 'My Account'}
                   </Link>
                   <Link
                     to="/orders"

@@ -7,7 +7,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, phone?: string, referralCode?: string, termsAccepted?: boolean) => Promise<void>;
+  register: (email: string, password: string, firstName: string, lastName: string, phone?: string, referralCode?: string, termsAccepted?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -30,7 +30,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const token = localStorage.getItem("auth_token");
 
         if (savedUser && token) {
-          setUser(JSON.parse(savedUser));
+          const backendUser = JSON.parse(savedUser);
+
+          // Transform backend user data to frontend format
+          const user = {
+            ...backendUser,
+            name: backendUser.first_name && backendUser.last_name
+              ? `${backendUser.first_name} ${backendUser.last_name}`
+              : backendUser.name || backendUser.first_name || 'User'
+          };
+
+          setUser(user);
         }
       } catch (error) {
         console.error('Error loading auth data:', error);
@@ -56,7 +66,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       if (data.success) {
-        const { user, access_token } = data.data;
+        const { user: backendUser, access_token } = data.data;
+
+        // Transform backend user data to frontend format
+        const user = {
+          ...backendUser,
+          name: backendUser.first_name && backendUser.last_name
+            ? `${backendUser.first_name} ${backendUser.last_name}`
+            : backendUser.name || backendUser.first_name || 'User'
+        };
 
         // Save to localStorage with correct keys
         localStorage.setItem("auth_token", access_token);
@@ -76,14 +94,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = useCallback(async (
     email: string,
     password: string,
-    name: string,
+    firstName: string,
+    lastName: string,
     phone?: string,
     referralCode?: string,
     termsAccepted: boolean = true
   ) => {
     try {
       const response = await api.post("/auth/register", {
-        name,
+        first_name: firstName,
+        last_name: lastName,
         email,
         password,
         password_confirmation: password,
@@ -99,7 +119,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       if (data.success) {
-        const { user, access_token } = data.data;
+        const { user: backendUser, access_token } = data.data;
+
+        // Transform backend user data to frontend format
+        const user = {
+          ...backendUser,
+          name: backendUser.first_name && backendUser.last_name
+            ? `${backendUser.first_name} ${backendUser.last_name}`
+            : backendUser.name || backendUser.first_name || 'User'
+        };
 
         // Save to localStorage (auto-login) with correct keys
         localStorage.setItem("auth_token", access_token);
