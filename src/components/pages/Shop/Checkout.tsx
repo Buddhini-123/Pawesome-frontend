@@ -196,6 +196,18 @@ const Checkout: React.FC = () => {
     console.log(`[Checkout] Subscription total: Rs. ${subscriptionSubtotal} (${selectedProducts.length} products × ${deliveryCount} deliveries)`);
   }
 
+  // Calculate per-delivery shipping cost for subscriptions based on product weights.
+  // Uses the same tier logic as the backend ShippingTier table.
+  const subscriptionShippingCost = (() => {
+    if (!isSubscription) return 0;
+    const totalWeight = selectedProducts.reduce((sum: number, p: any) => {
+      return sum + (Number(p.weight) || 0) * (p.quantity || 1);
+    }, 0);
+    if (totalWeight < 1)  return 350;
+    if (totalWeight <= 5) return 500;
+    return 700;
+  })();
+
   // Helper function to get currency display
   const getCurrencyDisplay = (currencyObj: any): string => {
     if (!currencyObj) return "LKR";
@@ -328,7 +340,8 @@ const Checkout: React.FC = () => {
   }
 
   // Calculate pricing - use backend API shipping cost (weight-based)
-  const baseShippingCost = shippingCost || 0; // From backend (weight-based calculation)
+  // For subscriptions, use the weight-calculated shipping; for regular cart, use cart context value.
+  const baseShippingCost = isSubscription ? subscriptionShippingCost : (shippingCost || 0);
   const deliveryCharge = formData.deliveryOption === 'express' ? 100 : 0;
   const codCharge = formData.paymentMethod === 'cod' ? 50 : 0;
   const totalShippingCost = baseShippingCost + deliveryCharge;
@@ -980,63 +993,121 @@ const Checkout: React.FC = () => {
 
             {/* Delivery Options */}
             <div className="mt-8 pt-8 border-t-2 border-light-gray">
-              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-4">
-                Delivery Options
+              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-6">
+                Choose Delivery Speed
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label 
-                  className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                    formData.deliveryOption === 'standard' 
-                      ? 'border-primary-blue bg-primary-blue/5' 
-                      : 'border-light-gray hover:border-primary-blue/50'
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Standard Delivery Button */}
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setFormData(prev => ({ ...prev, deliveryOption: 'standard' }))}
+                  className={`relative p-6 border-3 rounded-2xl cursor-pointer transition-all text-left ${
+                    formData.deliveryOption === 'standard'
+                      ? 'border-primary-blue bg-gradient-to-br from-primary-blue/10 to-primary-blue/5 shadow-lg'
+                      : 'border-light-gray bg-white hover:border-primary-blue/50 hover:shadow-md'
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="delivery"
-                    value="standard"
-                    checked={formData.deliveryOption === 'standard'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryOption: 'standard' }))}
-                    className="mr-3"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <Truck className="h-5 w-5 mr-2 text-primary-blue" />
-                      <span className="font-fredoka font-medium">Standard Delivery</span>
+                  {/* Selection Indicator */}
+                  <div className="absolute top-4 right-4">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                      formData.deliveryOption === 'standard'
+                        ? 'border-primary-blue bg-primary-blue'
+                        : 'border-medium-gray bg-white'
+                    }`}>
+                      {formData.deliveryOption === 'standard' && (
+                        <CheckCircle className="h-4 w-4 text-white" />
+                      )}
                     </div>
-                    <p className="text-sm text-medium-gray mt-1">5-7 business days</p>
-                    <p className="text-sm font-fredoka font-semibold text-mint-green">
-                      {baseShippingCost === 0 ? 'FREE' : `Rs. ${baseShippingCost}`}
-                    </p>
                   </div>
-                </label>
 
-                <label 
-                  className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                    formData.deliveryOption === 'express' 
-                      ? 'border-primary-blue bg-primary-blue/5' 
-                      : 'border-light-gray hover:border-primary-blue/50'
+                  {/* Content */}
+                  <div className="pr-8">
+                    <div className="flex items-center mb-3">
+                      <div className={`p-2 rounded-xl mr-3 ${
+                        formData.deliveryOption === 'standard'
+                          ? 'bg-primary-blue text-white'
+                          : 'bg-primary-blue/10 text-primary-blue'
+                      }`}>
+                        <Truck className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-fredoka font-bold text-lg text-charcoal">
+                          Standard Delivery
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 ml-14">
+                      <div className="flex items-center text-sm text-medium-gray">
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>5-7 business days</span>
+                      </div>
+                      <div className={`inline-block px-3 py-1 rounded-lg font-fredoka font-bold text-sm ${
+                        baseShippingCost === 0
+                          ? 'bg-mint-green/20 text-mint-green'
+                          : 'bg-primary-blue/20 text-primary-blue'
+                      }`}>
+                        {baseShippingCost === 0 ? '✓ FREE Shipping' : `Rs. ${baseShippingCost}`}
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
+
+                {/* Express Delivery Button */}
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setFormData(prev => ({ ...prev, deliveryOption: 'express' }))}
+                  className={`relative p-6 border-3 rounded-2xl cursor-pointer transition-all text-left ${
+                    formData.deliveryOption === 'express'
+                      ? 'border-vibrant-orange bg-gradient-to-br from-vibrant-orange/10 to-sunny-yellow/5 shadow-lg'
+                      : 'border-light-gray bg-white hover:border-vibrant-orange/50 hover:shadow-md'
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="delivery"
-                    value="express"
-                    checked={formData.deliveryOption === 'express'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryOption: 'express' }))}
-                    className="mr-3"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <Clock className="h-5 w-5 mr-2 text-vibrant-orange" />
-                      <span className="font-fredoka font-medium">Express Delivery</span>
+                  {/* Selection Indicator */}
+                  <div className="absolute top-4 right-4">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                      formData.deliveryOption === 'express'
+                        ? 'border-vibrant-orange bg-vibrant-orange'
+                        : 'border-medium-gray bg-white'
+                    }`}>
+                      {formData.deliveryOption === 'express' && (
+                        <CheckCircle className="h-4 w-4 text-white" />
+                      )}
                     </div>
-                    <p className="text-sm text-medium-gray mt-1">2-3 business days</p>
-                    <p className="text-sm font-fredoka font-semibold text-vibrant-orange">
-                      +Rs. 100
-                    </p>
                   </div>
-                </label>
+
+                  {/* Content */}
+                  <div className="pr-8">
+                    <div className="flex items-center mb-3">
+                      <div className={`p-2 rounded-xl mr-3 ${
+                        formData.deliveryOption === 'express'
+                          ? 'bg-vibrant-orange text-white'
+                          : 'bg-vibrant-orange/10 text-vibrant-orange'
+                      }`}>
+                        <Clock className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-fredoka font-bold text-lg text-charcoal">
+                          Express Delivery
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 ml-14">
+                      <div className="flex items-center text-sm text-medium-gray">
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>2-3 business days</span>
+                      </div>
+                      <div className="inline-block px-3 py-1 rounded-lg bg-vibrant-orange/20 text-vibrant-orange font-fredoka font-bold text-sm">
+                        +Rs. 100 Extra
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
               </div>
             </div>
 
@@ -1429,26 +1500,53 @@ const Checkout: React.FC = () => {
               </h3>
               <div className="space-y-3">
                 {isSubscription ? (
-                  selectedProducts?.map((product: any) => (
-                    <div key={product.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={product.primary_image?.url ? `${host}${product.primary_image.url}` : '/placeholder.png'}
-                          alt={product.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                        <div>
-                          <p className="font-fredoka font-semibold text-charcoal">{String(product?.name || 'Product')}</p>
-                          <p className="text-sm text-medium-gray">
-                            Qty: {product.quantity || 1} × {deliveryCount} deliveries
-                          </p>
+                  selectedProducts?.map((product: any) => {
+                    const qty = product.quantity || 1;
+                    const originalPrice = product.price || 0;
+                    const subPrice = product.subscription_price || originalPrice;
+                    const hasDiscount = subPrice < originalPrice;
+                    const lineTotal = subPrice * qty * deliveryCount;
+                    const originalLineTotal = originalPrice * qty * deliveryCount;
+
+                    return (
+                      <div key={product.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
+                        <div className="flex items-center space-x-4">
+                          <img
+                            src={product.primary_image?.url ? `${host}${product.primary_image.url}` : '/placeholder.png'}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                          <div>
+                            <p className="font-fredoka font-semibold text-charcoal">{String(product?.name || 'Product')}</p>
+                            <p className="text-sm text-medium-gray">
+                              Qty: {qty} × {deliveryCount} deliveries
+                            </p>
+                            {hasDiscount && (
+                              <p className="text-xs text-mint-green font-fredoka font-bold">
+                                Save {formatters.currency(originalLineTotal - lineTotal)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {hasDiscount ? (
+                            <>
+                              <p className="font-fredoka font-semibold text-charcoal">
+                                {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice(lineTotal)}
+                              </p>
+                              <p className="text-sm line-through text-gray-400">
+                                {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice(originalLineTotal)}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="font-fredoka font-semibold text-charcoal">
+                              {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice(lineTotal)}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <p className="font-fredoka font-semibold text-charcoal">
-                        {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice((product?.subscription_price || 0) * (product.quantity || 1) * deliveryCount)}
-                      </p>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                 normalizedCart.map((item) => {
                   const originalPrice = (item.product as any).originalPrice || item.product.price;
@@ -1672,9 +1770,12 @@ const Checkout: React.FC = () => {
                   {isSubscription
                     ? selectedProducts?.map((product: any) => {
                         const currencyDisplay = getCurrencyDisplay(product.currency);
-                        const unitPrice = safeDisplayPrice(product.subscription_price);
                         const quantity = product.quantity || 1;
-                        const totalForProduct = (product.subscription_price || 0) * quantity * deliveryCount;
+                        const originalPrice = product.price || 0;
+                        const subPrice = product.subscription_price || originalPrice;
+                        const hasDiscount = subPrice < originalPrice;
+                        const lineTotal = subPrice * quantity * deliveryCount;
+                        const originalLineTotal = originalPrice * quantity * deliveryCount;
 
                         return (
                           <div key={product.id} className="flex justify-between items-start text-sm">
@@ -1684,12 +1785,29 @@ const Checkout: React.FC = () => {
                                 {quantity} unit{quantity > 1 ? 's' : ''} × {deliveryCount} delivery{deliveryCount > 1 ? 'ies' : 'y'}
                               </p>
                               <p className="text-medium-gray text-xs">
-                                {String(currencyDisplay)} {unitPrice} per unit
+                                {String(currencyDisplay)} {safeDisplayPrice(subPrice)} per unit
+                                {hasDiscount && (
+                                  <span className="line-through text-gray-400 ml-1">
+                                    {safeDisplayPrice(originalPrice)}
+                                  </span>
+                                )}
                               </p>
+                              {hasDiscount && (
+                                <p className="text-xs text-mint-green font-fredoka font-bold">
+                                  Save {formatters.currency(originalLineTotal - lineTotal)}
+                                </p>
+                              )}
                             </div>
-                            <p className="font-fredoka font-semibold text-charcoal ml-2">
-                              {String(currencyDisplay)} {safeDisplayPrice(totalForProduct)}
-                            </p>
+                            <div className="text-right ml-2">
+                              <p className="font-fredoka font-semibold text-charcoal">
+                                {String(currencyDisplay)} {safeDisplayPrice(lineTotal)}
+                              </p>
+                              {hasDiscount && (
+                                <p className="text-xs line-through text-gray-400">
+                                  {String(currencyDisplay)} {safeDisplayPrice(originalLineTotal)}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         );
                       })

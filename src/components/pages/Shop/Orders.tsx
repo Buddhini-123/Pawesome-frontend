@@ -456,7 +456,7 @@ const Orders: React.FC = () => {
                                   {item.product?.primary_image?.url ? (
                                     <img
                                       src={item.product.primary_image.url}
-                                      alt={item.productName || item.product?.name}
+                                      alt={item.product_name_snapshot || item.productName || item.product?.name}
                                       className="w-full h-full object-cover rounded-2xl"
                                     />
                                   ) : (
@@ -465,7 +465,7 @@ const Orders: React.FC = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="font-medium text-charcoal truncate">
-                                    {item.productName || item.product?.name}
+                                    {item.product_name_snapshot || item.productName || item.product?.name}
                                   </p>
                                   <p className="text-xs text-medium-gray">Qty: {item.quantity}</p>
                                 </div>

@@ -11,6 +11,7 @@ import Footer from './components/common/Footer/Footer';
 import AdminProtectedRoute from './components/common/AdminProtectedRoute';
 import AdminLayout from './components/admin/AdminLayout';
 import ScrollToTop from './components/common/ScrollToTop';
+import EmailVerificationBanner from './components/common/EmailVerificationBanner';
 
 // Pages
 import Home from './components/pages/Home/HomeNew';
@@ -40,6 +41,7 @@ import DealDetail from './components/deals/DealDetail';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards';
 import Login from './components/pages/Login/Login';
 import Register from './components/pages/Login/Register';
+import VerifyEmail from './components/pages/VerifyEmail';
 import ProductPage from './components/pages/Products/ProductPage';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
@@ -63,6 +65,7 @@ const App: React.FC = () => {
     <div className="App">
       <ScrollToTop />
       {!hideLayout && <Header />}
+      {!hideLayout && <EmailVerificationBanner />}
       <main className="relative">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -106,6 +109,7 @@ const App: React.FC = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/join" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           {/* New Feature Routes */}
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/gifts" element={<Gifts />} />

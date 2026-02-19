@@ -23,6 +23,23 @@ export interface Product {
   };
 }
 
+// Deal type used inside cart items
+export interface CartDeal {
+  id: number;
+  title: string;
+  slug: string;
+  deal_type: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  is_available: boolean;
+  badge_text?: string;
+  minimum_purchase_amount?: number;
+  maximum_discount_amount?: number;
+  applies_to_categories?: number[] | null;
+  applies_to_brands?: number[] | null;
+  applies_to_products?: number[] | null;
+}
+
 // Cart related types
 export interface CartItem {
   id: string;
@@ -36,6 +53,24 @@ export interface CartItem {
     height: number;
   };
   subtotal?: string; // Item subtotal
+  // Variant-related fields
+  weight_source?: 'variant' | 'product';
+  variant_label?: string; // e.g. "Large (2.5 kg)"
+  // Order-history snapshots
+  weight_snapshot?: string;
+  dimensions_snapshot?: string;
+  product_name_snapshot?: string;
+  // Deal item fields (is_deal_item === true when item is a deal, not a product)
+  is_deal_item?: boolean;
+  deal?: CartDeal;
+  deal_metadata?: any;
+  product_snapshot?: {
+    name: string;
+    slug?: string;
+    description?: string;
+    image?: string | null;
+    type?: string;
+  };
 }
 
 export interface ShippingBreakdown {
@@ -66,6 +101,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  email_verified_at?: string | null;
   phone?: string;
   role: 'user' | 'admin';
   addresses?: Address[];

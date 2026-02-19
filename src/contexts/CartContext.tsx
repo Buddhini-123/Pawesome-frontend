@@ -16,11 +16,30 @@ export interface CartItem {
     height: number;
   };
   subtotal?: string;
+  // Variant-related fields
+  weight_source?: 'variant' | 'product';
+  variant_label?: string;
+  // Order-history snapshots
+  weight_snapshot?: string;
+  dimensions_snapshot?: string;
+  product_name_snapshot?: string;
+  // Deal item fields
+  is_deal_item?: boolean;
+  deal?: import('../types').CartDeal;
+  deal_metadata?: any;
+  product_snapshot?: {
+    name: string;
+    slug?: string;
+    description?: string;
+    image?: string | null;
+    type?: string;
+  };
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addItem: (product: Product, quantity?: number) => Promise<void>;
+  addItem: (product: Product, quantity?: number, variantId?: number) => Promise<void>;
+  addDeal: (dealSlug: string) => Promise<void>;
   removeItem: (id: string) => Promise<void>;
   updateQuantity: (id: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -248,11 +267,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // Product weight/dimensions should be fetched when adding to cart
 
   // Add item to cart
-  const addItem = useCallback(async (product: Product, quantity: number = 1) => {
+  const addItem = useCallback(async (product: Product, quantity: number = 1, variantId?: number) => {
     console.log('[CartContext] addItem called with:', {
       productId: product.id,
       productName: product.name,
       quantity,
+      variantId,
       isAuthenticated,
       hasSlug: !!(product as any).slug
     });
@@ -288,7 +308,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
           hasSlug: !!(product as any).slug,
           quantity,
         });
-        const backendCart = await cartService.addItem(productSlug, quantity);
+        const backendCart = await cartService.addItem(productSlug, quantity, variantId);
 
         const items = convertBackendCart(backendCart);
 
@@ -338,6 +358,28 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       addToLocalCart(product, quantity);
     }
   }, [isAuthenticated, convertBackendCart, loadOriginalPrices, saveOriginalPrices]);
+
+  // Add a deal to cart (authenticated only — deals require backend)
+  const addDeal = useCallback(async (dealSlug: string) => {
+    if (!isAuthenticated) {
+      throw new Error('Please log in to add deals to your cart');
+    }
+    try {
+      setIsLoading(true);
+      const backendCart = await cartService.addDeal(dealSlug);
+      const items = convertBackendCart(backendCart);
+      setCart(items);
+      setShippingCost(parseFloat(backendCart.shipping_cost));
+      setShippingBreakdown(backendCart.shipping_breakdown);
+      setTaxAmount(parseFloat(backendCart.tax_amount));
+      saveLocalCart(items);
+    } catch (error: any) {
+      // Re-throw so the caller can show a toast (e.g. "deal already in cart")
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, convertBackendCart, saveLocalCart]);
 
   const addToLocalCart = (product: Product, quantity: number) => {
     console.log('[CartContext] Adding to local cart:', product.name, 'qty:', quantity);
@@ -544,6 +586,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const value: CartContextType = {
     cart,
     addItem,
+    addDeal,
     removeItem,
     updateQuantity,
     clearCart,

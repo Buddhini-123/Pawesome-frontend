@@ -110,6 +110,14 @@ interface Product {
   subscription_discount_percentage?: number;
   min_subscription_quantity?: number;
   max_subscription_quantity?: number;
+  // Weight and dimensions
+  weight?: number;
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+    unit?: string;
+  };
 }
 
 interface MappedSubscription {
@@ -405,6 +413,13 @@ const Subscriptions = () => {
 
       if (response.success && response.data) {
         const productData = (response.data as any)?.data?.product || (response.data as any);
+
+        // Debug: Log the full API response to check weight and dimensions
+        console.log('[Subscriptions] Full API Response:', response);
+        console.log('[Subscriptions] Product Data:', productData);
+        console.log('[Subscriptions] Weight:', productData?.weight);
+        console.log('[Subscriptions] Dimensions:', productData?.dimensions);
+
         setSelectedProduct(productData);
         setShowProductModal(true);
       } else {
@@ -1704,6 +1719,46 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           } is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
                         </p>
                       </div>
+
+                      {/* Product Specifications */}
+                      {(selectedProduct.weight || selectedProduct.dimensions) && (
+                        <div className="mb-6">
+                          <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-3">Product Specifications</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Weight */}
+                            {selectedProduct.weight && (
+                              <div className="bg-primary-blue/10 border border-primary-blue/30 rounded-xl p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Package className="h-5 w-5 text-primary-blue" />
+                                  <span className="font-fredoka font-semibold text-charcoal">Weight</span>
+                                </div>
+                                <p className="text-2xl font-fredoka font-bold text-primary-blue">
+                                  {selectedProduct.weight} kg
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Dimensions */}
+                            {selectedProduct.dimensions && (
+                              <div className="bg-lavender/10 border border-lavender/30 rounded-xl p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Package className="h-5 w-5 text-lavender" />
+                                  <span className="font-fredoka font-semibold text-charcoal">Dimensions</span>
+                                </div>
+                                <p className="text-lg font-fredoka font-bold text-lavender">
+                                  {selectedProduct.dimensions.length} × {selectedProduct.dimensions.width} × {selectedProduct.dimensions.height}
+                                  <span className="text-sm text-medium-gray ml-1">
+                                    {selectedProduct.dimensions.unit || 'cm'}
+                                  </span>
+                                </p>
+                                <p className="text-xs text-medium-gray mt-1">
+                                  (L × W × H)
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Features */}
                       <div className="mb-6">

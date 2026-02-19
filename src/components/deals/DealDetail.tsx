@@ -188,48 +188,25 @@ const DealDetail: React.FC = () => {
     }
   };
 
-  const { addItem } = useCart();
+  const { addItem, addDeal } = useCart();
 
+  // Adds the deal itself as a single cart item (coupon-like).
+  // The backend applies the discount at checkout when this item is present.
   const handleAddDealToCart = async () => {
-    if (!deal || !products.length) {
-      toast.error("No products available for this deal");
-      return;
-    }
+    if (!deal) return;
 
     setAddingToCart(true);
     try {
-      let addedCount = 0;
-
-      // Add each product to cart with discounted price
-      products.forEach((product) => {
-        const productPrice = typeof product.price === 'string' ? parseFloat(product.price) : (product.price || 0);
-        const discountedPrice =
-          ((deal as any).discount_type === "percentage" || deal.discountType === "percentage")
-            ? productPrice - (productPrice * parseFloat(deal.discount_value)) / 100
-            : productPrice - parseFloat(deal.discount_value);
-
-        const cartProduct: Product = {
-          id: product.id.toString(),
-          name: product.name,
-          image: product.image,
-          price: discountedPrice,
-          originalPrice: productPrice, // Store original price for discount display
-          brand: product.brand || 'Unknown',
-          rating: product.rating || 0,
-          reviews: product.reviews || 0,
-          category: product.category || 'General',
-          subcategory: product.subcategory || 'General',
-          inStock: product.inStock ?? true
-        };
-
-        addItem(cartProduct, 1);
-        addedCount++;
-      });
-
-      toast.success(`${addedCount} product${addedCount > 1 ? 's' : ''} added to cart with deal discount!`);
-    } catch (err) {
-      console.error("Failed to add deal to cart", err);
-      toast.error("Failed to add deal to cart");
+      await addDeal(deal.slug);
+      toast.success("Deal added to cart! Discount will be applied at checkout.");
+    } catch (err: any) {
+      const msg: string = err?.message ?? '';
+      if (msg.toLowerCase().includes('already in your cart') || (err?.response?.status === 400)) {
+        toast.info("This deal is already in your cart.");
+      } else {
+        console.error("Failed to add deal to cart", err);
+        toast.error("Failed to add deal to cart. Please try again.");
+      }
     } finally {
       setAddingToCart(false);
     }
@@ -351,26 +328,21 @@ const DealDetail: React.FC = () => {
               <div className="flex flex-col gap-4">
                 <button
                   onClick={handleAddDealToCart}
-                  disabled={addingToCart || products.length === 0}
+                  disabled={addingToCart}
                   className={`w-full px-8 py-4 rounded-2xl font-fredoka font-semibold transition-all flex justify-center items-center gap-2
-                    ${addingToCart || products.length === 0
+                    ${addingToCart
                       ? 'bg-gray-400 text-white cursor-not-allowed'
                       : 'bg-primary-blue text-white hover:bg-primary-blue/90 hover:scale-105 shadow-lg'}`}
                 >
                   {addingToCart ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Adding All to Cart...
-                    </>
-                  ) : products.length === 0 ? (
-                    <>
-                      <ShoppingCart className="w-5 h-5" />
-                      No Products Available
+                      Adding Deal to Cart...
                     </>
                   ) : (
                     <>
                       <ShoppingCart className="w-5 h-5" />
-                      Add All {products.length} Products to Cart
+                      Add Deal to Cart
                     </>
                   )}
                 </button>
@@ -441,13 +413,11 @@ const DealDetail: React.FC = () => {
                         : productPrice - parseFloat(deal.discount_value);
 
                     const handleAddToCart = () => {
-                        const quantity = 1;
                         const cartProduct: Product = {
                           id: product.id.toString(),
                           name: product.name,
                           image: product.image,
-                          price: discountedPrice,
-                          originalPrice: productPrice, // Store original price for discount display
+                          price: productPrice, // Full price — deal discount applied at checkout
                           brand: product.brand || 'Unknown',
                           rating: product.rating || 0,
                           reviews: product.reviews || 0,
@@ -455,8 +425,8 @@ const DealDetail: React.FC = () => {
                           subcategory: product.subcategory || 'General',
                           inStock: product.inStock ?? true
                         };
-                        addItem(cartProduct, quantity);
-                        toast.success(`Added ${product.name} to cart with deal discount!`);
+                        addItem(cartProduct, 1);
+                        toast.success(`Added ${product.name} to cart!`);
                       };
 
                     const savings = productPrice - discountedPrice;

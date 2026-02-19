@@ -219,7 +219,7 @@ const OrderDetails: React.FC = () => {
                     {item.product?.primary_image?.url ? (
                       <img
                         src={item.product.primary_image.url}
-                        alt={item.product?.name || 'Product'}
+                        alt={item.product_name_snapshot || item.product?.name || 'Product'}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -231,7 +231,7 @@ const OrderDetails: React.FC = () => {
 
                   <div className="flex-1 min-w-0">
                     <h3 className="font-fredoka font-bold text-lg text-charcoal mb-2">
-                      {item.product?.name || item.product_name || 'Product'}
+                      {item.product_name_snapshot || item.product?.name || item.product_name || 'Product'}
                     </h3>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {item.product?.brand?.name && (
