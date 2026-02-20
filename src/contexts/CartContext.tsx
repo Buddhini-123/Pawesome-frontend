@@ -34,6 +34,13 @@ export interface CartItem {
     image?: string | null;
     type?: string;
   };
+  // Gift box metadata
+  metadata?: {
+    gift_box_group?: string;
+    is_gift_item?: boolean;
+    recipient_name?: string;
+    gift_message?: string;
+  };
 }
 
 interface CartContextType {

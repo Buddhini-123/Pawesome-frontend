@@ -309,6 +309,8 @@ class CartService {
       weight_snapshot: backendItem.weight_snapshot,
       dimensions_snapshot: backendItem.dimensions_snapshot,
       product_name_snapshot: backendItem.product_name_snapshot,
+      // Gift box metadata - preserve for grouping in cart
+      metadata: backendItem.metadata || null,
       product: {
         id: String(backendItem.product_id),
         name: backendItem.product?.name || 'Unknown Product',

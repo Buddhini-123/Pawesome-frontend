@@ -26,7 +26,9 @@ import { useCart } from '../../../hooks/useCart';
 import { useAuth } from '../../../hooks/useAuth';
 import { formatters } from '../../../utils/formatters';
 import { normalizeCartItem } from '../../../utils/cartNormalizer';
+import { groupCartItems } from '../../../utils/cartGrouping';
 import ShippingTierIndicator from '../../common/ShippingTierIndicator';
+import GiftBoxCartGroup from '../../cart/GiftBoxCartGroup';
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
@@ -121,7 +123,38 @@ const Cart: React.FC = () => {
       ease: easeInOut
     }
   };
+
   const normalizedCart = cart.map(normalizeCartItem);
+
+  // Debug: Log cart items to check metadata
+  React.useEffect(() => {
+    console.log('[Cart Debug] Normalized cart items:', normalizedCart);
+    console.log('[Cart Debug] Cart items with metadata:', normalizedCart.map(item => ({
+      id: item.id,
+      name: item.product?.name,
+      metadata: item.metadata,
+      has_metadata: !!item.metadata,
+      gift_box_group: item.metadata?.gift_box_group,
+      is_gift_item: item.metadata?.is_gift_item
+    })));
+  }, [normalizedCart]);
+
+  const { giftBoxes, regularItems } = groupCartItems(normalizedCart);
+
+  // Debug: Log grouped results
+  React.useEffect(() => {
+    console.log('[Cart Debug] Gift boxes:', giftBoxes);
+    console.log('[Cart Debug] Regular items:', regularItems);
+    console.log('[Cart Debug] Number of gift box groups:', Object.keys(giftBoxes).length);
+  }, [giftBoxes, regularItems]);
+
+  // Function to remove entire gift box group
+  const handleRemoveGiftBox = async (groupId: string) => {
+    const itemsToRemove = giftBoxes[groupId]?.items || [];
+    for (const item of itemsToRemove) {
+      await removeItem(item.id);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -274,7 +307,21 @@ const Cart: React.FC = () => {
               
               <div className="divide-y divide-light-gray">
                 <AnimatePresence>
-                  {normalizedCart.map((item, index) => (
+                  {/* Gift Box Groups */}
+                  {Object.values(giftBoxes).map((giftBox) => (
+                    <div key={giftBox.groupId} className="p-6">
+                      <GiftBoxCartGroup
+                        groupId={giftBox.groupId}
+                        items={giftBox.items}
+                        recipientName={giftBox.recipientName}
+                        giftMessage={giftBox.giftMessage}
+                        onRemoveGroup={() => handleRemoveGiftBox(giftBox.groupId)}
+                      />
+                    </div>
+                  ))}
+
+                  {/* Regular Cart Items */}
+                  {regularItems.map((item, index) => (
                     <motion.div
                       key={item.id}
                       className="p-6 hover:bg-soft-gray/30 transition-colors"

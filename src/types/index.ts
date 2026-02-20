@@ -71,6 +71,13 @@ export interface CartItem {
     image?: string | null;
     type?: string;
   };
+  // Gift box metadata for grouping items
+  metadata?: {
+    gift_box_group?: string;
+    is_gift_item?: boolean;
+    recipient_name?: string;
+    gift_message?: string;
+  };
 }
 
 export interface ShippingBreakdown {

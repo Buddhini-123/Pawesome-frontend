@@ -36,6 +36,8 @@ import NotFound from './components/pages/NotFound';
 import Subscriptions from './components/pages/Features/Subscriptions';
 import Gifts from './components/pages/Features/Gifts';
 import GiftCustomizer from './components/pages/Features/GiftCustomizer';
+import GiftConfirmation from './components/pages/Features/GiftConfirmation';
+import GiftCartConfirmation from './components/pages/Features/GiftCartConfirmation';
 import Deals from './components/pages/Features/Deals';
 import DealDetail from './components/deals/DealDetail';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards';
@@ -114,6 +116,8 @@ const App: React.FC = () => {
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/gifts" element={<Gifts />} />
           <Route path="/gifts/customize" element={<GiftCustomizer />} />
+          <Route path="/gifts/confirmation" element={<GiftConfirmation />} />
+          <Route path="/gifts/cart-confirmation" element={<GiftCartConfirmation />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/deals/:slug" element={<DealDetail />} />
           <Route path="/loyalty-cards" element={<LoyaltyCards />} />
