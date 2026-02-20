@@ -8,6 +8,9 @@ interface GiftBoxCartGroupProps {
   items: any[];
   recipientName?: string;
   giftMessage?: string;
+  isPresetBox?: boolean;
+  presetBoxName?: string;
+  presetBoxOccasion?: string;
   onRemoveGroup: () => void;
 }
 
@@ -16,12 +19,24 @@ const GiftBoxCartGroup: React.FC<GiftBoxCartGroupProps> = ({
   items,
   recipientName,
   giftMessage,
+  isPresetBox = false,
+  presetBoxName,
+  presetBoxOccasion,
   onRemoveGroup,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+
+  // Determine box title and style based on type
+  const boxTitle = isPresetBox && presetBoxName
+    ? presetBoxName
+    : 'Custom Gift Box';
+
+  const occasionBadge = isPresetBox && presetBoxOccasion
+    ? presetBoxOccasion.replace('_', ' ').charAt(0).toUpperCase() + presetBoxOccasion.replace('_', ' ').slice(1)
+    : null;
 
   return (
     <motion.div
@@ -44,13 +59,18 @@ const GiftBoxCartGroup: React.FC<GiftBoxCartGroupProps> = ({
 
             {/* Gift Box Info */}
             <div className="flex-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-fredoka font-bold text-charcoal text-xl">
-                  Custom Gift Box
+                  {boxTitle}
                 </h3>
                 <span className="bg-vibrant-orange text-white text-xs font-fredoka font-bold px-2 py-1 rounded-full">
                   {totalItems} {totalItems === 1 ? 'item' : 'items'}
                 </span>
+                {occasionBadge && (
+                  <span className="bg-primary-blue text-white text-xs font-fredoka font-bold px-2 py-1 rounded-full">
+                    {occasionBadge}
+                  </span>
+                )}
               </div>
 
               {recipientName && (

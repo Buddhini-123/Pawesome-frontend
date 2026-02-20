@@ -5,6 +5,9 @@ export interface GroupedCartItems {
       items: any[];
       recipientName?: string;
       giftMessage?: string;
+      isPresetBox?: boolean;
+      presetBoxName?: string;
+      presetBoxOccasion?: string;
     };
   };
   regularItems: any[];
@@ -26,6 +29,9 @@ export function groupCartItems(cartItems: any[]): GroupedCartItems {
           items: [],
           recipientName: item.metadata?.recipient_name,
           giftMessage: item.metadata?.gift_message,
+          isPresetBox: item.metadata?.is_preset_box || false,
+          presetBoxName: item.metadata?.preset_box_name,
+          presetBoxOccasion: item.metadata?.preset_box_occasion,
         };
       }
       giftBoxes[giftBoxGroup].items.push(item);

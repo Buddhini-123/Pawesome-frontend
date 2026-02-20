@@ -1,19 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { giftService, PresetGiftBox } from '../../../services/gift.service';
+import PresetBoxCard from '../../common/PresetBoxCard';
+import { Package, Sparkles } from 'lucide-react';
 
 const Gifts: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [presetBoxes, setPresetBoxes] = useState<PresetGiftBox[]>([]);
+  const [isLoadingPresets, setIsLoadingPresets] = useState(true);
+  const [selectedOccasion, setSelectedOccasion] = useState<string>('all');
+
   const heroRef = useRef(null);
+  const presetBoxesRef = useRef(null);
   const stepsRef = useRef(null);
   const ctaRef = useRef(null);
   const newsletterRef = useRef(null);
 
   const heroInView = useInView(heroRef, { once: true });
+  const presetBoxesInView = useInView(presetBoxesRef, { once: true });
   const stepsInView = useInView(stepsRef, { once: true });
   const ctaInView = useInView(ctaRef, { once: true });
   const newsletterInView = useInView(newsletterRef, { once: true });
+
+  // Fetch preset gift boxes
+  useEffect(() => {
+    const fetchPresetBoxes = async () => {
+      setIsLoadingPresets(true);
+      try {
+        const params = selectedOccasion !== 'all' ? { occasion: selectedOccasion } : {};
+        const response = await giftService.getPresetBoxes(params);
+        setPresetBoxes(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch preset boxes:', error);
+        setPresetBoxes([]);
+      } finally {
+        setIsLoadingPresets(false);
+      }
+    };
+
+    fetchPresetBoxes();
+  }, [selectedOccasion]);
+
+  const occasions = [
+    { value: 'all', label: 'All Occasions' },
+    { value: 'birthday', label: 'Birthday' },
+    { value: 'anniversary', label: 'Anniversary' },
+    { value: 'holiday', label: 'Holiday' },
+    { value: 'congratulations', label: 'Congratulations' },
+    { value: 'thank_you', label: 'Thank You' },
+    { value: 'get_well', label: 'Get Well' },
+  ];
 
   const steps = [
     { id: 1, title: "Choose a Theme Card", color: "from-vibrant-orange to-sunny-yellow" },
@@ -41,7 +79,7 @@ const Gifts: React.FC = () => {
               animate={heroInView ? { scale: 1 } : {}}
               transition={{ duration: 1, ease: "backOut" }}
             >
-              Customize Your Box !
+              Perfect Pet Gift Boxes !
             </motion.h1>
 
             <motion.div
@@ -51,16 +89,112 @@ const Gifts: React.FC = () => {
               className="max-w-4xl mx-auto space-y-4"
             >
               <p className="text-xl md:text-2xl text-charcoal font-fredoka font-medium">
-                Not into our pre-set pet gift boxes? Create your own masterpiece!
+                Choose from our curated preset boxes or create your own masterpiece!
               </p>
               <p className="text-lg md:text-xl text-charcoal">
-                Mix and match toys, treats, grooming products, outfits, accessories, and a greeting card to build your very own
+                Browse our ready-to-go gift boxes or mix and match toys, treats, grooming products, outfits, accessories, and a greeting card to build your very own
                 <span className="font-fredoka font-bold text-vibrant-orange"> Pawsome Customized Box!</span>
               </p>
             </motion.div>
           </motion.div>
         </div>
       </section>
+
+      {/* Preset Gift Boxes Section */}
+      <section ref={presetBoxesRef} className="py-16 px-4 bg-gradient-to-br from-warm-white via-soft-gray to-primary-blue/5">
+        <div className="container mx-auto max-w-7xl">
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={presetBoxesInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Package className="w-10 h-10 text-primary-blue" />
+              <h2 className="text-4xl md:text-5xl font-fredoka font-bold bg-gradient-to-r from-primary-blue to-vibrant-orange bg-clip-text text-transparent">
+                Quick & Easy Gift Boxes
+              </h2>
+              <Sparkles className="w-10 h-10 text-vibrant-orange" />
+            </div>
+            <p className="text-lg md:text-xl text-charcoal max-w-3xl mx-auto">
+              Short on time? Choose from our curated preset gift boxes - perfectly packaged and ready to go!
+            </p>
+          </motion.div>
+
+          {/* Occasion Filter */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={presetBoxesInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-wrap justify-center gap-3 mb-12"
+          >
+            {occasions.map((occasion) => (
+              <motion.button
+                key={occasion.value}
+                onClick={() => setSelectedOccasion(occasion.value)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`px-6 py-2 rounded-full font-fredoka font-semibold transition-all duration-300 ${
+                  selectedOccasion === occasion.value
+                    ? 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white shadow-lg'
+                    : 'bg-white text-charcoal hover:bg-soft-gray shadow'
+                }`}
+              >
+                {occasion.label}
+              </motion.button>
+            ))}
+          </motion.div>
+
+          {/* Preset Boxes Grid */}
+          {isLoadingPresets ? (
+            <div className="flex justify-center items-center py-20">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                className="w-16 h-16 border-4 border-primary-blue border-t-transparent rounded-full"
+              />
+            </div>
+          ) : presetBoxes.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {presetBoxes.map((box, index) => (
+                <PresetBoxCard key={box.id} box={box} index={index} />
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-20"
+            >
+              <div className="inline-block p-6 bg-soft-gray rounded-full mb-4">
+                <Package className="w-16 h-16 text-primary-blue" />
+              </div>
+              <p className="text-xl text-charcoal font-fredoka font-semibold mb-2">
+                No preset boxes available for this occasion yet.
+              </p>
+              <p className="text-medium-gray">
+                Try a different occasion or create your own custom box below!
+              </p>
+            </motion.div>
+          )}
+
+          {/* Divider */}
+          <motion.div
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={presetBoxesInView ? { opacity: 1, scaleX: 1 } : {}}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mt-16 mb-8"
+          >
+            <div className="flex items-center justify-center gap-4">
+              <div className="h-1 w-32 bg-gradient-to-r from-transparent via-primary-blue to-transparent rounded-full"></div>
+              <span className="text-2xl font-fredoka font-bold bg-gradient-to-r from-vibrant-orange to-sunny-yellow bg-clip-text text-transparent">OR</span>
+              <div className="h-1 w-32 bg-gradient-to-r from-transparent via-primary-blue to-transparent rounded-full"></div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* How It Works Section */}
       <section ref={stepsRef} className="py-16 px-4 bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto max-w-7xl">

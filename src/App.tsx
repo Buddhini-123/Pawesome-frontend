@@ -38,6 +38,7 @@ import Gifts from './components/pages/Features/Gifts';
 import GiftCustomizer from './components/pages/Features/GiftCustomizer';
 import GiftConfirmation from './components/pages/Features/GiftConfirmation';
 import GiftCartConfirmation from './components/pages/Features/GiftCartConfirmation';
+import PresetGiftBoxDetail from './components/pages/Features/PresetGiftBoxDetail';
 import Deals from './components/pages/Features/Deals';
 import DealDetail from './components/deals/DealDetail';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards';
@@ -115,6 +116,7 @@ const App: React.FC = () => {
           {/* New Feature Routes */}
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/gifts" element={<Gifts />} />
+          <Route path="/gifts/preset-boxes/:slug" element={<PresetGiftBoxDetail />} />
           <Route path="/gifts/customize" element={<GiftCustomizer />} />
           <Route path="/gifts/confirmation" element={<GiftConfirmation />} />
           <Route path="/gifts/cart-confirmation" element={<GiftCartConfirmation />} />

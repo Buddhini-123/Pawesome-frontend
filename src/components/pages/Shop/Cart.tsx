@@ -315,6 +315,9 @@ const Cart: React.FC = () => {
                         items={giftBox.items}
                         recipientName={giftBox.recipientName}
                         giftMessage={giftBox.giftMessage}
+                        isPresetBox={giftBox.isPresetBox}
+                        presetBoxName={giftBox.presetBoxName}
+                        presetBoxOccasion={giftBox.presetBoxOccasion}
                         onRemoveGroup={() => handleRemoveGiftBox(giftBox.groupId)}
                       />
                     </div>
