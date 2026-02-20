@@ -590,25 +590,7 @@ const Checkout: React.FC = () => {
 
       // 🌟 ELSE → Normal one-time order flow
 
-      // 1. Redeem loyalty points FIRST (if any)
-      let redemptionSuccess = false;
-      if (loyaltyRedemption.points > 0) {
-        try {
-          const redemptionResult = await loyaltyService.redeemPoints(
-            loyaltyRedemption.points,
-            'ORDER_PENDING', // Will be updated with real order ID later
-            'Checkout discount'
-          );
-          redemptionSuccess = true;
-          console.log('Points redeemed:', redemptionResult);
-        } catch (redemptionError: any) {
-          setError(redemptionError.message);
-          setIsProcessing(false);
-          return; // Stop checkout if redemption fails
-        }
-      }
-
-      // 2. Create order with discounted total
+      // Create order with loyalty points redemption (backend handles point deduction)
       const orderData = {
         items: cart
         .filter(item => !String(item.product.id).startsWith('theme-'))
@@ -632,24 +614,12 @@ const Checkout: React.FC = () => {
       };
 
       const order = await orderService.createOrder(orderData);
-      toast.success("Order placed successfully!");
 
-      // Award loyalty points for the order
-      try {
-        const { loyaltyService } = await import('../../../services/loyalty.service');
-        const pointsResult = await loyaltyService.earnPointsForOrder(
-          order.id,
-          finalTotal
-        );
-        console.log('[Checkout] Loyalty points earned:', pointsResult.points_earned);
-        toast.success(`🎉 You earned ${pointsResult.points_earned} loyalty points!`, {
-          autoClose: 5000
-        });
-      } catch (loyaltyError: any) {
-        console.warn('[Checkout] Failed to earn loyalty points:', loyaltyError.message);
-        // Don't fail the checkout if loyalty points fail
-        // The order is already created successfully
-      }
+      // Show success message with loyalty points info
+      const pointsMessage = loyaltyRedemption.points > 0
+        ? `Order placed! ${loyaltyRedemption.points} points redeemed.`
+        : "Order placed successfully!";
+      toast.success(pointsMessage);
 
       clearCart();
 

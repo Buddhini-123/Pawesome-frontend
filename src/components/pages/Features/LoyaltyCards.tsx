@@ -21,6 +21,7 @@ import PointsHistory from '../../loyalty/PointsHistory';
 import BadgesGrid from '../../loyalty/BadgesGrid';
 import ExclusiveDeals from '../../loyalty/ExclusiveDeals';
 import ReferralCard from '../../loyalty/ReferralCard';
+import RewardsGrid from '../../loyalty/RewardsGrid';
 
 const LoyaltyCards: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
@@ -40,6 +41,7 @@ const LoyaltyCards: React.FC = () => {
 
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: TrendingUp },
+    { id: 'rewards', name: 'Rewards', icon: Gift },
     { id: 'history', name: 'History', icon: History },
     { id: 'badges', name: 'Badges', icon: Star },
     { id: 'deals', name: 'Exclusive Deals', icon: Crown },
@@ -67,7 +69,7 @@ const LoyaltyCards: React.FC = () => {
               <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <Award className="h-8 w-8 text-mint-green mx-auto mb-4" />
                 <h3 className="font-fredoka font-bold text-charcoal mb-2">Earn Points</h3>
-                <p className="text-sm text-medium-gray">1 point per Rs. 10 spent</p>
+                <p className="text-sm text-medium-gray">1 point per Rs. 100 spent</p>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <Trophy className="h-8 w-8 text-sunny-yellow mx-auto mb-4" />
@@ -180,10 +182,10 @@ const LoyaltyCards: React.FC = () => {
             <div className="border-t border-white/20 pt-4 mt-4">
               <p className="text-xs opacity-75 mb-2 font-fredoka">Points Value</p>
               <p className="text-2xl font-fredoka font-bold">
-                Rs. {((loyaltyCard?.points ?? 0) * 0.1).toFixed(2)}
+                Rs. {((loyaltyCard?.points ?? 0) * 1).toFixed(2)}
               </p>
               <p className="text-xs opacity-75 mt-1 font-fredoka">
-                (1 point = Rs. 0.10)
+                (1 point = Rs. 1.00)
               </p>
             </div>
           </div>
@@ -221,7 +223,8 @@ const LoyaltyCards: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {activeTab === 'dashboard' && <LoyaltyDashboard />}
+          {activeTab === 'dashboard' && <LoyaltyDashboard onNavigateToRewards={() => setActiveTab('rewards')} />}
+          {activeTab === 'rewards' && <RewardsGrid />}
           {activeTab === 'history' && <PointsHistory />}
           {activeTab === 'badges' && <BadgesGrid />}
           {activeTab === 'deals' && <ExclusiveDeals />}

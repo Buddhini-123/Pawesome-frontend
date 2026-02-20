@@ -15,7 +15,11 @@ import { useLoyalty } from '../../hooks/useLoyalty';
 import { TIER_BENEFITS, LoyaltyTier, LoyaltyBalance } from '../../types/loyalty';
 import { loyaltyService } from '../../services/loyalty.service';
 
-const LoyaltyDashboard: React.FC = () => {
+interface LoyaltyDashboardProps {
+  onNavigateToRewards?: () => void;
+}
+
+const LoyaltyDashboard: React.FC<LoyaltyDashboardProps> = ({ onNavigateToRewards }) => {
   const { loyaltyCard, tierBenefits, badges } = useLoyalty();
   const [balanceData, setBalanceData] = useState<LoyaltyBalance | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -289,15 +293,18 @@ const LoyaltyDashboard: React.FC = () => {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-1 md:grid-cols-3 gap-4"
       >
-        <button className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group">
+        <button
+          onClick={onNavigateToRewards}
+          className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="bg-vibrant-orange/10 p-3 rounded-xl">
                 <Gift className="h-6 w-6 text-vibrant-orange" />
               </div>
               <div className="text-left">
-                <h3 className="font-fredoka font-semibold text-charcoal">Redeem Points</h3>
-                <p className="text-sm text-medium-gray">Use your points</p>
+                <h3 className="font-fredoka font-semibold text-charcoal">Redeem Rewards</h3>
+                <p className="text-sm text-medium-gray">Browse reward catalog</p>
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-medium-gray group-hover:text-vibrant-orange transition-colors" />

@@ -152,8 +152,8 @@ export interface LoyaltyStats {
 
 // Constants
 export const LOYALTY_CONSTANTS = {
-  POINTS_PER_LKR: 0.1, // 1 point per 10 LKR
-  REDEMPTION_RATE: 0.1, // 10 points = 1 LKR
+  POINTS_PER_LKR: 0.01, // 1 point per 100 LKR (matching backend earning rate)
+  REDEMPTION_RATE: 1, // 1 point = 1 LKR (1% cashback rate - balanced earning/redemption)
   MIN_POINTS_BALANCE: 100, // Minimum points that won't expire
   POINTS_VALIDITY_MONTHS: 12,
   REFERRAL_BONUS_POINTS: 500,
