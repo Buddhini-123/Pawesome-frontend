@@ -25,8 +25,6 @@ import {
   Building,
   Navigation,
   Hash,
-  Calendar,
-  Lock,
   Info,
   Tag,
   Clock,
@@ -446,29 +444,7 @@ const Checkout: React.FC = () => {
 
 
   const validatePayment = () => {
-    if (formData.paymentMethod === 'card') {
-      if (!formData.cardDetails) {
-        setFormData(prev => ({
-          ...prev,
-          cardDetails: { number: '', name: '', expiry: '', cvv: '' }
-        }));
-        setError('Please fill card details');
-        return false;
-      }
-      const { number, name, expiry, cvv } = formData.cardDetails;
-      if (!number || !name || !expiry || !cvv) {
-        setError('Please fill all card details');
-        return false;
-      }
-      if (!/^\d{16}$/.test(number.replace(/\s/g, ''))) {
-        setError('Please enter a valid 16-digit card number');
-        return false;
-      }
-      if (!/^\d{3,4}$/.test(cvv)) {
-        setError('Please enter a valid CVV');
-        return false;
-      }
-    }
+    // Card payment validation is handled on the PayHere gateway page
     return true;
   };
 
@@ -546,22 +522,21 @@ const Checkout: React.FC = () => {
     try {
 
       if (isSubscription) {
-        
+
         const deliveryAddressId = await getDeliveryAddressId();
         console.log(deliveryAddressId, 'deliveryAddressId');
-        
 
-        const payload = {
+        const subPayload = {
           products: selectedProducts.map((product: any) => ({
             product_id: product.id,
-            quantity: product.quantity || 1, // Quantity per delivery
+            quantity: product.quantity || 1,
             preferences: product.preferences || {},
           })),
           subscription_data: {
-            interval_type: scheduleData.intervalType, // weekly, monthly, or custom
-            interval_value: scheduleData.intervalValue, // 1, 2, 3, 4, etc.
+            interval_type: scheduleData.intervalType,
+            interval_value: scheduleData.intervalValue,
             start_date: scheduleData.startDate,
-            end_date: scheduleData.endDate || null, // Optional end date
+            end_date: scheduleData.endDate || null,
             delivery_address_id: deliveryAddressId,
             payment_method_id: 2,
             preferences: {
@@ -569,21 +544,81 @@ const Checkout: React.FC = () => {
               delivery_time: "morning",
             },
             subtotal: subscriptionSubtotal,
-            total_deliveries: deliveryCount // Add total delivery count for reference
+            total_deliveries: deliveryCount,
           },
         };
 
-        const response = await api.post("/subscriptions/direct-create", payload);
-        if (response.success == false) {
-          const errorMsg = response.error || response.message || "Subscription creation failed";
-
+        const subscriptionRes = await api.post("/subscriptions/direct-create", subPayload);
+        if (subscriptionRes.success == false) {
+          const errorMsg = subscriptionRes.error || "Subscription creation failed";
           toast.error(errorMsg);
           throw new Error(errorMsg);
         }
-        toast.success("Subscription created successfully!");
 
-        navigate("/subscriptions");
-        
+        // COD: done — navigate to subscriptions
+        if (formData.paymentMethod === 'cod') {
+          toast.success("Subscription created successfully!");
+          navigate("/subscriptions");
+          return;
+        }
+
+        // Card payment: create an order for PayHere to process the subscription payment
+        const subOrderData = {
+          items: selectedProducts.map((product: any) => ({
+            productId: product.id,
+            quantity: product.quantity || 1,
+            price: product.subscription_price || product.price || 0,
+          })),
+          shippingAddress: buildShippingAddress(),
+          paymentMethod: 'card' as const,
+          subtotal: subscriptionSubtotal,
+          shippingCost: totalShippingCost,
+          totalAmount: finalTotal,
+          loyaltyPointsUsed: loyaltyRedemption.points,
+          loyaltyDiscount: loyaltyRedemption.value,
+          couponCode: appliedCoupon,
+          couponDiscount,
+          deliveryOption: formData.deliveryOption,
+          isGift: formData.isGift,
+          giftMessage: formData.giftMessage,
+        };
+
+        const subOrderResponse = await orderService.createOrder(subOrderData);
+        const subOrder = (subOrderResponse as any)?.data ?? subOrderResponse;
+        const subOrderId = subOrder?.id;
+
+        if (!subOrderId) {
+          throw new Error('Failed to create payment record for subscription. Please try again.');
+        }
+
+        const payhereRes = await api.post('/payment/initiate', { order_id: subOrderId });
+        if (!payhereRes.success || !payhereRes.data) {
+          throw new Error(payhereRes.error || 'Failed to initiate payment. Please try again.');
+        }
+
+        const rawParams = payhereRes.data as any;
+        const params = (rawParams?.data ?? rawParams) as Record<string, string>;
+
+        if (!params?.checkout_url) {
+          throw new Error('Invalid payment configuration. Please contact support.');
+        }
+
+        console.log('[PayHere] Subscription payment redirecting to:', params.checkout_url);
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = params.checkout_url;
+        ['merchant_id', 'return_url', 'cancel_url', 'notify_url', 'order_id', 'items',
+          'currency', 'amount', 'first_name', 'last_name', 'email', 'phone',
+          'address', 'city', 'country', 'hash'].forEach(key => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = params[key] ?? '';
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
         return;
       }
       
@@ -613,9 +648,58 @@ const Checkout: React.FC = () => {
         giftMessage: formData.giftMessage
       };
 
-      const order = await orderService.createOrder(orderData);
+      const orderResponse = await orderService.createOrder(orderData);
+      // The service returns the backend response body; actual order is nested under .data
+      const order = (orderResponse as any)?.data ?? orderResponse;
+      const orderId = order?.id;
 
-      // Show success message with loyalty points info
+      if (!orderId) {
+        throw new Error('Order was not created properly. Please try again.');
+      }
+
+      if (formData.paymentMethod === 'card') {
+        // PayHere online payment: generate hash and redirect to PayHere gateway
+        const payhereRes = await api.post('/payment/initiate', { order_id: orderId });
+
+        if (!payhereRes.success || !payhereRes.data) {
+          throw new Error(payhereRes.error || 'Failed to initiate payment. Please try again.');
+        }
+
+        // Unwrap nested backend response: { success: true, data: { checkout_url, ... } }
+        const rawParams = (payhereRes.data as any);
+        const params = (rawParams?.data ?? rawParams) as Record<string, string>;
+
+        if (!params?.checkout_url) {
+          throw new Error('Invalid payment configuration. Please contact support.');
+        }
+
+        console.log('[PayHere] Redirecting to:', params.checkout_url, 'with order_id:', params.order_id);
+
+        // Build a hidden form and submit to PayHere
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = params.checkout_url;
+
+        const fields = [
+          'merchant_id', 'return_url', 'cancel_url', 'notify_url',
+          'order_id', 'items', 'currency', 'amount',
+          'first_name', 'last_name', 'email', 'phone',
+          'address', 'city', 'country', 'hash',
+        ];
+        fields.forEach(key => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = params[key] ?? '';
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        return; // Redirect takes over; don't navigate or clear cart here
+      }
+
+      // COD: show success, clear cart, navigate
       const pointsMessage = loyaltyRedemption.points > 0
         ? `Order placed! ${loyaltyRedemption.points} points redeemed.`
         : "Order placed successfully!";
@@ -623,7 +707,7 @@ const Checkout: React.FC = () => {
 
       clearCart();
 
-      navigate(`/order-confirmation/${order.id}`);
+      navigate(`/order-confirmation/${orderId}`);
 
     } catch (err: any) {
       
@@ -1145,9 +1229,9 @@ const Checkout: React.FC = () => {
                     <div>
                       <div className="flex items-center mb-2">
                         <CreditCard className="h-6 w-6 mr-2 text-vibrant-orange" />
-                        <span className="font-fredoka font-semibold text-lg">Credit/Debit Card</span>
+                        <span className="font-fredoka font-semibold text-lg">Pay Online (PayHere)</span>
                       </div>
-                      <p className="text-sm text-medium-gray">Pay securely with your card</p>
+                      <p className="text-sm text-medium-gray">Pay securely via PayHere gateway</p>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 ${
                       formData.paymentMethod === 'card' 
@@ -1210,116 +1294,17 @@ const Checkout: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="space-y-6 p-6 bg-gradient-to-br from-vibrant-orange/5 to-vibrant-orange/10 rounded-xl"
+                  className="p-6 bg-gradient-to-br from-vibrant-orange/5 to-vibrant-orange/10 rounded-xl"
                 >
-                  <div className="bg-amber-50 p-4 rounded-xl flex items-start">
-                    <Info className="h-5 w-5 text-vibrant-orange mr-2 mt-0.5" />
+                  <div className="flex items-start">
+                    <Shield className="h-5 w-5 text-vibrant-orange mr-3 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-fredoka font-semibold text-vibrant-orange">
-                        Demo Mode
+                      <p className="text-sm font-fredoka font-semibold text-vibrant-orange mb-1">
+                        Secure Payment via PayHere
                       </p>
                       <p className="text-sm text-medium-gray">
-                        Use test card: 4111 1111 1111 1111, Any future expiry, Any CVV
+                        You will be redirected to PayHere's secure payment page to enter your card details. Supports Visa, Mastercard, Amex and more.
                       </p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      Card Number
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        value={formData.cardDetails?.number || ''}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\s/g, '');
-                          const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-                          setFormData(prev => ({
-                            ...prev,
-                            cardDetails: {
-                              ...prev.cardDetails!,
-                              number: formatted
-                            }
-                          }));
-                        }}
-                        className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
-                        maxLength={19}
-                      />
-                      <CreditCard className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      Cardholder Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      value={formData.cardDetails?.name || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        cardDetails: {
-                          ...prev.cardDetails!,
-                          name: e.target.value
-                        }
-                      }))}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Expiry Date
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="MM/YY"
-                          value={formData.cardDetails?.expiry || ''}
-                          onChange={(e) => {
-                            let value = e.target.value.replace(/\D/g, '');
-                            if (value.length >= 2) {
-                              value = value.slice(0, 2) + '/' + value.slice(2, 4);
-                            }
-                            setFormData(prev => ({
-                              ...prev,
-                              cardDetails: {
-                                ...prev.cardDetails!,
-                                expiry: value
-                              }
-                            }));
-                          }}
-                          className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
-                          maxLength={5}
-                        />
-                        <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        CVV
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="123"
-                          value={formData.cardDetails?.cvv || ''}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            cardDetails: {
-                              ...prev.cardDetails!,
-                              cvv: e.target.value.replace(/\D/g, '')
-                            }
-                          }))}
-                          className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
-                          maxLength={4}
-                        />
-                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -1427,12 +1412,12 @@ const Checkout: React.FC = () => {
               </h3>
               <div className="p-4 bg-soft-gray rounded-xl">
                 <p className="font-fredoka font-semibold">
-                  {formData.paymentMethod === 'card' && 'Credit/Debit Card'}
+                  {formData.paymentMethod === 'card' && 'Pay Online (PayHere)'}
                   {formData.paymentMethod === 'cod' && 'Cash on Delivery'}
                 </p>
-                {formData.paymentMethod === 'card' && formData.cardDetails && (
+                {formData.paymentMethod === 'card' && (
                   <p className="text-sm text-medium-gray">
-                    •••• •••• •••• {String(formData.cardDetails.number.slice(-4))}
+                    You will be redirected to PayHere to complete payment
                   </p>
                 )}
               </div>

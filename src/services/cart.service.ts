@@ -108,8 +108,17 @@ class CartService {
       throw new Error(response.error || 'Failed to add item to cart');
     }
 
-    console.log('[CartService] Item added to cart:', response.data);
-    return response.data;
+    // Handle double-wrapped response (same pattern as getCart / addDeal)
+    let cartData = response.data as any;
+    if (cartData.data && typeof cartData.data === 'object') {
+      cartData = cartData.data;
+    }
+    if (!cartData.items || !Array.isArray(cartData.items)) {
+      cartData.items = [];
+    }
+
+    console.log('[CartService] Item added to cart:', cartData);
+    return cartData as BackendCartResponse;
   }
 
   /**
@@ -178,8 +187,17 @@ class CartService {
       throw new Error(response.error || 'Failed to update cart item');
     }
 
-    console.log('[CartService] Cart item updated:', response.data);
-    return response.data;
+    // Handle double-wrapped response
+    let cartData = response.data as any;
+    if (cartData.data && typeof cartData.data === 'object') {
+      cartData = cartData.data;
+    }
+    if (!cartData.items || !Array.isArray(cartData.items)) {
+      cartData.items = [];
+    }
+
+    console.log('[CartService] Cart item updated:', cartData);
+    return cartData as BackendCartResponse;
   }
 
   /**
@@ -192,8 +210,17 @@ class CartService {
       throw new Error(response.error || 'Failed to remove cart item');
     }
 
-    console.log('[CartService] Cart item removed:', response.data);
-    return response.data;
+    // Handle double-wrapped response
+    let cartData = response.data as any;
+    if (cartData.data && typeof cartData.data === 'object') {
+      cartData = cartData.data;
+    }
+    if (!cartData.items || !Array.isArray(cartData.items)) {
+      cartData.items = [];
+    }
+
+    console.log('[CartService] Cart item removed:', cartData);
+    return cartData as BackendCartResponse;
   }
 
   /**
