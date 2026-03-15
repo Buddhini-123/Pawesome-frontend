@@ -558,13 +558,15 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         setShippingBreakdown(null);
         setTaxAmount(0);
 
-        // Clear original prices
+        // Clear original prices and localStorage backup so stale items don't reappear on refresh
         saveOriginalPrices({});
+        saveLocalCart([]);
       } catch (error) {
         console.error('[CartContext] Failed to clear cart via backend:', error);
         // Fall back to local clear
         setCart([]);
         saveOriginalPrices({});
+        saveLocalCart([]);
       } finally {
         setIsLoading(false);
       }
@@ -572,8 +574,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       // Guest user: use local cart
       setCart([]);
       saveOriginalPrices({});
+      saveLocalCart([]);
     }
-  }, [isAuthenticated, saveOriginalPrices]);
+  }, [isAuthenticated, saveOriginalPrices, saveLocalCart]);
 
   // Refresh cart
   const refreshCart = useCallback(async () => {
