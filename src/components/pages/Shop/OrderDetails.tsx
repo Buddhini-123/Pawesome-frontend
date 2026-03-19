@@ -444,7 +444,7 @@ const OrderDetails: React.FC = () => {
             transition={{ delay: 0.6 }}
             className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center"
           >
-            {order.can_cancel && (
+            {/* {order.can_cancel && (
               <button
                 onClick={handleCancelOrder}
                 disabled={cancelling}
@@ -462,7 +462,7 @@ const OrderDetails: React.FC = () => {
                   </>
                 )}
               </button>
-            )}
+            )} */}
 
             {order.can_reorder && (
               <button

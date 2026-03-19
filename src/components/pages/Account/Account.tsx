@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User,
-  Package,
-  Heart,
   Settings,
   LogOut,
   Camera,
@@ -21,11 +19,7 @@ import {
   Edit3,
   Check,
   X,
-  Truck,
-  Clock,
   Star,
-  Gift,
-  Award,
   PawPrint,
   Plus,
   Trash2,
@@ -48,7 +42,8 @@ import { toast } from 'react-toastify';
 const Account: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
-  const [profileImage, setProfileImage] = useState('/api/placeholder/150/150');
+  const [profileImage, setProfileImage] = useState<string>('/api/placeholder/150/150');
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const { user, logout } = useAuth();
   const { loyaltyCard } = useLoyalty();
   const navigate = useNavigate();
@@ -97,9 +92,6 @@ const Account: React.FC = () => {
     { id: 'profile', name: 'Profile', icon: User, color: 'text-primary-blue' },
     { id: 'addresses', name: 'Addresses', icon: MapPin, color: 'text-mint-green' },
     { id: 'pets', name: 'My Pets', icon: PawPrint, color: 'text-sunny-yellow' },
-    { id: 'orders', name: 'My Orders', icon: Package, color: 'text-vibrant-orange' },
-    { id: 'wishlist', name: 'Wishlist', icon: Heart, color: 'text-coral-red' },
-    { id: 'loyalty', name: 'Loyalty', icon: Award, color: 'text-lavender' },
     { id: 'settings', name: 'Settings', icon: Settings, color: 'text-mint-green' },
   ];
 
@@ -122,6 +114,9 @@ const Account: React.FC = () => {
             phone: user.phone || "",
             address: user.address || "",
           });
+          if (user.avatar_url) {
+            setProfileImage(user.avatar_url);
+          }
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -157,28 +152,37 @@ const Account: React.FC = () => {
 
   const handleSaveProfile = async () => {
     try {
-      const payload = {
+      // Save text fields
+      const response = await api.put("/users/profile", {
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
-      };
+      }) as { data: { success: boolean; data: { user: any } } };
 
-      const response = await api.put("/users/profile", payload) as {
-          data: {
-            success: boolean;
-            data: { user: any };
-          };
-        };
-
-      if (response.data.success) {
-        alert("✅ Profile updated successfully!");
-        setIsEditing(false);
+      if (!response.data.success) {
+        toast.error("Failed to update profile");
+        return;
       }
+
+      // Upload avatar separately if a new image was selected
+      if (profileImageFile) {
+        const fd = new FormData();
+        fd.append('avatar', profileImageFile);
+        const avatarResponse = await api.uploadForm<{ success: boolean; data: { user: any } }>('/users/avatar', fd);
+
+        if (avatarResponse.success && avatarResponse.data?.data?.user?.avatar_url) {
+          setProfileImage(avatarResponse.data.data.user.avatar_url);
+        }
+        setProfileImageFile(null);
+      }
+
+      toast.success("Profile updated successfully!");
+      setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("❌ Failed to update profile");
+      toast.error("Failed to update profile");
     }
   };
 
@@ -186,6 +190,7 @@ const Account: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setProfileImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
@@ -380,6 +385,19 @@ const Account: React.FC = () => {
     return emojis[type];
   };
 
+  // Brand color per species
+  const petTypeAccent = (type: Pet['type']) => {
+    switch (type) {
+      case 'dog':     return { bar: 'bg-primary-blue',    icon: 'bg-primary-blue/10 text-primary-blue',       header: 'from-primary-blue to-blue-600',    badge: 'bg-primary-blue/10 text-primary-blue' };
+      case 'cat':     return { bar: 'bg-lavender',        icon: 'bg-lavender/10 text-lavender',               header: 'from-lavender to-purple-500',       badge: 'bg-lavender/10 text-lavender' };
+      case 'bird':    return { bar: 'bg-mint-green',      icon: 'bg-mint-green/10 text-mint-green',           header: 'from-mint-green to-teal-600',       badge: 'bg-mint-green/10 text-mint-green' };
+      case 'fish':    return { bar: 'bg-primary-blue',    icon: 'bg-primary-blue/10 text-primary-blue',       header: 'from-primary-blue to-cyan-600',     badge: 'bg-primary-blue/10 text-primary-blue' };
+      case 'rabbit':  return { bar: 'bg-lavender',        icon: 'bg-lavender/10 text-lavender',               header: 'from-lavender to-pink-400',         badge: 'bg-lavender/10 text-lavender' };
+      case 'hamster': return { bar: 'bg-vibrant-orange',  icon: 'bg-vibrant-orange/10 text-vibrant-orange',   header: 'from-vibrant-orange to-orange-600', badge: 'bg-vibrant-orange/10 text-vibrant-orange' };
+      default:        return { bar: 'bg-sunny-yellow',    icon: 'bg-sunny-yellow/20 text-charcoal',           header: 'from-sunny-yellow to-amber-500',    badge: 'bg-sunny-yellow/20 text-charcoal' };
+    }
+  };
+
   const getPetAge = (pet: Pet) => {
     if (pet.dateOfBirth) {
       const today = new Date();
@@ -546,88 +564,108 @@ const Account: React.FC = () => {
               </div>
             </div>
 
-            {/* Default Address Section */}
-            <div className="mt-8 pt-8 border-t-2 border-light-gray">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-fredoka font-bold text-charcoal flex items-center">
-                  <MapPin className="inline h-5 w-5 mr-2 text-mint-green" />
+            {/* Default Delivery Address */}
+            <div className="mt-8 pt-6 border-t border-light-gray">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-fredoka font-bold text-charcoal tracking-wide">
                   Default Delivery Address
                 </h3>
                 <button
                   onClick={() => setActiveTab('addresses')}
-                  className="text-primary-blue hover:text-primary-blue/80 font-fredoka font-medium text-sm flex items-center gap-1 transition-colors"
+                  className="flex items-center gap-1 text-sm font-fredoka font-medium text-primary-blue hover:text-primary-blue/80 transition-colors"
                 >
-                  <Edit3 className="h-4 w-4" />
-                  Manage Addresses
+                  <Edit3 className="h-3.5 w-3.5" />
+                  Manage
                 </button>
               </div>
 
               {loadingAddress ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-blue"></div>
+                <div className="rounded-lg border border-light-gray overflow-hidden animate-pulse">
+                  <div className="h-0.5 bg-light-gray" />
+                  <div className="px-3 py-2.5 space-y-1.5">
+                    <div className="h-3 w-20 bg-soft-gray rounded" />
+                    <div className="h-2.5 w-40 bg-soft-gray rounded" />
+                    <div className="h-2.5 w-32 bg-soft-gray rounded" />
+                  </div>
                 </div>
               ) : defaultAddress ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-gradient-to-br from-mint-green/10 to-primary-blue/5 rounded-2xl p-6 border-2 border-mint-green/30"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-mint-green/20 rounded-xl">
-                      {defaultAddress.type === 'home' ? (
-                        <Home className="h-6 w-6 text-mint-green" />
-                      ) : defaultAddress.type === 'work' ? (
-                        <Building className="h-6 w-6 text-mint-green" />
-                      ) : (
-                        <MapPin className="h-6 w-6 text-mint-green" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-fredoka font-bold text-charcoal text-lg">
-                          {defaultAddress.type.charAt(0).toUpperCase() + defaultAddress.type.slice(1)} Address
-                        </h4>
-                        <span className="px-2 py-1 bg-mint-green/20 text-mint-green text-xs rounded-full font-fredoka font-medium flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-mint-green" />
-                          Default
+                <div className="rounded-lg border border-light-gray overflow-hidden">
+                  <div className="h-0.5 bg-primary-blue" />
+                  <div className="px-3 py-2.5">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex items-center justify-center w-5 h-5 rounded bg-primary-blue/10">
+                          {defaultAddress.type === 'home' ? (
+                            <Home className="h-3 w-3 text-primary-blue" />
+                          ) : defaultAddress.type === 'work' ? (
+                            <Building className="h-3 w-3 text-primary-blue" />
+                          ) : (
+                            <Navigation className="h-3 w-3 text-primary-blue" />
+                          )}
+                        </div>
+                        <span className="font-fredoka font-bold text-charcoal text-sm capitalize">
+                          {defaultAddress.type} Address
                         </span>
                       </div>
-                      <p className="font-fredoka font-semibold text-charcoal mb-1">
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-mint-green/10 border border-mint-green/30 text-mint-green text-xs font-fredoka font-semibold">
+                        <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                        Default
+                      </span>
+                    </div>
+
+                    {/* Address details */}
+                    <div className="space-y-0.5 mb-2">
+                      <p className="font-fredoka font-semibold text-charcoal text-sm">
                         {defaultAddress.full_name}
                       </p>
-                      <p className="text-medium-gray font-fredoka text-sm">
+                      <p className="font-fredoka text-sm text-medium-gray leading-snug">
                         {defaultAddress.address_line1}
                         {defaultAddress.address_line2 && `, ${defaultAddress.address_line2}`}
                       </p>
-                      <p className="text-medium-gray font-fredoka text-sm">
-                        {defaultAddress.city}, {defaultAddress.district} - {defaultAddress.postal_code}
+                      <p className="font-fredoka text-sm text-medium-gray">
+                        {defaultAddress.city}, {defaultAddress.district} – {defaultAddress.postal_code}
                       </p>
                       {defaultAddress.landmark && (
-                        <p className="text-medium-gray font-fredoka text-xs mt-1 flex items-center gap-1">
-                          <Navigation className="h-3 w-3" />
+                        <p className="font-fredoka text-xs text-medium-gray/60">
                           Near {defaultAddress.landmark}
                         </p>
                       )}
-                      <p className="text-medium-gray font-fredoka text-sm mt-2 flex items-center gap-1">
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-2 border-t border-light-gray">
+                      <div className="flex items-center gap-1 text-medium-gray">
                         <Phone className="h-3 w-3" />
-                        {defaultAddress.phone}
-                      </p>
+                        <span className="font-fredoka text-sm">{defaultAddress.phone}</span>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('addresses')}
+                        className="flex items-center gap-0.5 text-sm font-fredoka font-semibold text-primary-blue hover:text-primary-blue/70 transition-colors"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                        Edit
+                      </button>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ) : (
-                <div className="bg-soft-gray/50 rounded-2xl p-8 text-center">
-                  <MapPin className="h-12 w-12 text-medium-gray mx-auto mb-3" />
-                  <p className="text-medium-gray font-fredoka mb-4">
-                    No default address added yet
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('addresses')}
-                    className="inline-flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-2xl font-fredoka font-medium hover:bg-primary-blue/90 transition-colors"
-                  >
-                    <Plus className="h-5 w-5" />
-                    Add Address
-                  </button>
+                <div className="rounded-lg border border-light-gray overflow-hidden">
+                  <div className="h-0.5 bg-light-gray" />
+                  <div className="flex items-center gap-3 px-3 py-3">
+                    <MapPin className="h-4 w-4 text-medium-gray flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-fredoka font-semibold text-charcoal text-sm">No delivery address saved</p>
+                      <p className="font-fredoka text-sm text-medium-gray">Add one to speed up checkout</p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('addresses')}
+                      className="flex-shrink-0 flex items-center gap-1 bg-primary-blue text-white text-sm font-fredoka font-semibold px-3 py-1.5 rounded-lg hover:bg-primary-blue/90 transition-colors"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Add
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -657,12 +695,12 @@ const Account: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-2">My Pets</h2>
-                  <p className="text-medium-gray">Manage your furry family members</p>
+                  <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-1">My Pets</h2>
+                  <p className="text-medium-gray font-fredoka">Manage your furry family members</p>
                 </div>
                 <button
                   onClick={handleAddPet}
-                  className="flex items-center space-x-2 px-6 py-3 bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal rounded-xl transition-all font-fredoka font-medium"
+                  className="flex items-center gap-2 px-6 py-3 bg-vibrant-orange hover:bg-vibrant-orange/90 text-white rounded-2xl transition-all font-fredoka font-medium shadow-sm"
                 >
                   <Plus className="h-5 w-5" />
                   <span>Add Pet</span>
@@ -671,131 +709,146 @@ const Account: React.FC = () => {
 
               {/* Loading State */}
               {loadingPets && (
-                <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunny-yellow"></div>
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-full border-4 border-light-gray border-t-vibrant-orange animate-spin" />
+                    <PawPrint className="absolute inset-0 m-auto h-5 w-5 text-vibrant-orange" />
+                  </div>
                   <p className="text-medium-gray font-fredoka">Loading pets...</p>
                 </div>
               )}
 
               {/* Pets Grid */}
               {!loadingPets && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {pets.map((pet) => (
-                  <motion.div
-                    key={pet.id}
-                    whileHover={{ y: -5 }}
-                    className="bg-gradient-to-br from-soft-gray to-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-light-gray"
-                  >
-                    {/* Pet Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-sunny-yellow/20 rounded-full flex items-center justify-center text-2xl overflow-hidden">
-                          {pet.image ? (
-                            <img
-                              src={pet.image}
-                              alt={pet.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span>{getPetTypeEmoji(pet.type)}</span>
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-fredoka font-bold text-lg text-charcoal">{pet.name}</h3>
-                          <p className="text-sm text-medium-gray capitalize">{pet.type} • {getPetAge(pet)}</p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => handleEditPet(pet)}
-                          className="p-2 hover:bg-primary-blue/10 rounded-lg transition-colors"
-                        >
-                          <Edit3 className="h-4 w-4 text-primary-blue" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeletePet(pet.id)}
-                          className="p-2 hover:bg-coral-red/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4 text-coral-red" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Pet Details */}
-                    <div className="space-y-3">
-                      {pet.breed && (
-                        <div className="flex items-center space-x-2">
-                          <Star className="h-4 w-4 text-sunny-yellow" />
-                          <span className="text-sm text-charcoal">Breed: {pet.breed}</span>
-                        </div>
-                      )}
-                      {pet.weight && (
-                        <div className="flex items-center space-x-2">
-                          <Weight className="h-4 w-4 text-mint-green" />
-                          <span className="text-sm text-charcoal">Weight: {pet.weight} {pet.weightUnit}</span>
-                        </div>
-                      )}
-                      {pet.gender && (
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-primary-blue" />
-                          <span className="text-sm text-charcoal capitalize">Gender: {pet.gender}</span>
-                        </div>
-                      )}
-                      {pet.microchipId && (
-                        <div className="flex items-center space-x-2">
-                          <Shield className="h-4 w-4 text-lavender" />
-                          <span className="text-sm text-charcoal">Chip: {pet.microchipId}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Health Indicators */}
-                    <div className="mt-4 pt-4 border-t border-light-gray">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {pet.isNeutered && (
-                          <span className="px-3 py-1 bg-mint-green/20 text-mint-green rounded-full text-xs font-fredoka font-medium">
-                            Neutered
-                          </span>
-                        )}
-                        {pet.allergies && pet.allergies.length > 0 && (
-                          <span className="px-3 py-1 bg-coral-red/20 text-coral-red rounded-full text-xs font-fredoka font-medium">
-                            Has Allergies
-                          </span>
-                        )}
-                        {pet.medications && pet.medications.length > 0 && (
-                          <span className="px-3 py-1 bg-primary-blue/20 text-primary-blue rounded-full text-xs font-fredoka font-medium">
-                            On Medication
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleViewPetProfile(pet)}
-                        className="w-full bg-sunny-yellow/20 hover:bg-sunny-yellow/30 text-sunny-yellow border border-sunny-yellow/30 rounded-xl py-2 px-4 font-fredoka font-medium transition-all flex items-center justify-center space-x-2"
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {pets.map((pet, index) => {
+                    const accent = petTypeAccent(pet.type);
+                    return (
+                      <motion.div
+                        key={pet.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        whileHover={{ y: -4 }}
+                        className="bg-white rounded-2xl overflow-hidden shadow-sm border border-light-gray hover:shadow-md transition-all duration-200"
                       >
-                        <Eye className="h-4 w-4" />
-                        <span>View Details</span>
+                        {/* Colored accent bar */}
+                        <div className={`h-1 w-full ${accent.bar}`} />
+
+                        <div className="p-5">
+                          {/* Pet Header */}
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl overflow-hidden ${accent.icon}`}>
+                                {pet.image ? (
+                                  <img src={pet.image} alt={pet.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span>{getPetTypeEmoji(pet.type)}</span>
+                                )}
+                              </div>
+                              <div>
+                                <h3 className="font-fredoka font-bold text-base text-charcoal leading-tight">{pet.name}</h3>
+                                <p className="text-xs text-medium-gray font-fredoka capitalize mt-0.5">{pet.type} · {getPetAge(pet)}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <button
+                                onClick={() => handleEditPet(pet)}
+                                className="p-2 hover:bg-soft-gray rounded-lg transition-colors text-medium-gray hover:text-charcoal"
+                                title="Edit"
+                              >
+                                <Edit3 className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeletePet(pet.id)}
+                                className="p-2 hover:bg-red-50 rounded-lg transition-colors text-medium-gray hover:text-coral-red"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Pet Details */}
+                          <div className="space-y-2 mb-4">
+                            {pet.breed && (
+                              <div className="flex items-center gap-2">
+                                <Star className="h-3.5 w-3.5 text-sunny-yellow fill-sunny-yellow shrink-0" />
+                                <span className="text-sm font-fredoka text-charcoal">{pet.breed}</span>
+                              </div>
+                            )}
+                            {pet.weight && (
+                              <div className="flex items-center gap-2">
+                                <Weight className="h-3.5 w-3.5 text-medium-gray shrink-0" />
+                                <span className="text-sm font-fredoka text-medium-gray">{pet.weight} {pet.weightUnit || 'kg'}</span>
+                              </div>
+                            )}
+                            {pet.gender && (
+                              <div className="flex items-center gap-2">
+                                <User className="h-3.5 w-3.5 text-medium-gray shrink-0" />
+                                <span className="text-sm font-fredoka text-medium-gray capitalize">{pet.gender}</span>
+                              </div>
+                            )}
+                            {pet.microchipId && (
+                              <div className="flex items-center gap-2">
+                                <Shield className="h-3.5 w-3.5 text-lavender shrink-0" />
+                                <span className="text-sm font-fredoka text-medium-gray truncate">{pet.microchipId}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Health Badges + CTA */}
+                          <div className="pt-4 border-t border-light-gray">
+                            {(pet.isNeutered || (pet.allergies && pet.allergies.length > 0) || (pet.medications && pet.medications.length > 0)) && (
+                              <div className="flex flex-wrap gap-1.5 mb-3">
+                                {pet.isNeutered && (
+                                  <span className="px-2.5 py-1 bg-mint-green/15 text-mint-green rounded-full text-xs font-fredoka font-medium">
+                                    Neutered
+                                  </span>
+                                )}
+                                {pet.allergies && pet.allergies.length > 0 && (
+                                  <span className="px-2.5 py-1 bg-coral-red/10 text-coral-red rounded-full text-xs font-fredoka font-medium">
+                                    Allergies
+                                  </span>
+                                )}
+                                {pet.medications && pet.medications.length > 0 && (
+                                  <span className="px-2.5 py-1 bg-primary-blue/10 text-primary-blue rounded-full text-xs font-fredoka font-medium">
+                                    Medication
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <button
+                              onClick={() => handleViewPetProfile(pet)}
+                              className={`w-full py-2.5 rounded-xl font-fredoka font-medium text-sm transition-all flex items-center justify-center gap-2 ${accent.icon} hover:opacity-80`}
+                            >
+                              <Eye className="h-4 w-4" />
+                              View Profile
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* Empty State */}
+                  {pets.length === 0 && (
+                    <div className="col-span-full text-center py-16">
+                      <div className="w-24 h-24 bg-vibrant-orange/10 rounded-full flex items-center justify-center mx-auto mb-5">
+                        <PawPrint className="h-12 w-12 text-vibrant-orange" />
+                      </div>
+                      <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">No pets added yet</h3>
+                      <p className="text-medium-gray font-fredoka mb-6">Add your first pet to get personalized recommendations</p>
+                      <button
+                        onClick={handleAddPet}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-vibrant-orange hover:bg-vibrant-orange/90 text-white rounded-2xl font-fredoka font-medium transition-all"
+                      >
+                        <Plus className="h-5 w-5" />
+                        Add Your First Pet
                       </button>
                     </div>
-                  </motion.div>
-                ))}
-
-                {/* Empty State */}
-                {pets.length === 0 && (
-                  <div className="col-span-full text-center py-12">
-                    <div className="w-24 h-24 bg-sunny-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <PawPrint className="h-12 w-12 text-sunny-yellow" />
-                    </div>
-                    <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">No pets added yet</h3>
-                    <p className="text-medium-gray mb-6">Add your first pet to get personalized recommendations</p>
-                    <button
-                      onClick={handleAddPet}
-                      className="px-6 py-3 bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal rounded-xl font-fredoka font-medium transition-all"
-                    >
-                      Add Your First Pet
-                    </button>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -810,667 +863,406 @@ const Account: React.FC = () => {
                   onClick={() => setShowAddPet(false)}
                 >
                   <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
+                    initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-2xl font-fredoka font-bold text-charcoal">
-                        {editingPet ? 'Edit Pet' : 'Add New Pet'}
-                      </h3>
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between px-8 py-5 border-b border-light-gray shrink-0">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-vibrant-orange/10 rounded-xl">
+                          <PawPrint className="h-5 w-5 text-vibrant-orange" />
+                        </div>
+                        <h3 className="text-xl font-fredoka font-bold text-charcoal">
+                          {editingPet ? 'Edit Pet' : 'Add New Pet'}
+                        </h3>
+                      </div>
                       <button
                         onClick={() => setShowAddPet(false)}
-                        className="p-2 hover:bg-soft-gray rounded-lg transition-colors"
+                        className="p-2 hover:bg-soft-gray rounded-xl transition-colors"
                       >
-                        <X className="h-6 w-6 text-medium-gray" />
+                        <X className="h-5 w-5 text-medium-gray" />
                       </button>
                     </div>
 
-                    {/* Pet Form */}
-                    <div className="space-y-6">
-                      {/* Basic Information */}
-                      <div>
-                        <h4 className="text-lg font-fredoka font-semibold text-charcoal mb-4">Basic Information</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Pet Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.name}
-                              onChange={(e) => handlePetFormChange('name', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., Buddy"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Pet Type *
-                            </label>
-                            <select
-                              value={petFormData.type}
-                              onChange={(e) => handlePetFormChange('type', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                            >
-                              <option value="dog">🐕 Dog</option>
-                              <option value="cat">🐈 Cat</option>
-                              <option value="bird">🦜 Bird</option>
-                              <option value="fish">🐠 Fish</option>
-                              <option value="rabbit">🐰 Rabbit</option>
-                              <option value="hamster">🐹 Hamster</option>
-                              <option value="other">🐾 Other</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Breed
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.breed}
-                              onChange={(e) => handlePetFormChange('breed', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., Golden Retriever"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Gender
-                            </label>
-                            <select
-                              value={petFormData.gender}
-                              onChange={(e) => handlePetFormChange('gender', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                            >
-                              <option value="male">Male</option>
-                              <option value="female">Female</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Pet Image */}
-                      <div>
-                        <h4 className="text-lg font-fredoka font-semibold text-charcoal mb-4">Pet Photo</h4>
-                        <div className="flex flex-col items-center space-y-4">
-                          {petImagePreview && (
-                            <div className="relative">
-                              <img
-                                src={petImagePreview}
-                                alt="Pet preview"
-                                className="w-32 h-32 rounded-full object-cover border-4 border-sunny-yellow shadow-lg"
-                              />
-                            </div>
-                          )}
-                          <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-light-gray rounded-xl p-6 cursor-pointer hover:border-sunny-yellow hover:bg-soft-gray/30 transition-all">
-                            <Upload className="h-8 w-8 text-medium-gray mb-2" />
-                            <span className="text-sm font-fredoka text-medium-gray">
-                              {petImagePreview ? 'Change photo' : 'Upload pet photo'}
-                            </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handlePetImageUpload}
-                              className="hidden"
-                            />
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Physical Details */}
-                      <div>
-                        <h4 className="text-lg font-fredoka font-semibold text-charcoal mb-4">Physical Details</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Date of Birth
-                            </label>
-                            <input
-                              type="date"
-                              value={petFormData.dateOfBirth}
-                              onChange={(e) => handlePetFormChange('dateOfBirth', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Color
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.color}
-                              onChange={(e) => handlePetFormChange('color', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., Brown and White"
-                            />
-                          </div>
-                          <div className="flex space-x-2">
-                            <div className="flex-1">
-                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                                Weight
-                              </label>
+                    {/* Scrollable Form Body */}
+                    <div className="overflow-y-auto flex-1 px-8 py-6">
+                      <div className="space-y-6">
+                        {/* Basic Information */}
+                        <div>
+                          <h4 className="text-sm font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-3">Basic Information</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Pet Name *</label>
                               <input
-                                type="number"
-                                step="0.1"
-                                value={petFormData.weight}
-                                onChange={(e) => handlePetFormChange('weight', e.target.value)}
-                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                                placeholder="0"
+                                type="text"
+                                value={petFormData.name}
+                                onChange={(e) => handlePetFormChange('name', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                placeholder="e.g., Buddy"
+                                required
                               />
                             </div>
-                            <div className="w-24">
-                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                                Unit
-                              </label>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Species *</label>
                               <select
-                                value={petFormData.weightUnit}
-                                onChange={(e) => handlePetFormChange('weightUnit', e.target.value)}
-                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
+                                value={petFormData.type}
+                                onChange={(e) => handlePetFormChange('type', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
                               >
-                                <option value="kg">kg</option>
-                                <option value="lbs">lbs</option>
+                                <option value="dog">🐕 Dog</option>
+                                <option value="cat">🐈 Cat</option>
+                                <option value="bird">🦜 Bird</option>
+                                <option value="fish">🐠 Fish</option>
+                                <option value="rabbit">🐰 Rabbit</option>
+                                <option value="hamster">🐹 Hamster</option>
+                                <option value="other">🐾 Other</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Breed</label>
+                              <input
+                                type="text"
+                                value={petFormData.breed}
+                                onChange={(e) => handlePetFormChange('breed', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                placeholder="e.g., Golden Retriever"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Gender</label>
+                              <select
+                                value={petFormData.gender}
+                                onChange={(e) => handlePetFormChange('gender', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                              >
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
                               </select>
                             </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Microchip ID
+                        </div>
+
+                        {/* Pet Photo */}
+                        <div>
+                          <h4 className="text-sm font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-3">Pet Photo</h4>
+                          <div className="flex items-center gap-5">
+                            <div className="w-20 h-20 rounded-2xl overflow-hidden bg-soft-gray flex items-center justify-center text-3xl shrink-0 border-2 border-light-gray">
+                              {petImagePreview ? (
+                                <img src={petImagePreview} alt="Pet preview" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{getPetTypeEmoji(petFormData.type as Pet['type'])}</span>
+                              )}
+                            </div>
+                            <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-light-gray rounded-xl p-4 cursor-pointer hover:border-vibrant-orange hover:bg-vibrant-orange/5 transition-all">
+                              <Upload className="h-6 w-6 text-medium-gray mb-1" />
+                              <span className="text-sm font-fredoka text-medium-gray">
+                                {petImagePreview ? 'Change photo' : 'Upload pet photo'}
+                              </span>
+                              <input type="file" accept="image/*" onChange={handlePetImageUpload} className="hidden" />
                             </label>
-                            <input
-                              type="text"
-                              value={petFormData.microchipId}
-                              onChange={(e) => handlePetFormChange('microchipId', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., 123456789012345"
-                            />
+                          </div>
+                        </div>
+
+                        {/* Physical Details */}
+                        <div>
+                          <h4 className="text-sm font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-3">Physical Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Date of Birth</label>
+                              <input
+                                type="date"
+                                value={petFormData.dateOfBirth}
+                                onChange={(e) => handlePetFormChange('dateOfBirth', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Color</label>
+                              <input
+                                type="text"
+                                value={petFormData.color}
+                                onChange={(e) => handlePetFormChange('color', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                placeholder="e.g., Brown and White"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Weight</label>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={petFormData.weight}
+                                  onChange={(e) => handlePetFormChange('weight', e.target.value)}
+                                  className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                  placeholder="0"
+                                />
+                              </div>
+                              <div className="w-24">
+                                <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Unit</label>
+                                <select
+                                  value={petFormData.weightUnit}
+                                  onChange={(e) => handlePetFormChange('weightUnit', e.target.value)}
+                                  className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                >
+                                  <option value="kg">kg</option>
+                                  <option value="lbs">lbs</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Microchip ID</label>
+                              <input
+                                type="text"
+                                value={petFormData.microchipId}
+                                onChange={(e) => handlePetFormChange('microchipId', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                placeholder="e.g., 123456789012345"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Health Information */}
+                        <div>
+                          <h4 className="text-sm font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-3">Health Information</h4>
+                          <div className="space-y-4">
+                            <label className="flex items-center gap-3 cursor-pointer select-none p-3 bg-mint-green/5 border border-mint-green/20 rounded-xl hover:bg-mint-green/10 transition-colors">
+                              <input
+                                type="checkbox"
+                                id="isNeutered"
+                                checked={petFormData.isNeutered}
+                                onChange={(e) => handlePetFormChange('isNeutered', e.target.checked)}
+                                className="w-4 h-4 text-mint-green border-2 border-light-gray rounded focus:ring-mint-green"
+                              />
+                              <span className="text-sm font-fredoka font-medium text-charcoal">Pet is spayed / neutered</span>
+                            </label>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Allergies <span className="text-medium-gray font-normal">(comma-separated)</span></label>
+                              <input
+                                type="text"
+                                value={petFormData.allergies}
+                                onChange={(e) => handlePetFormChange('allergies', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-coral-red transition-all"
+                                placeholder="e.g., chicken, beef, pollen"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Current Medications <span className="text-medium-gray font-normal">(comma-separated)</span></label>
+                              <input
+                                type="text"
+                                value={petFormData.medications}
+                                onChange={(e) => handlePetFormChange('medications', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-primary-blue transition-all"
+                                placeholder="e.g., heartworm prevention, joint supplements"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Medical Notes</label>
+                              <textarea
+                                value={petFormData.medicalNotes}
+                                onChange={(e) => handlePetFormChange('medicalNotes', e.target.value)}
+                                rows={3}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all resize-none"
+                                placeholder="Any additional medical information..."
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Health Information */}
-                      <div>
-                        <h4 className="text-lg font-fredoka font-semibold text-charcoal mb-4">Health Information</h4>
-                        <div className="space-y-4">
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="checkbox"
-                              id="isNeutered"
-                              checked={petFormData.isNeutered}
-                              onChange={(e) => handlePetFormChange('isNeutered', e.target.checked)}
-                              className="w-5 h-5 text-mint-green border-2 border-light-gray rounded focus:ring-mint-green"
-                            />
-                            <label htmlFor="isNeutered" className="text-sm font-fredoka font-medium text-charcoal">
-                              Pet is spayed/neutered
-                            </label>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Allergies (comma-separated)
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.allergies}
-                              onChange={(e) => handlePetFormChange('allergies', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., chicken, beef, pollen"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Current Medications (comma-separated)
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.medications}
-                              onChange={(e) => handlePetFormChange('medications', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., heartworm prevention, joint supplements"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Medical Notes
-                            </label>
-                            <textarea
-                              value={petFormData.medicalNotes}
-                              onChange={(e) => handlePetFormChange('medicalNotes', e.target.value)}
-                              rows={3}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all resize-none"
-                              placeholder="Any additional medical information..."
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Form Actions */}
-                      <div className="flex space-x-4 pt-6 border-t border-light-gray">
-                        <button
-                          onClick={() => setShowAddPet(false)}
-                          className="flex-1 px-6 py-3 border-2 border-light-gray text-medium-gray rounded-xl font-fredoka font-medium hover:bg-soft-gray transition-all"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleSavePet}
-                          disabled={!petFormData.name.trim() || savingPet}
-                          className="flex-1 px-6 py-3 bg-sunny-yellow hover:bg-sunny-yellow/90 disabled:bg-light-gray disabled:text-medium-gray text-charcoal rounded-xl font-fredoka font-medium transition-all flex items-center justify-center space-x-2"
-                        >
-                          {savingPet ? (
-                            <>
-                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-charcoal"></div>
-                              <span>Saving...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Save className="h-5 w-5" />
-                              <span>{editingPet ? 'Update Pet' : 'Add Pet'}</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
+                    {/* Modal Footer */}
+                    <div className="flex gap-3 px-8 py-5 border-t border-light-gray shrink-0">
+                      <button
+                        onClick={() => setShowAddPet(false)}
+                        className="flex-1 px-6 py-3 border-2 border-light-gray text-charcoal rounded-2xl font-fredoka font-medium hover:bg-soft-gray transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSavePet}
+                        disabled={!petFormData.name.trim() || savingPet}
+                        className="flex-1 px-6 py-3 bg-vibrant-orange hover:bg-vibrant-orange/90 disabled:bg-light-gray disabled:text-medium-gray text-white rounded-2xl font-fredoka font-medium transition-all flex items-center justify-center gap-2"
+                      >
+                        {savingPet ? (
+                          <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /><span>Saving...</span></>
+                        ) : (
+                          <><Save className="h-4 w-4" /><span>{editingPet ? 'Update Pet' : 'Add Pet'}</span></>
+                        )}
+                      </button>
                     </div>
                   </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Pet Profile Modal with Timeline */}
+            {/* Pet Profile Modal */}
             <AnimatePresence>
-              {showPetProfile && selectedPet && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                  onClick={() => setShowPetProfile(false)}
-                >
+              {showPetProfile && selectedPet && (() => {
+                const accent = petTypeAccent(selectedPet.type);
+                return (
                   <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden mx-4"
-                    onClick={(e) => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={() => setShowPetProfile(false)}
                   >
-                    {/* Pet Profile Header */}
-                    <div className="bg-sunny-yellow p-4 sm:p-6 lg:p-8 text-charcoal">
-                      <div className="flex items-center justify-between mb-4">
-                        <button
-                          onClick={() => setShowPetProfile(false)}
-                          className="p-2 hover:bg-charcoal/10 rounded-lg transition-colors"
-                        >
-                          <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
-                        <div className="text-center flex-1 px-2">
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-charcoal/10 rounded-full flex items-center justify-center text-3xl sm:text-4xl mx-auto mb-2 sm:mb-4 overflow-hidden">
+                    <motion.div
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.95, opacity: 0 }}
+                      className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col mx-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Pet Profile Header — species color gradient */}
+                      <div className={`bg-gradient-to-br ${accent.header} p-6 text-white shrink-0`}>
+                        <div className="flex items-center justify-between mb-5">
+                          <button
+                            onClick={() => setShowPetProfile(false)}
+                            className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+                          >
+                            <ArrowLeft className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => { setShowPetProfile(false); handleEditPet(selectedPet); }}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors font-fredoka text-sm font-medium"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                            Edit
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-5">
+                          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/20 flex items-center justify-center text-4xl shrink-0 border-2 border-white/30">
                             {selectedPet.image ? (
-                              <img
-                                src={selectedPet.image}
-                                alt={selectedPet.name}
-                                className="w-full h-full object-cover"
-                              />
+                              <img src={selectedPet.image} alt={selectedPet.name} className="w-full h-full object-cover" />
                             ) : (
                               <span>{getPetTypeEmoji(selectedPet.type)}</span>
                             )}
                           </div>
-                          <h2 className="text-2xl sm:text-3xl font-fredoka font-bold truncate">{selectedPet.name}</h2>
-                          <p className="text-sm sm:text-lg opacity-80 capitalize">{selectedPet.type} • {getPetAge(selectedPet)}</p>
+                          <div>
+                            <h2 className="text-2xl font-fredoka font-bold">{selectedPet.name}</h2>
+                            <p className="opacity-80 font-fredoka capitalize">{selectedPet.type} · {getPetAge(selectedPet)}</p>
+                            {selectedPet.breed && <p className="opacity-70 text-sm font-fredoka mt-0.5">{selectedPet.breed}</p>}
+                          </div>
                         </div>
-                        <button
-                          onClick={() => handleEditPet(selectedPet)}
-                          className="p-2 hover:bg-charcoal/10 rounded-lg transition-colors"
-                        >
-                          <Edit3 className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
-                      </div>
-                      
-                      {/* Pet Details */}
-                      <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-4">
-                        {selectedPet.breed && (
-                          <div className="bg-charcoal/10 rounded-xl p-3 text-center">
-                            <p className="text-sm font-fredoka font-bold">{selectedPet.breed}</p>
-                            <p className="text-xs opacity-80">Breed</p>
-                          </div>
-                        )}
-                        {selectedPet.weight && (
-                          <div className="bg-charcoal/10 rounded-xl p-3 text-center">
-                            <p className="text-sm font-fredoka font-bold">{selectedPet.weight} {selectedPet.weightUnit || 'kg'}</p>
-                            <p className="text-xs opacity-80">Weight</p>
-                          </div>
-                        )}
-                        {selectedPet.gender && (
-                          <div className="bg-charcoal/10 rounded-xl p-3 text-center">
-                            <p className="text-sm font-fredoka font-bold capitalize">{selectedPet.gender}</p>
-                            <p className="text-xs opacity-80">Gender</p>
-                          </div>
-                        )}
-                        {selectedPet.color && (
-                          <div className="bg-charcoal/10 rounded-xl p-3 text-center">
-                            <p className="text-sm font-fredoka font-bold">{selectedPet.color}</p>
-                            <p className="text-xs opacity-80">Color</p>
+
+                        {/* Stats row */}
+                        {(selectedPet.weight || selectedPet.gender || selectedPet.color) && (
+                          <div className="grid grid-cols-3 gap-2 mt-5">
+                            {selectedPet.weight && (
+                              <div className="bg-white/15 rounded-xl p-3 text-center">
+                                <p className="font-fredoka font-bold text-sm">{selectedPet.weight} {selectedPet.weightUnit || 'kg'}</p>
+                                <p className="text-xs opacity-70 font-fredoka">Weight</p>
+                              </div>
+                            )}
+                            {selectedPet.gender && (
+                              <div className="bg-white/15 rounded-xl p-3 text-center">
+                                <p className="font-fredoka font-bold text-sm capitalize">{selectedPet.gender}</p>
+                                <p className="text-xs opacity-70 font-fredoka">Gender</p>
+                              </div>
+                            )}
+                            {selectedPet.color && (
+                              <div className="bg-white/15 rounded-xl p-3 text-center">
+                                <p className="font-fredoka font-bold text-sm">{selectedPet.color}</p>
+                                <p className="text-xs opacity-70 font-fredoka">Color</p>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                    </div>
 
-                    {/* Pet Information */}
-                    <div className="p-4 sm:p-6 lg:p-8 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto bg-soft-gray">
-                      <h3 className="text-lg font-fredoka font-bold text-charcoal mb-4">Pet Details</h3>
-
-                      <div className="space-y-4">
-                        {/* Date of Birth */}
-                        {selectedPet.dateOfBirth && (
-                          <div className="bg-white rounded-xl p-4">
-                            <p className="text-sm font-fredoka font-medium text-charcoal mb-1">Date of Birth</p>
-                            <p className="text-base text-medium-gray">
-                              {new Date(selectedPet.dateOfBirth).toLocaleDateString()}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Neutered Status */}
-                        {selectedPet.isNeutered !== undefined && (
-                          <div className="bg-white rounded-xl p-4">
-                            <p className="text-sm font-fredoka font-medium text-charcoal mb-1">Neutered/Spayed</p>
-                            <p className="text-base text-medium-gray">
-                              {selectedPet.isNeutered ? 'Yes' : 'No'}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Microchip ID */}
-                        {selectedPet.microchipId && (
-                          <div className="bg-white rounded-xl p-4">
-                            <p className="text-sm font-fredoka font-medium text-charcoal mb-1">Microchip ID</p>
-                            <p className="text-base text-medium-gray font-mono">
-                              {selectedPet.microchipId}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Medical Notes */}
-                        {selectedPet.medicalNotes && (
-                          <div className="bg-white rounded-xl p-4">
-                            <p className="text-sm font-fredoka font-medium text-charcoal mb-1">Medical Notes</p>
-                            <p className="text-base text-medium-gray whitespace-pre-wrap">
-                              {selectedPet.medicalNotes}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Allergies */}
-                        {selectedPet.allergies && selectedPet.allergies.length > 0 && (
-                          <div className="bg-white rounded-xl p-4">
-                            <p className="text-sm font-fredoka font-medium text-charcoal mb-2">Allergies</p>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedPet.allergies.map((allergy, index) => (
-                                <span
-                                  key={index}
-                                  className="px-3 py-1 bg-coral-red/10 text-coral-red rounded-full text-sm font-fredoka"
-                                >
-                                  {allergy}
-                                </span>
-                              ))}
+                      {/* Pet Information Body */}
+                      <div className="overflow-y-auto flex-1 p-6 bg-soft-gray/40">
+                        <div className="space-y-3">
+                          {selectedPet.dateOfBirth && (
+                            <div className="bg-white rounded-xl p-4 flex items-center gap-3">
+                              <Calendar className="h-5 w-5 text-medium-gray shrink-0" />
+                              <div>
+                                <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide">Date of Birth</p>
+                                <p className="font-fredoka font-medium text-charcoal">{new Date(selectedPet.dateOfBirth).toLocaleDateString()}</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {/* Medications */}
-                        {selectedPet.medications && selectedPet.medications.length > 0 && (
-                          <div className="bg-white rounded-xl p-4">
-                            <p className="text-sm font-fredoka font-medium text-charcoal mb-2">Current Medications</p>
-                            <div className="space-y-2">
-                              {selectedPet.medications.map((medication, index) => (
-                                <div
-                                  key={index}
-                                  className="px-3 py-2 bg-soft-gray rounded-lg text-sm text-medium-gray"
-                                >
-                                  {medication}
-                                </div>
-                              ))}
+                          {selectedPet.isNeutered !== undefined && (
+                            <div className="bg-white rounded-xl p-4 flex items-center gap-3">
+                              <Shield className="h-5 w-5 text-mint-green shrink-0" />
+                              <div>
+                                <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide">Neutered / Spayed</p>
+                                <p className="font-fredoka font-medium text-charcoal">{selectedPet.isNeutered ? 'Yes' : 'No'}</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {/* Empty State */}
-                        {!selectedPet.dateOfBirth &&
-                         !selectedPet.microchipId &&
-                         !selectedPet.medicalNotes &&
-                         (!selectedPet.allergies || selectedPet.allergies.length === 0) &&
-                         (!selectedPet.medications || selectedPet.medications.length === 0) && (
-                          <div className="text-center py-12">
-                            <div className="w-16 h-16 bg-soft-gray rounded-full flex items-center justify-center mx-auto mb-4">
-                              <Activity className="h-8 w-8 text-medium-gray" />
+                          {selectedPet.microchipId && (
+                            <div className="bg-white rounded-xl p-4 flex items-center gap-3">
+                              <Shield className="h-5 w-5 text-lavender shrink-0" />
+                              <div>
+                                <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide">Microchip ID</p>
+                                <p className="font-fredoka font-medium text-charcoal font-mono text-sm">{selectedPet.microchipId}</p>
+                              </div>
                             </div>
-                            <h3 className="text-lg font-fredoka font-bold text-charcoal mb-2">No additional details</h3>
-                            <p className="text-medium-gray">Edit {selectedPet.name}'s profile to add more information</p>
-                          </div>
-                        )}
+                          )}
+
+                          {selectedPet.medicalNotes && (
+                            <div className="bg-white rounded-xl p-4">
+                              <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide mb-2">Medical Notes</p>
+                              <p className="font-fredoka text-charcoal whitespace-pre-wrap text-sm">{selectedPet.medicalNotes}</p>
+                            </div>
+                          )}
+
+                          {selectedPet.allergies && selectedPet.allergies.length > 0 && (
+                            <div className="bg-white rounded-xl p-4">
+                              <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide mb-2">Allergies</p>
+                              <div className="flex flex-wrap gap-2">
+                                {selectedPet.allergies.map((allergy, i) => (
+                                  <span key={i} className="px-3 py-1 bg-coral-red/10 text-coral-red rounded-full text-sm font-fredoka font-medium">
+                                    {allergy}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedPet.medications && selectedPet.medications.length > 0 && (
+                            <div className="bg-white rounded-xl p-4">
+                              <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide mb-2">Current Medications</p>
+                              <div className="space-y-1.5">
+                                {selectedPet.medications.map((med, i) => (
+                                  <div key={i} className="px-3 py-2 bg-primary-blue/5 border border-primary-blue/10 rounded-lg text-sm font-fredoka text-charcoal">
+                                    {med}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {!selectedPet.dateOfBirth &&
+                           !selectedPet.microchipId &&
+                           !selectedPet.medicalNotes &&
+                           (!selectedPet.allergies || selectedPet.allergies.length === 0) &&
+                           (!selectedPet.medications || selectedPet.medications.length === 0) && (
+                            <div className="text-center py-12">
+                              <div className="w-16 h-16 bg-soft-gray rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Activity className="h-8 w-8 text-medium-gray" />
+                              </div>
+                              <h3 className="text-base font-fredoka font-bold text-charcoal mb-1">No additional details</h3>
+                              <p className="text-medium-gray font-fredoka text-sm">Edit {selectedPet.name}'s profile to add more information</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
                   </motion.div>
-                </motion.div>
-              )}
+                );
+              })()}
             </AnimatePresence>
-          </motion.div>
-        );
-
-      case 'orders':
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
-          >
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8">My Orders</h2>
-              
-              {/* Order Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-gradient-to-br from-primary-blue to-primary-blue/80 text-white rounded-xl p-4">
-                  <Package className="h-8 w-8 mb-2" />
-                  <p className="text-2xl font-fredoka font-bold">12</p>
-                  <p className="text-sm opacity-90">Total Orders</p>
-                </div>
-                <div className="bg-gradient-to-br from-mint-green to-mint-green/80 text-white rounded-xl p-4">
-                  <Truck className="h-8 w-8 mb-2" />
-                  <p className="text-2xl font-fredoka font-bold">2</p>
-                  <p className="text-sm opacity-90">In Transit</p>
-                </div>
-                <div className="bg-gradient-to-br from-sunny-yellow to-sunny-yellow/80 text-charcoal rounded-xl p-4">
-                  <Clock className="h-8 w-8 mb-2" />
-                  <p className="text-2xl font-fredoka font-bold">1</p>
-                  <p className="text-sm">Processing</p>
-                </div>
-                <div className="bg-gradient-to-br from-lavender to-lavender/80 text-white rounded-xl p-4">
-                  <Check className="h-8 w-8 mb-2" />
-                  <p className="text-2xl font-fredoka font-bold">9</p>
-                  <p className="text-sm opacity-90">Delivered</p>
-                </div>
-              </div>
-
-              {/* Orders List */}
-              <div className="space-y-4">
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="border-2 border-light-gray hover:border-primary-blue rounded-xl p-6 transition-all cursor-pointer"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-fredoka font-semibold text-lg text-charcoal">Order #PW123456789</h3>
-                      <p className="text-sm text-medium-gray flex items-center mt-1">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        Placed on March 15, 2024
-                      </p>
-                    </div>
-                    <span className="bg-mint-green/20 text-mint-green px-4 py-2 rounded-full text-sm font-fredoka font-semibold">
-                      Delivered
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <img src="/api/placeholder/80/80" alt="Product" className="w-20 h-20 object-cover rounded-xl" />
-                      <div>
-                        <p className="font-fredoka font-medium text-charcoal">Royal Canin Adult Dog Food</p>
-                        <p className="text-sm text-medium-gray">Quantity: 2 × 15kg</p>
-                        <p className="text-lg font-fredoka font-bold text-mint-green mt-1">Rs. 4,998</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-medium-gray" />
-                  </div>
-                </motion.div>
-
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="border-2 border-light-gray hover:border-primary-blue rounded-xl p-6 transition-all cursor-pointer"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-fredoka font-semibold text-lg text-charcoal">Order #PW123456788</h3>
-                      <p className="text-sm text-medium-gray flex items-center mt-1">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        Placed on March 10, 2024
-                      </p>
-                    </div>
-                    <span className="bg-primary-blue/20 text-primary-blue px-4 py-2 rounded-full text-sm font-fredoka font-semibold">
-                      In Transit
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <img src="/api/placeholder/80/80" alt="Product" className="w-20 h-20 object-cover rounded-xl" />
-                      <div>
-                        <p className="font-fredoka font-medium text-charcoal">Cat Litter - Premium Clumping</p>
-                        <p className="text-sm text-medium-gray">Quantity: 1 × 10kg</p>
-                        <p className="text-lg font-fredoka font-bold text-mint-green mt-1">Rs. 899</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-medium-gray" />
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        );
-
-      case 'wishlist':
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
-          >
-            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8">My Wishlist</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="border-2 border-light-gray hover:border-coral-red rounded-xl p-5 transition-all"
-              >
-                <div className="relative mb-4">
-                  <img src="/api/placeholder/200/200" alt="Product" className="w-full h-48 object-cover rounded-xl" />
-                  <button className="absolute top-3 right-3 bg-white/90 p-2 rounded-full hover:bg-coral-red hover:text-white transition-colors">
-                    <Heart className="h-5 w-5 fill-current" />
-                  </button>
-                </div>
-                <h3 className="font-fredoka font-semibold text-charcoal mb-2">Premium Bird Seed Mix</h3>
-                <p className="text-sm text-medium-gray mb-1">Vitakraft</p>
-                <div className="flex items-center mb-3">
-                  <div className="flex text-sunny-yellow">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-sm text-medium-gray ml-2">(4.8)</span>
-                </div>
-                <p className="text-xl font-fredoka font-bold text-mint-green mb-4">Rs. 599</p>
-                <button className="w-full bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors">
-                  Add to Cart
-                </button>
-              </motion.div>
-              
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="border-2 border-light-gray hover:border-coral-red rounded-xl p-5 transition-all"
-              >
-                <div className="relative mb-4">
-                  <img src="/api/placeholder/200/200" alt="Product" className="w-full h-48 object-cover rounded-xl" />
-                  <button className="absolute top-3 right-3 bg-white/90 p-2 rounded-full hover:bg-coral-red hover:text-white transition-colors">
-                    <Heart className="h-5 w-5 fill-current" />
-                  </button>
-                </div>
-                <h3 className="font-fredoka font-semibold text-charcoal mb-2">Interactive Cat Toy</h3>
-                <p className="text-sm text-medium-gray mb-1">Petstages</p>
-                <div className="flex items-center mb-3">
-                  <div className="flex text-sunny-yellow">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-sm text-medium-gray ml-2">(4.9)</span>
-                </div>
-                <p className="text-xl font-fredoka font-bold text-mint-green mb-4">Rs. 1,299</p>
-                <button className="w-full bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors">
-                  Add to Cart
-                </button>
-              </motion.div>
-            </div>
-          </motion.div>
-        );
-
-      case 'loyalty':
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
-          >
-            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8">Loyalty Program</h2>
-            {loyaltyCard ? (
-              <div className="space-y-6">
-                <div className="bg-gradient-to-br from-lavender to-primary-blue rounded-2xl p-6 text-white">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-sm opacity-90">Loyalty Card</p>
-                      <p className="text-2xl font-fredoka font-bold">{loyaltyCard.cardNumber}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm opacity-90">Current Tier</p>
-                      <p className="text-2xl font-fredoka font-bold">{loyaltyCard.tier}</p>
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <p className="text-sm opacity-90 mb-2">Available Points</p>
-                    <p className="text-4xl font-fredoka font-bold">{loyaltyCard.points.toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => navigate('/loyalty-cards')}
-                  className="w-full bg-lavender hover:bg-lavender/90 text-white font-fredoka font-medium py-4 rounded-xl transition-colors flex items-center justify-center space-x-2"
-                >
-                  <Gift className="h-5 w-5" />
-                  <span>View Full Loyalty Dashboard</span>
-                </button>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Award className="h-16 w-16 text-lavender mx-auto mb-4" />
-                <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">Join Our Loyalty Program!</h3>
-                <p className="text-medium-gray mb-6">Earn points on every purchase and unlock exclusive rewards</p>
-                <button 
-                  onClick={() => navigate('/loyalty-cards')}
-                  className="bg-lavender hover:bg-lavender/90 text-white px-6 py-3 rounded-xl font-fredoka font-medium transition-colors"
-                >
-                  Get Started
-                </button>
-              </div>
-            )}
           </motion.div>
         );
 

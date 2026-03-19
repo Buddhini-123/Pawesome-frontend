@@ -102,6 +102,29 @@ class ApiService {
   patch<T>(endpoint: string, body?: any) {
     return this.request<T>(endpoint, { method: 'PATCH', body });
   }
+
+  async uploadForm<T>(endpoint: string, formData: FormData): Promise<{ success: boolean; data?: T; error?: string }> {
+    try {
+      const url = `${this.baseURL}${endpoint}`;
+      const authToken = this.getAuthToken();
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+      const res = await fetch(url, { method: 'POST', headers, body: formData });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const error: any = new Error(data.message || `HTTP error! status: ${res.status}`);
+        error.response = { status: res.status, data };
+        throw error;
+      }
+
+      return { success: true, data };
+    } catch (error: any) {
+      console.error('API Error:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export const api = new ApiService();

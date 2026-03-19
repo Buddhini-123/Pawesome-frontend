@@ -14,10 +14,21 @@ import {
   User,
   Navigation,
   Hash,
-  Loader2
+  Loader2,
+  AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import { api } from '../../../services/api';
 import { toast } from 'react-toastify';
+
+// All 25 valid Sri Lankan districts (must match backend Address::SRI_LANKAN_DISTRICTS)
+const SRI_LANKAN_DISTRICTS = [
+  'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo',
+  'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara',
+  'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar',
+  'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya',
+  'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya',
+];
 
 interface Address {
   id: string | number;
@@ -40,56 +51,48 @@ interface AddressFormData {
   full_name: string;
   phone: string;
   address_line1: string;
-  address_line2?: string;
+  address_line2: string;
   city: string;
   district: string;
   postal_code: string;
-  landmark?: string;
+  landmark: string;
   is_default: boolean;
 }
+
+const EMPTY_FORM: AddressFormData = {
+  type: 'home',
+  full_name: '',
+  phone: '',
+  address_line1: '',
+  address_line2: '',
+  city: '',
+  district: '',
+  postal_code: '',
+  landmark: '',
+  is_default: false,
+};
 
 const AddressManagement: React.FC = () => {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-  const [formData, setFormData] = useState<AddressFormData>({
-    type: 'home',
-    full_name: '',
-    phone: '',
-    address_line1: '',
-    address_line2: '',
-    city: '',
-    district: '',
-    postal_code: '',
-    landmark: '',
-    is_default: false
-  });
+  const [formData, setFormData] = useState<AddressFormData>(EMPTY_FORM);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | number | null>(null);
 
-  // Fetch addresses
   const fetchAddresses = async () => {
     try {
-      console.log('[AddressManagement] Fetching addresses...');
       setLoading(true);
       const response = await api.get('/users/addresses');
-      console.log('[AddressManagement] Fetch response:', response);
-
       if (response.success && response.data) {
-        const addressList = (response.data as any).data || [];
-        console.log('[AddressManagement] Addresses loaded:', addressList.length, addressList);
-        setAddresses(addressList);
+        setAddresses((response.data as any).data || []);
       } else {
-        console.warn('[AddressManagement] Response not successful or no data:', response);
         setAddresses([]);
       }
-    } catch (error: any) {
-      console.error('[AddressManagement] Failed to fetch addresses:', error);
-      console.error('[AddressManagement] Error details:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status
-      });
+    } catch {
       toast.error('Failed to load addresses');
     } finally {
       setLoading(false);
@@ -100,108 +103,129 @@ const AddressManagement: React.FC = () => {
     fetchAddresses();
   }, []);
 
-  // Reset form
   const resetForm = () => {
-    setFormData({
-      type: 'home',
-      full_name: '',
-      phone: '',
-      address_line1: '',
-      address_line2: '',
-      city: '',
-      district: '',
-      postal_code: '',
-      landmark: '',
-      is_default: false
-    });
+    setFormData(EMPTY_FORM);
+    setFieldErrors({});
     setEditingAddress(null);
     setShowForm(false);
   };
 
-  // Handle form submit (create or update)
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChange = (field: keyof AddressFormData, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
 
-    if (!formData.full_name || !formData.phone || !formData.address_line1 ||
-        !formData.city || !formData.district || !formData.postal_code) {
-      toast.error('Please fill all required fields');
-      return;
+  // Client-side validation matching backend rules
+  const validate = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.full_name.trim()) {
+      errors.full_name = 'Full name is required';
+    } else if (formData.full_name.trim().length < 2) {
+      errors.full_name = 'Name must be at least 2 characters';
     }
 
-    console.log('[AddressManagement] Submitting form data:', formData);
+    const rawPhone = formData.phone.replace(/\s/g, '');
+    if (!rawPhone) {
+      errors.phone = 'Phone number is required';
+    } else if (!/^(\+94|0)[0-9]{9}$/.test(rawPhone)) {
+      errors.phone = 'Enter a valid Sri Lankan number (e.g. 0712345678 or +94712345678)';
+    }
+
+    if (!formData.address_line1.trim()) {
+      errors.address_line1 = 'Address line 1 is required';
+    }
+
+    if (!formData.city.trim()) {
+      errors.city = 'City is required';
+    }
+
+    if (!formData.district) {
+      errors.district = 'Please select a district';
+    }
+
+    if (!formData.postal_code.trim()) {
+      errors.postal_code = 'Postal code is required';
+    } else if (!/^[0-9]{5}$/.test(formData.postal_code.trim())) {
+      errors.postal_code = 'Enter a valid 5-digit postal code';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
 
     try {
       setSubmitting(true);
-      let response;
+      const payload = {
+        ...formData,
+        address_line2: formData.address_line2 || null,
+        landmark: formData.landmark || null,
+      };
 
+      let response;
       if (editingAddress) {
-        // Update existing address
-        console.log('[AddressManagement] Updating address:', editingAddress.id);
-        response = await api.put(`/users/addresses/${editingAddress.id}`, formData);
-        console.log('[AddressManagement] Update response:', response);
-        toast.success('Address updated successfully');
+        response = await api.put(`/users/addresses/${editingAddress.id}`, payload);
       } else {
-        // Create new address
-        console.log('[AddressManagement] Creating new address');
-        response = await api.post('/users/addresses', formData);
-        console.log('[AddressManagement] Create response:', response);
-        toast.success('Address added successfully');
+        response = await api.post('/users/addresses', payload);
       }
 
       if (response.success) {
-        console.log('[AddressManagement] Fetching updated address list');
+        toast.success(editingAddress ? 'Address updated' : 'Address added');
         await fetchAddresses();
         resetForm();
       } else {
-        console.error('[AddressManagement] Response not successful:', response);
-        toast.error(response.error || 'Failed to save address');
+        // Handle backend 422 validation errors inline
+        const backendErrors = (response as any)?.response?.data?.errors as Record<string, string[]> | undefined;
+        if (backendErrors) {
+          const mapped: Record<string, string> = {};
+          for (const [field, messages] of Object.entries(backendErrors)) {
+            mapped[field] = Array.isArray(messages) ? messages[0] : String(messages);
+          }
+          setFieldErrors(mapped);
+        } else {
+          toast.error((response as any)?.response?.data?.message || 'Failed to save address');
+        }
       }
     } catch (error: any) {
-      console.error('[AddressManagement] Submit error:', error);
-      console.error('[AddressManagement] Error details:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-
-      // Show more specific error message
-      let errorMessage = 'Failed to save address';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data?.errors) {
-        const errors = error.response.data.errors;
-        const firstError = Object.values(errors)[0];
-        errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
-      } else if (error.message) {
-        errorMessage = error.message;
+      const backendErrors = error?.response?.data?.errors as Record<string, string[]> | undefined;
+      if (backendErrors) {
+        const mapped: Record<string, string> = {};
+        for (const [field, messages] of Object.entries(backendErrors)) {
+          mapped[field] = Array.isArray(messages) ? messages[0] : String(messages);
+        }
+        setFieldErrors(mapped);
+      } else {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to save address');
       }
-
-      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Handle delete
   const handleDelete = async (addressId: string | number) => {
-    if (!window.confirm('Are you sure you want to delete this address?')) {
-      return;
-    }
-
     try {
+      setDeletingId(addressId);
       const response = await api.delete(`/users/addresses/${addressId}`);
       if (response.success) {
-        toast.success('Address deleted successfully');
-        await fetchAddresses();
+        toast.success('Address deleted');
+        setAddresses(prev => prev.filter(a => a.id !== addressId));
+      } else {
+        toast.error((response as any)?.data?.message || 'Failed to delete address');
       }
     } catch (error: any) {
-      console.error('[AddressManagement] Delete error:', error);
-      toast.error('Failed to delete address');
+      toast.error(error?.response?.data?.message || 'Failed to delete address');
+    } finally {
+      setDeletingId(null);
+      setConfirmDeleteId(null);
     }
   };
 
-  // Handle set default
   const handleSetDefault = async (addressId: string | number) => {
     try {
       const response = await api.patch(`/users/addresses/${addressId}/set-default`);
@@ -209,13 +233,11 @@ const AddressManagement: React.FC = () => {
         toast.success('Default address updated');
         await fetchAddresses();
       }
-    } catch (error: any) {
-      console.error('[AddressManagement] Set default error:', error);
+    } catch {
       toast.error('Failed to set default address');
     }
   };
 
-  // Handle edit
   const handleEdit = (address: Address) => {
     setEditingAddress(address);
     setFormData({
@@ -228,8 +250,9 @@ const AddressManagement: React.FC = () => {
       district: address.district,
       postal_code: address.postal_code,
       landmark: address.landmark || '',
-      is_default: address.is_default
+      is_default: address.is_default,
     });
+    setFieldErrors({});
     setShowForm(true);
   };
 
@@ -240,6 +263,21 @@ const AddressManagement: React.FC = () => {
       default: return <MapPin className="h-5 w-5" />;
     }
   };
+
+  const typeAccent = (type: string) => {
+    switch (type) {
+      case 'home': return { bar: 'bg-primary-blue', icon: 'bg-primary-blue/10 text-primary-blue', active: 'bg-primary-blue text-white' };
+      case 'work': return { bar: 'bg-vibrant-orange', icon: 'bg-vibrant-orange/10 text-vibrant-orange', active: 'bg-vibrant-orange text-white' };
+      default:     return { bar: 'bg-lavender',      icon: 'bg-lavender/10 text-lavender',           active: 'bg-lavender text-white' };
+    }
+  };
+
+  const inputClass = (field: string) =>
+    `w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all font-fredoka ${
+      fieldErrors[field]
+        ? 'border-red-400 focus:ring-red-300'
+        : 'border-light-gray focus:ring-primary-blue'
+    }`;
 
   if (loading) {
     return (
@@ -266,7 +304,7 @@ const AddressManagement: React.FC = () => {
         </button>
       </div>
 
-      {/* Address Form Modal */}
+      {/* Add / Edit Modal */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -296,7 +334,7 @@ const AddressManagement: React.FC = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 {/* Address Type */}
                 <div>
                   <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
@@ -307,7 +345,7 @@ const AddressManagement: React.FC = () => {
                       <button
                         key={type}
                         type="button"
-                        onClick={() => setFormData({ ...formData, type })}
+                        onClick={() => handleChange('type', type)}
                         className={`px-4 py-3 rounded-xl font-fredoka font-medium transition-all flex items-center justify-center gap-2 ${
                           formData.type === type
                             ? 'bg-primary-blue text-white'
@@ -330,10 +368,15 @@ const AddressManagement: React.FC = () => {
                   <input
                     type="text"
                     value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                    required
+                    onChange={(e) => handleChange('full_name', e.target.value)}
+                    className={inputClass('full_name')}
+                    placeholder="Recipient's full name"
                   />
+                  {fieldErrors.full_name && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />{fieldErrors.full_name}
+                    </p>
+                  )}
                 </div>
 
                 {/* Phone */}
@@ -345,11 +388,15 @@ const AddressManagement: React.FC = () => {
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                    placeholder="10-digit mobile number"
-                    required
+                    onChange={(e) => handleChange('phone', e.target.value)}
+                    className={inputClass('phone')}
+                    placeholder="0712345678 or +94712345678"
                   />
+                  {fieldErrors.phone && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />{fieldErrors.phone}
+                    </p>
+                  )}
                 </div>
 
                 {/* Address Line 1 */}
@@ -361,29 +408,34 @@ const AddressManagement: React.FC = () => {
                   <input
                     type="text"
                     value={formData.address_line1}
-                    onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                    onChange={(e) => handleChange('address_line1', e.target.value)}
+                    className={inputClass('address_line1')}
                     placeholder="House no., Building, Street"
-                    required
                   />
+                  {fieldErrors.address_line1 && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />{fieldErrors.address_line1}
+                    </p>
+                  )}
                 </div>
 
                 {/* Address Line 2 */}
                 <div>
                   <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                    Address Line 2 (Optional)
+                    Address Line 2
+                    <span className="text-medium-gray font-normal ml-1">(Optional)</span>
                   </label>
                   <input
                     type="text"
                     value={formData.address_line2}
-                    onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                    placeholder="Area, Colony"
+                    onChange={(e) => handleChange('address_line2', e.target.value)}
+                    className={inputClass('address_line2')}
+                    placeholder="Area, Colony, Apartment no."
                   />
                 </div>
 
                 {/* City & District */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                       City *
@@ -391,27 +443,40 @@ const AddressManagement: React.FC = () => {
                     <input
                       type="text"
                       value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      required
+                      onChange={(e) => handleChange('city', e.target.value)}
+                      className={inputClass('city')}
+                      placeholder="e.g. Colombo"
                     />
+                    {fieldErrors.city && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.city}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                       District *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.district}
-                      onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      required
-                    />
+                      onChange={(e) => handleChange('district', e.target.value)}
+                      className={inputClass('district')}
+                    >
+                      <option value="">— Select District —</option>
+                      {SRI_LANKAN_DISTRICTS.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                    {fieldErrors.district && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.district}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Postal Code & Landmark */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                       <Hash className="inline h-4 w-4 mr-1" />
@@ -420,44 +485,46 @@ const AddressManagement: React.FC = () => {
                     <input
                       type="text"
                       value={formData.postal_code}
-                      onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                      onChange={(e) => handleChange('postal_code', e.target.value.replace(/\D/g, ''))}
+                      className={inputClass('postal_code')}
                       placeholder="5-digit code"
                       maxLength={5}
-                      required
                     />
+                    {fieldErrors.postal_code && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.postal_code}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                       <Navigation className="inline h-4 w-4 mr-1" />
-                      Landmark (Optional)
+                      Landmark
+                      <span className="text-medium-gray font-normal ml-1">(Optional)</span>
                     </label>
                     <input
                       type="text"
                       value={formData.landmark}
-                      onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                      onChange={(e) => handleChange('landmark', e.target.value)}
+                      className={inputClass('landmark')}
                       placeholder="Near landmark"
                     />
                   </div>
                 </div>
 
                 {/* Set as Default */}
-                <div className="flex items-center">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    id="is_default"
                     checked={formData.is_default}
-                    onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
-                    className="mr-3 w-4 h-4 text-primary-blue"
+                    onChange={(e) => handleChange('is_default', e.target.checked)}
+                    className="w-4 h-4 text-primary-blue rounded"
                   />
-                  <label htmlFor="is_default" className="font-fredoka text-charcoal">
-                    Set as default address
-                  </label>
-                </div>
+                  <span className="font-fredoka text-charcoal">Set as default delivery address</span>
+                </label>
 
                 {/* Buttons */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-2">
                   <button
                     type="button"
                     onClick={resetForm}
@@ -472,15 +539,9 @@ const AddressManagement: React.FC = () => {
                     className="flex-1 px-6 py-3 bg-primary-blue text-white rounded-2xl font-fredoka font-medium hover:bg-primary-blue/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {submitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
+                      <><Loader2 className="h-4 w-4 animate-spin" />Saving...</>
                     ) : (
-                      <>
-                        <Check className="h-4 w-4" />
-                        {editingAddress ? 'Update Address' : 'Add Address'}
-                      </>
+                      <><Check className="h-4 w-4" />{editingAddress ? 'Update Address' : 'Add Address'}</>
                     )}
                   </button>
                 </div>
@@ -498,12 +559,8 @@ const AddressManagement: React.FC = () => {
           className="text-center py-20 bg-white rounded-2xl"
         >
           <MapPin className="h-16 w-16 text-medium-gray mx-auto mb-4" />
-          <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">
-            No Addresses Added
-          </h3>
-          <p className="text-medium-gray font-fredoka mb-6">
-            Add your first delivery address to get started
-          </p>
+          <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">No Addresses Added</h3>
+          <p className="text-medium-gray font-fredoka mb-6">Add your first delivery address to get started</p>
           <button
             onClick={() => setShowForm(true)}
             className="inline-flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-2xl font-fredoka font-medium hover:bg-primary-blue/90 transition-colors"
@@ -513,81 +570,166 @@ const AddressManagement: React.FC = () => {
           </button>
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {addresses.map((address, index) => (
-            <motion.div
-              key={address.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-2xl p-6 shadow-sm border-2 border-light-gray hover:border-primary-blue transition-all"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-primary-blue/10 rounded-xl text-primary-blue">
-                    {getAddressIcon(address.type)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-fredoka font-bold text-charcoal">
-                        {address.type.charAt(0).toUpperCase() + address.type.slice(1)}
-                      </h3>
-                      {address.is_default && (
-                        <span className="px-2 py-1 bg-mint-green/20 text-mint-green text-xs rounded-full font-fredoka font-medium flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-mint-green" />
-                          Default
-                        </span>
-                      )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {addresses.map((address, index) => {
+            const accent = typeAccent(address.type);
+            const isConfirmingDelete = confirmDeleteId === address.id;
+            const isDeleting = deletingId === address.id;
+
+            return (
+              <motion.div
+                key={address.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`relative bg-white rounded-2xl overflow-hidden shadow-sm border transition-all duration-200 ${
+                  address.is_default
+                    ? 'border-primary-blue/30 shadow-primary-blue/10 shadow-md'
+                    : 'border-light-gray hover:shadow-md hover:border-light-gray'
+                }`}
+              >
+                {/* Colored accent bar */}
+                <div className={`h-1 w-full ${accent.bar}`} />
+
+                <div className="p-5">
+                  {/* Card Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-xl ${address.is_default ? accent.active : accent.icon}`}>
+                        {getAddressIcon(address.type)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-fredoka font-bold text-charcoal text-base leading-tight">
+                            {address.type.charAt(0).toUpperCase() + address.type.slice(1)}
+                          </h3>
+                          {address.is_default && (
+                            <span className="px-2 py-0.5 bg-primary-blue text-white text-xs rounded-full font-fredoka font-medium flex items-center gap-1">
+                              <Star className="h-2.5 w-2.5 fill-white" />
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-medium-gray font-fredoka mt-0.5">{address.full_name}</p>
+                      </div>
                     </div>
-                    <p className="text-sm text-medium-gray font-fredoka">{address.full_name}</p>
+
+                    {/* Action buttons */}
+                    {!isConfirmingDelete && (
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          onClick={() => handleEdit(address)}
+                          className="p-2 hover:bg-soft-gray rounded-lg transition-colors text-medium-gray hover:text-charcoal"
+                          title="Edit"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(address.id)}
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors text-medium-gray hover:text-red-500"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(address)}
-                    className="p-2 hover:bg-primary-blue/10 rounded-lg transition-colors text-primary-blue"
-                    title="Edit"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(address.id)}
-                    className="p-2 hover:bg-crimson/10 rounded-lg transition-colors text-crimson"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
 
-              <div className="space-y-2 text-sm text-medium-gray">
-                <p className="font-fredoka">{address.address_line1}</p>
-                {address.address_line2 && <p className="font-fredoka">{address.address_line2}</p>}
-                <p className="font-fredoka">
-                  {address.city}, {address.district} - {address.postal_code}
-                </p>
-                {address.landmark && (
-                  <p className="font-fredoka text-xs flex items-center gap-1">
-                    <Navigation className="h-3 w-3" />
-                    Near {address.landmark}
-                  </p>
-                )}
-                <p className="font-fredoka flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  {address.phone}
-                </p>
-              </div>
+                  {/* Address Details */}
+                  <div className="space-y-2 mb-4">
+                    {/* Street lines */}
+                    <div className="flex gap-2">
+                      <MapPin className="h-4 w-4 text-medium-gray shrink-0 mt-0.5" />
+                      <div className="text-sm text-charcoal font-fredoka leading-snug">
+                        <p>{address.address_line1}</p>
+                        {address.address_line2 && <p className="text-medium-gray">{address.address_line2}</p>}
+                      </div>
+                    </div>
 
-              {!address.is_default && (
-                <button
-                  onClick={() => handleSetDefault(address.id)}
-                  className="mt-4 w-full py-2 border border-primary-blue text-primary-blue rounded-xl font-fredoka font-medium hover:bg-primary-blue hover:text-white transition-colors text-sm"
-                >
-                  Set as Default
-                </button>
-              )}
-            </motion.div>
-          ))}
+                    {/* City / District / Postal */}
+                    <div className="flex gap-2">
+                      <Navigation className="h-4 w-4 text-medium-gray shrink-0 mt-0.5" />
+                      <p className="text-sm font-fredoka text-medium-gray">
+                        {address.city}, {address.district} &nbsp;·&nbsp; {address.postal_code}
+                      </p>
+                    </div>
+
+                    {/* Landmark */}
+                    {address.landmark && (
+                      <div className="flex gap-2">
+                        <Hash className="h-4 w-4 text-medium-gray shrink-0 mt-0.5" />
+                        <p className="text-sm font-fredoka text-medium-gray">Near {address.landmark}</p>
+                      </div>
+                    )}
+
+                    {/* Phone */}
+                    <div className="flex gap-2">
+                      <Phone className="h-4 w-4 text-medium-gray shrink-0 mt-0.5" />
+                      <p className="text-sm font-fredoka text-medium-gray">{address.phone}</p>
+                    </div>
+                  </div>
+
+                  {/* Inline delete confirmation */}
+                  <AnimatePresence>
+                    {isConfirmingDelete && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-3 bg-red-50 border border-red-100 rounded-xl mb-3">
+                          <div className="flex items-center gap-2 mb-3">
+                            <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+                            <p className="text-sm font-fredoka text-red-700 font-medium">
+                              Delete this address?
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              disabled={isDeleting}
+                              className="flex-1 py-2 bg-white border border-light-gray text-charcoal rounded-xl font-fredoka text-sm hover:bg-soft-gray transition-colors disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleDelete(address.id)}
+                              disabled={isDeleting}
+                              className="flex-1 py-2 bg-red-500 text-white rounded-xl font-fredoka text-sm hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                            >
+                              {isDeleting ? (
+                                <><Loader2 className="h-3 w-3 animate-spin" />Deleting...</>
+                              ) : (
+                                <><Trash2 className="h-3 w-3" />Delete</>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Footer: Set as Default */}
+                  {!address.is_default && !isConfirmingDelete && (
+                    <button
+                      onClick={() => handleSetDefault(address.id)}
+                      className="w-full py-2 rounded-xl font-fredoka text-sm font-medium border border-dashed border-light-gray text-medium-gray hover:border-primary-blue hover:text-primary-blue hover:bg-primary-blue/5 transition-all"
+                    >
+                      Set as Default
+                    </button>
+                  )}
+
+                  {address.is_default && !isConfirmingDelete && (
+                    <div className="w-full py-2 rounded-xl font-fredoka text-sm font-medium bg-primary-blue/5 text-primary-blue text-center flex items-center justify-center gap-1.5">
+                      <Check className="h-3.5 w-3.5" />
+                      Used for deliveries
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </div>

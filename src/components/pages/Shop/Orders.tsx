@@ -596,7 +596,7 @@ const Orders: React.FC = () => {
                             )}
 
                             {/* Subscription Actions */}
-                            {order.subscription.status === 'active' && (
+                            {/* {order.subscription.status === 'active' && (
                               <div className="flex flex-wrap gap-2">
                                 <button
                                   onClick={() => handlePauseSubscription(order.subscription.id)}
@@ -620,7 +620,7 @@ const Orders: React.FC = () => {
                                   Cancel
                                 </button>
                               </div>
-                            )}
+                            )} */}
 
                             {order.subscription.status === 'paused' && (
                               <button

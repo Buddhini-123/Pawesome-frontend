@@ -201,7 +201,7 @@ const RewardsGrid: React.FC = () => {
     );
   }
 
-  if (!rewardsData || rewardsData.rewards.length === 0) {
+  if (!rewardsData || !rewardsData.rewards || rewardsData.rewards.length === 0) {
     return (
       <div className="bg-soft-gray rounded-2xl p-12 text-center">
         <Gift className="w-16 h-16 text-medium-gray mx-auto mb-4" />
@@ -369,7 +369,7 @@ const RewardsGrid: React.FC = () => {
       </div>
 
       {/* Empty State for Filtered Results */}
-      {activeFilter === 'affordable' && rewardsData.rewards.length === 0 && (
+      {activeFilter === 'affordable' && (!rewardsData.rewards || rewardsData.rewards.length === 0) && (
         <div className="bg-soft-gray rounded-2xl p-12 text-center">
           <Sparkles className="w-16 h-16 text-medium-gray mx-auto mb-4" />
           <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">

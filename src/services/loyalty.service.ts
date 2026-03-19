@@ -327,7 +327,10 @@ class LoyaltyService {
       });
 
       if (response.success && response.data) {
-        return response.data;
+        // Backend returns { status: 'success', data: { rewards: [...], ... } }
+        // api.request wraps it, so response.data is the full backend body
+        const backendResponse = response.data as any;
+        return backendResponse.data || backendResponse;
       }
 
       throw new Error('Failed to fetch rewards');
