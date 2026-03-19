@@ -726,7 +726,7 @@ const Checkout: React.FC = () => {
         : "Order placed successfully!";
       toast.success(pointsMessage);
 
-      clearCart();
+      await clearCart();
 
       navigate(`/order-confirmation/${orderId}`);
 

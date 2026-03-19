@@ -27,12 +27,15 @@ const PaymentReturn: React.FC = () => {
     const checkStatus = async () => {
       try {
         const res = await api.get(`/orders/${orderId}`);
-        const order = res.data as { order_number?: string; payment_status?: string };
-        setOrderNumber(order.order_number ?? '');
+        // api.get() wraps the response: { success, data: <backend json> }
+        // The backend returns: { success, data: <OrderResource> }
+        // So the actual order object is at res.data.data
+        const order = (res.data as any)?.data as { order_number?: string; payment_status?: string };
+        setOrderNumber(order?.order_number ?? '');
 
         if (order.payment_status === 'completed') {
           setStatus('success');
-          clearCart();
+          await clearCart();
           return true; // stop polling
         }
 
