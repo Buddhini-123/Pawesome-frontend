@@ -103,6 +103,7 @@ const Checkout: React.FC = () => {
 
   const [addressOption, setAddressOption] = useState<'select' | 'custom'>('select');
   const [addresses, setAddresses] = useState<any[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Pricing API integration states
   const [pricing, setPricing] = useState<PricingCalculation | null>(null);
@@ -362,6 +363,9 @@ const Checkout: React.FC = () => {
         [field]: value
       }
     }));
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const handlePaymentMethodChange = (method: 'card' | 'cod') => {
@@ -395,50 +399,65 @@ const Checkout: React.FC = () => {
   };
 
   const validateShipping = () => {
-    // user can choose: select-address OR custom-address
-    if (addressOption === "select") {
+    const errors: Record<string, string> = {};
+
+    // Validate top-level fields (always visible)
+    const { fullName, phone, address, city, state, pincode } = formData.shippingAddress;
+
+    if (!fullName.trim()) {
+      errors.fullName = 'Full name is required';
+    } else if (fullName.trim().length < 2) {
+      errors.fullName = 'Name must be at least 2 characters';
+    } else if (!/^[a-zA-Z\s.'-]+$/.test(fullName.trim())) {
+      errors.fullName = 'Name can only contain letters, spaces, and . \' -';
+    }
+
+    const rawPhone = phone.replace(/\s/g, '');
+    if (!rawPhone) {
+      errors.phone = 'Phone number is required';
+    } else if (!/^(0?7[0-9]{8})$/.test(rawPhone)) {
+      errors.phone = 'Enter a valid Sri Lankan mobile number (e.g. 0712345678)';
+    }
+
+    if (addressOption === 'select') {
       if (!selectedAddressId) {
-        setError("Please select an address");
-        return false;
+        errors.selectedAddress = 'Please select a delivery address';
       }
-      return true; // address is valid
+    } else {
+      // Custom address fields
+      if (!address.trim()) {
+        errors.address = 'Address is required';
+      } else if (address.trim().length < 5) {
+        errors.address = 'Please enter a complete address';
+      }
+
+      if (!city.trim()) {
+        errors.city = 'City is required';
+      } else if (!/^[a-zA-Z\s\u00C0-\u024F]+$/.test(city.trim())) {
+        errors.city = 'City name can only contain letters';
+      }
+
+      if (!state.trim()) {
+        errors.state = 'Province / State is required';
+      } else if (!/^[a-zA-Z\s\u00C0-\u024F]+$/.test(state.trim())) {
+        errors.state = 'Province name can only contain letters';
+      }
+
+      if (!pincode.trim()) {
+        errors.pincode = 'Postal code is required';
+      } else if (!/^\d{5}$/.test(pincode.trim())) {
+        errors.pincode = 'Enter a valid 5-digit Sri Lankan postal code';
+      }
     }
 
-    // CUSTOM ADDRESS VALIDATION
-    const {
-      fullName,
-      phone,
-      address,
-      city,
-      state,
-      pincode,
-      addressType
-    } = formData.shippingAddress;
+    setFieldErrors(errors);
 
-    // Required fields
-    if (!fullName || !phone || !address || !city || !state || !pincode) {
-      setError("Please fill all required shipping details");
+    if (Object.keys(errors).length > 0) {
+      setError('Please fix the errors highlighted below');
       return false;
     }
 
-    // Phone number must be 10 digits
-    if (!/^\d{10}$/.test(phone.replace(/\s/g, ""))) {
-      setError("Please enter a valid 10-digit phone number");
-      return false;
-    }
-
-    // Pincode 5 digits
-    if (!/^\d{5}$/.test(pincode)) {
-      setError("Please enter a valid 5-digit pincode");
-      return false;
-    }
-
-    // Address type required
-    if (!addressType) {
-      setError("Please select address type (Home / Work / Other)");
-      return false;
-    }
-
+    setError('');
     return true;
   };
 
@@ -451,6 +470,7 @@ const Checkout: React.FC = () => {
   const handleNextStep = () => {
     setError('');
     if (step === 1 && validateShipping()) {
+      setFieldErrors({});
       setStep(2);
     } else if (step === 2 && validatePayment()) {
       setStep(3);
@@ -458,10 +478,11 @@ const Checkout: React.FC = () => {
   };
 
   const handlePreviousStep = () => {
-      setError('');
-      if (step === 3) setStep(2);
-      else if (step === 2) setStep(1);
-    };
+    setError('');
+    setFieldErrors({});
+    if (step === 3) setStep(2);
+    else if (step === 2) setStep(1);
+  };
 
   const getDeliveryAddressId = async () => {
     if (addressOption === 'select') {
@@ -851,9 +872,18 @@ const Checkout: React.FC = () => {
                       type="text"
                       value={formData.shippingAddress.fullName}
                       onChange={(e) => handleShippingChange('fullName', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      required
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                        fieldErrors.fullName
+                          ? 'border-red-400 focus:ring-red-300'
+                          : 'border-light-gray focus:ring-primary-blue'
+                      }`}
+                      placeholder="Your full name"
                     />
+                    {fieldErrors.fullName && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.fullName}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
@@ -864,10 +894,18 @@ const Checkout: React.FC = () => {
                       type="tel"
                       value={formData.shippingAddress.phone}
                       onChange={(e) => handleShippingChange('phone', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      placeholder="10-digit mobile number"
-                      required
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                        fieldErrors.phone
+                          ? 'border-red-400 focus:ring-red-300'
+                          : 'border-light-gray focus:ring-primary-blue'
+                      }`}
+                      placeholder="0712345678"
                     />
+                    {fieldErrors.phone && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.phone}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -888,15 +926,28 @@ const Checkout: React.FC = () => {
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Choose Address</label>
                     <select
                       value={selectedAddressId || ''}
-                      onChange={(e) => setSelectedAddressId(e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all mb-2"
+                      onChange={(e) => {
+                        setSelectedAddressId(e.target.value);
+                        if (fieldErrors.selectedAddress) setFieldErrors(prev => ({ ...prev, selectedAddress: '' }));
+                      }}
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all mb-1 ${
+                        fieldErrors.selectedAddress
+                          ? 'border-red-400 focus:ring-red-300'
+                          : 'border-light-gray focus:ring-primary-blue'
+                      }`}
                     >
+                      <option value="">— Select an address —</option>
                       {addresses.map(addr => (
                         <option key={addr.id} value={addr.id}>
                           {addr.display_name} - {addr.formatted_address}
                         </option>
                       ))}
                     </select>
+                    {fieldErrors.selectedAddress && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.selectedAddress}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -909,15 +960,22 @@ const Checkout: React.FC = () => {
                       </label>
                       <textarea
                         value={formData.shippingAddress.address}
-                        onChange={e => setFormData({
-                        ...formData,
-                        shippingAddress: {...formData.shippingAddress, address: e.target.value}
-                      })}
-                        className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                        onChange={e => {
+                          handleShippingChange('address', e.target.value);
+                        }}
+                        className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                          fieldErrors.address
+                            ? 'border-red-400 focus:ring-red-300'
+                            : 'border-light-gray focus:ring-primary-blue'
+                        }`}
                         rows={3}
                         placeholder="House no., Building, Street, Area"
-                        required
                       />
+                      {fieldErrors.address && (
+                        <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />{fieldErrors.address}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -942,13 +1000,19 @@ const Checkout: React.FC = () => {
                         <input
                           type="text"
                           value={formData.shippingAddress.city}
-                          onChange={e => setFormData({
-                              ...formData,
-                              shippingAddress: {...formData.shippingAddress, city: e.target.value}
-                            })}
-                                className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                          required
+                          onChange={e => handleShippingChange('city', e.target.value)}
+                          className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                            fieldErrors.city
+                              ? 'border-red-400 focus:ring-red-300'
+                              : 'border-light-gray focus:ring-primary-blue'
+                          }`}
+                          placeholder="e.g. Colombo"
                         />
+                        {fieldErrors.city && (
+                          <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />{fieldErrors.city}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -956,36 +1020,47 @@ const Checkout: React.FC = () => {
                       <div>
                         <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                           <MapPin className="inline h-4 w-4 mr-2" />
-                          State *
+                          Province / State *
                         </label>
                         <input
                           type="text"
                           value={formData.shippingAddress.state}
-                          onChange={e => setFormData({
-                            ...formData,
-                            shippingAddress: {...formData.shippingAddress, state: e.target.value}
-                          })}
-                          className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                          required
+                          onChange={e => handleShippingChange('state', e.target.value)}
+                          className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                            fieldErrors.state
+                              ? 'border-red-400 focus:ring-red-300'
+                              : 'border-light-gray focus:ring-primary-blue'
+                          }`}
+                          placeholder="e.g. Western Province"
                         />
+                        {fieldErrors.state && (
+                          <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />{fieldErrors.state}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                           <Hash className="inline h-4 w-4 mr-2" />
-                          Pincode *
+                          Postal Code *
                         </label>
                         <input
                           type="text"
                           value={formData.shippingAddress.pincode}
-                          onChange={e => setFormData({
-                            ...formData,
-                            shippingAddress: {...formData.shippingAddress, pincode: e.target.value}
-                          })}
-                          className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                          placeholder="5-digit pincode"
+                          onChange={e => handleShippingChange('pincode', e.target.value)}
+                          className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                            fieldErrors.pincode
+                              ? 'border-red-400 focus:ring-red-300'
+                              : 'border-light-gray focus:ring-primary-blue'
+                          }`}
+                          placeholder="e.g. 10100"
                           maxLength={5}
-                          required
                         />
+                        {fieldErrors.pincode && (
+                          <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />{fieldErrors.pincode}
+                          </p>
+                        )}
                       </div>
                     </div>
 
