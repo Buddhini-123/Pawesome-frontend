@@ -28,7 +28,7 @@ const PresetBoxCard: React.FC<PresetBoxCardProps> = ({ box, index = 0 }) => {
     other: 'bg-gradient-to-r from-primary-blue to-mint-green',
   };
 
-  const occasionBadgeColor = occasionColors[box.occasion] || occasionColors.other;
+  const occasionBadgeColor = occasionColors[box.occasion ?? 'other'] || occasionColors.other;
 
   const handleAddToCart = async (e?: React.MouseEvent) => {
     if (e) {
@@ -90,7 +90,7 @@ const PresetBoxCard: React.FC<PresetBoxCardProps> = ({ box, index = 0 }) => {
           <span
             className={`${occasionBadgeColor} text-white text-xs font-fredoka font-bold px-3 py-1.5 rounded-full shadow-lg capitalize`}
           >
-            {box.occasion.replace('_', ' ')}
+            {(box.occasion ?? 'other').replace('_', ' ')}
           </span>
         </div>
 

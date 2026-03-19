@@ -243,7 +243,7 @@ const Subscriptions = () => {
       const params = new URLSearchParams({
         page: page.toString(),
         per_page: perPage.toString(),
-        subscription_enabled: 'true', // Only fetch subscription-eligible products
+        subscription_only: 'true',
       });
 
       // Add category filter if not 'all'
@@ -882,13 +882,10 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       >
                         <div className="relative">
                           <img
-                            src={
-                              product.primary_image
-                                ? `http://127.0.0.1:8000${product.primary_image.url}`
-                                : "https://via.placeholder.com/300x200?text=No+Image"
-                            }
+                            src={getProductImageSrc(product)}
                             alt={product.name}
                             className="w-full h-full object-cover rounded-xl"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
                           />
                           <div className="absolute top-2 right-2 bg-vibrant-orange text-white text-xs px-2 py-1 rounded-full">
                             Save 10%
@@ -1653,9 +1650,12 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       transition={{ delay: 0.2 }}
                       src={
                         selectedProduct.images && selectedProduct.images.length > 0
-                          ? `http://127.0.0.1:8000${selectedProduct.images[0].url}`
-                          : "https://via.placeholder.com/300x200?text=No+Image"
+                          ? (selectedProduct.images[0].url.startsWith('http')
+                              ? selectedProduct.images[0].url
+                              : `${host}${selectedProduct.images[0].url}`)
+                          : getProductImageSrc(selectedProduct)
                       }
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
                       alt={selectedProduct?.name || "Product image"}
                       className="max-h-64 max-w-sm object-contain drop-shadow-2xl"
                     />
@@ -1936,6 +1936,15 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
   )
 }
 
+// Inline SVG placeholder — no external dependency
+const PRODUCT_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f5f5f5'/%3E%3Cpath d='M150 90a60 60 0 1 0 0 120 60 60 0 0 0 0-120zm0 108a48 48 0 1 1 0-96 48 48 0 0 1 0 96z' fill='%23d0d0d0'/%3E%3Ccircle cx='150' cy='135' r='18' fill='%23d0d0d0'/%3E%3Cpath d='M110 195c0-22 18-40 40-40s40 18 40 40' fill='%23d0d0d0'/%3E%3C/svg%3E";
+
+const getProductImageSrc = (product: Product): string => {
+  if (!product.primary_image?.url) return PRODUCT_PLACEHOLDER;
+  const url = product.primary_image.url;
+  return url.startsWith('http') ? url : `${host}${url}`;
+};
+
 // Product Card Component for Modal
 interface ProductCardProps {
   product: Product;
@@ -1945,7 +1954,7 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle, onViewDetails }) => {
-  
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -1974,15 +1983,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle
         onClick={() => onToggle(product)}
       >
        <img
-          src={
-            product.primary_image?.url
-              ? product.primary_image.url.startsWith('http')
-                ? product.primary_image.url
-                : `${host}${product.primary_image.url}`
-              : "https://via.placeholder.com/300x200?text=No+Image"
-          }
+          src={getProductImageSrc(product)}
           alt={product.name}
           className="w-full h-full object-cover rounded-xl"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
         />
       </div>
 
