@@ -59,6 +59,7 @@ import UserList from './components/admin/Users/UserList';
 import SubscriptionList from './components/admin/Subscriptions/SubscriptionList';
 import DealsList from './components/admin/Deals/DealsList';
 import ForgotPassword from './components/pages/Login/ForgotPassword';
+import ResetPassword from './components/pages/Login/ResetPassword';
 import CategoryDetail from './components/pages/Categories/CategoryDetail';
 
 const App: React.FC = () => {
@@ -124,6 +125,7 @@ const App: React.FC = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/join" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           {/* New Feature Routes */}
           <Route path="/subscriptions" element={<Subscriptions />} />
