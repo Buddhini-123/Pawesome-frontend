@@ -1,6 +1,7 @@
 import { Order, OrderStatus, PaginatedResponse } from '../types';
 import { mockDb } from './mockDb';
 import { formatters } from '../utils/formatters';
+import axiosInstance from './axiosInstance';
 
 export interface OrderFilters {
   search?: string;
@@ -253,6 +254,11 @@ class AdminOrderService {
     }
 
     return filtered;
+  }
+
+  async sendInvoice(orderId: string): Promise<{ message: string }> {
+    const response = await axiosInstance.post(`/api/admin/orders/${orderId}/send-invoice`);
+    return response.data;
   }
 
   // Get order timeline for tracking

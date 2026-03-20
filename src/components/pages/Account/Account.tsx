@@ -53,7 +53,8 @@ const Account: React.FC = () => {
     lastName: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
+    birthday: ""
   });
 
   // Default Address State
@@ -113,6 +114,7 @@ const Account: React.FC = () => {
             email: user.email || "",
             phone: user.phone || "",
             address: user.address || "",
+            birthday: user.birthday || "",
           });
           if (user.avatar_url) {
             setProfileImage(user.avatar_url);
@@ -159,6 +161,7 @@ const Account: React.FC = () => {
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
+        birthday: formData.birthday || null,
       }) as { data: { success: boolean; data: { user: any } } };
 
       if (!response.data.success) {
@@ -559,6 +562,20 @@ const Account: React.FC = () => {
                   disabled={!isEditing}
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className={`w-full border ${isEditing ? 'border-primary-blue' : 'border-light-gray'} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-blue transition-all`}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                  <Calendar className="inline h-4 w-4 mr-2" />
+                  Birthday <span className="text-medium-gray font-normal">(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  disabled={!isEditing}
+                  value={formData.birthday}
+                  max={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setFormData({...formData, birthday: e.target.value})}
                   className={`w-full border ${isEditing ? 'border-primary-blue' : 'border-light-gray'} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-blue transition-all`}
                 />
               </div>
