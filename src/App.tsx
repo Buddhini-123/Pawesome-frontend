@@ -60,6 +60,7 @@ import SubscriptionList from './components/admin/Subscriptions/SubscriptionList'
 import DealsList from './components/admin/Deals/DealsList';
 import ForgotPassword from './components/pages/Login/ForgotPassword';
 import ResetPassword from './components/pages/Login/ResetPassword';
+import LegalPage from './components/pages/Legal/LegalPage';
 import CategoryDetail from './components/pages/Categories/CategoryDetail';
 
 const App: React.FC = () => {
@@ -121,6 +122,8 @@ const App: React.FC = () => {
             </ProtectedRoute>
           } />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/terms" element={<LegalPage slug="terms" />} />
+          <Route path="/privacy" element={<LegalPage slug="privacy" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/join" element={<Register />} />

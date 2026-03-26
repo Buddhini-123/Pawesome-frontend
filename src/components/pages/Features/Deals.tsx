@@ -121,35 +121,28 @@ const DealSection = ({
 const Deals: React.FC = () => {
   const navigate = useNavigate();
 
-  const subscriptionSlides = [
-    {
-      image:
-        'https://cdn.create.vista.com/downloads/8182b741-5b10-465f-8a06-5dd2f17e23aa_1024.jpeg',
-      title: 'Banner 1',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 1 CTA clicked'),
-    },
-    {
-      image: 'https://petpoints.co.uk/assets/purepet.jpg',
-      title: 'Banner 2',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 2 CTA clicked'),
-    },
-    {
-      image:
-        'https://cdnpublic.budgetpetproducts.com.au/contents/2025/05/21/24044014-2d7d-4f5a-938c-ed2fb11588a3.jpg',
-      title: 'Banner 3',
-      subtitle: 'Up to 50% off on all subscriptions',
-      cta: 'Subscribe Now',
-      onClick: () => console.log('Slide 3 CTA clicked'),
-    },
-    // ...other slides
-  ]
+  const [bannerSlides, setBannerSlides] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch dynamic banners
+  useEffect(() => {
+    api.get('/banners/active').then((res) => {
+      const data = (res.data as any).data ?? [];
+      setBannerSlides(
+        data.map((b: any) => ({
+          image:    b.image_url,
+          title:    b.title,
+          subtitle: b.description,
+          cta:      b.button_label,
+          onClick:  b.deal?.slug ? () => navigate(`/deals/${b.deal.slug}`) : undefined,
+        }))
+      );
+    }).catch(() => {
+      // silently ignore; banner stays empty
+    });
+  }, [navigate]);
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -253,7 +246,9 @@ const Deals: React.FC = () => {
             Incredible discounts and offers on premium pet products
           </p>
         </motion.div>
-        <SlideshowBanner slides={subscriptionSlides} autoPlay interval={6000} />
+        {bannerSlides.length > 0 && (
+          <SlideshowBanner slides={bannerSlides} autoPlay interval={6000} />
+        )}
 
         <WhyPawsomeSection />
 

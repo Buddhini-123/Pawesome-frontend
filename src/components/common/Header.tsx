@@ -279,11 +279,11 @@ const Header: React.FC = () => {
           </div>
 
           {/* Notification Banner */}
-          <div className="absolute bottom-0 left-0 right-0 bg-vibrant-orange p-3 text-center">
+          {/* <div className="absolute bottom-0 left-0 right-0 bg-vibrant-orange p-3 text-center">
             <p className="text-white text-base font-fredoka">
               🐾 FREE SHIPPING on orders above Rs. 20,000
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     );
@@ -295,8 +295,8 @@ const Header: React.FC = () => {
       <div className="hidden md:block w-full bg-warm-orange py-2 px-4">
         <div className="container mx-auto flex justify-between items-center">
           <div className="text-base font-fredoka font-medium text-charcoal flex items-center">
-            <span className="mr-2 animate-bounce-slow">🐾</span>
-            FREE SHIPPING on orders above Rs. 20,000
+            {/* <span className="mr-2 animate-bounce-slow">🐾</span>
+            FREE SHIPPING on orders above Rs. 20,000 */}
           </div>
           <div className="flex space-x-4 text-base">
             <Link to="/contact" className="text-charcoal hover:text-warm-white transition-colors font-nunito">
