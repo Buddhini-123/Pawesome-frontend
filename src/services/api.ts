@@ -10,7 +10,7 @@ interface RequestOptions {
 }
 
 class ApiService {
-  private baseURL: string = 'http://127.0.0.1:8000/api';
+  private baseURL: string = 'https://api.pawsome.lk/api';
 
   private defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',

@@ -273,7 +273,7 @@ const LegalPage: React.FC<LegalPageProps> = ({ slug }) => {
                 style={
                   {
                     '--tw-prose-h2-before-bg':
-                      slug === 'terms' ? '#2196F3' : '#4ECDC4',
+                      slug === 'terms' ? '#1BBBFF' : '#48FFF2',
                   } as React.CSSProperties
                 }
                 dangerouslySetInnerHTML={{ __html: content }}

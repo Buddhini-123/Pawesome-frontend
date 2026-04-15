@@ -30,7 +30,7 @@ const EnhancedParticleSystem: React.FC<EnhancedParticleSystemProps> = ({
   // Simplified color palette
   const colors = useMemo(() => [
     '#F59E0B', '#FBBF24', '#FCD34D',
-    '#6CA6CD', '#87CEEB', '#0EA5E9',
+    '#1BBBFF', '#87CEEB', '#0EA5E9',
     '#EC4899', '#F472B6',
   ], []);
 

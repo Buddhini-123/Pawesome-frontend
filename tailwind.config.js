@@ -25,30 +25,30 @@ module.exports = {
 			colors: {
 				// New Vibrant Pet-Friendly Palette
 				// Primary Colors
-				"primary-blue": "#2196F3",      // Bright, trustworthy blue
-				"vibrant-orange": "#FF6B35",    // Playful orange for CTAs
-				"sunny-yellow": "#FFD93D",      // Happy yellow for highlights
-				
+				"primary-blue": "#1BBBFF",      // Bright, trustworthy blue
+				"vibrant-orange": "#FF8B61",    // Playful orange for CTAs
+				"sunny-yellow": "#FCE95A",      // Happy yellow for highlights
+
 				// Secondary Colors
-				"soft-pink": "#FFB6C1",         // Gentle pink for accents
-				"mint-green": "#4ECDC4",        // Fresh mint for success states
-				"lavender": "#B19CD9",          // Soft purple for special features
-				
+				"soft-pink": "#FC6884",         // Gentle pink for accents
+				"mint-green": "#48FFF2",        // Fresh mint for success states
+				"lavender": "#B791FF",          // Soft purple for special features
+
 				// Neutrals
 				"warm-white": "#FFFAF0",        // Creamy white backgrounds
 				"soft-gray": "#F5F5F5",         // Light gray for sections
 				"charcoal": "#2C3E50",          // Dark text
 				"medium-gray": "#7F8C8D",       // Secondary text
-				
+
 				// Legacy colors (keeping for backward compatibility)
-				"energetic-orange": "#FF914D",
+				"energetic-orange": "#FF8B61",
 				"natural-sage": "#9DB17C",
-				"calm-blue": "#6CA6CD",
-				"warm-orange": "#FFBF57",
-				"soft-yellow": "#FFE066",
-				"periwinkle": "#D6CDEA",
+				"calm-blue": "#1BBBFF",
+				"warm-orange": "#FCE95A",
+				"soft-yellow": "#FCE95A",
+				"periwinkle": "#D4BDFF",
 				"warm-taupe": "#A1866F",
-				"mint": "#1AB487",
+				"mint": "#48FFF2",
 				"crimson": "#F64E4E",
 				"off-white": "#F9FAFB",
 				"light-gray": "#E5E7EB",
