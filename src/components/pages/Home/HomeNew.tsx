@@ -216,10 +216,10 @@ const Home: React.FC = () => {
             viewport={{ once: true }}
             className="text-center mb-14"
           >
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-3">
-              What Makes Us <span className="text-primary-blue">Special</span> 🌟
+            <h2 className="text-4xl md:text-5xl font-fredoka font-bold mb-3" style={{ color: '#004D6B' }}>
+              What Makes Us <span style={{ color: '#003050' }}>Special</span> 🌟
             </h2>
-            <p className="text-lg text-charcoal/60 font-nunito max-w-2xl mx-auto">
+            <p className="text-lg font-nunito max-w-2xl mx-auto" style={{ color: '#004D6B', opacity: 0.85 }}>
               Discover our unique services designed to make pet parenting easier and more fun!
             </p>
           </motion.div>
@@ -231,11 +231,8 @@ const Home: React.FC = () => {
             ))}
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-white/40 mb-14" />
-
           {/* Features bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="rounded-3xl bg-sunny-yellow px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -245,14 +242,60 @@ const Home: React.FC = () => {
                 transition={{ delay: index * 0.1 }}
                 className="text-center"
               >
-                <div className="w-16 h-16 bg-white/40 rounded-full flex items-center justify-center mx-auto mb-3 text-charcoal">
+                <div className="w-16 h-16 bg-white/50 rounded-full flex items-center justify-center mx-auto mb-3 text-charcoal">
                   {feature.icon}
                 </div>
-                <h3 className="font-fredoka font-semibold text-charcoal mb-1">{feature.title}</h3>
-                <p className="text-charcoal/60 text-sm font-nunito">{feature.description}</p>
+                <h3 className="font-fredoka font-semibold mb-1 text-charcoal">{feature.title}</h3>
+                <p className="text-sm font-nunito text-charcoal/70">{feature.description}</p>
               </motion.div>
             ))}
           </div>
+
+          {/* Divider */}
+          <div className="border-t border-white/40 mt-14 mb-14" />
+
+          {/* Newsletter */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative z-10 max-w-2xl mx-auto text-center"
+          >
+            <span className="text-4xl mb-4 block">🐾</span>
+            <h2 className="text-4xl md:text-5xl font-fredoka font-bold mb-3" style={{ color: '#004D6B' }}>
+              The Pawsome Newsletter
+            </h2>
+            <p className="font-nunito mb-8 text-lg" style={{ color: '#004D6B', opacity: 0.8 }}>
+              Get exclusive deals, pet care tips, and new product alerts delivered straight to your inbox. No spam — just tail wags. 🐶
+            </p>
+
+            <form
+              className="flex flex-col sm:flex-row gap-3 justify-center"
+              onSubmit={e => e.preventDefault()}
+            >
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="flex-1 px-5 py-3 rounded-2xl font-nunito text-charcoal bg-white/80 backdrop-blur-sm border-2 border-white/60 focus:outline-none focus:border-white placeholder:text-charcoal/40 shadow-md"
+              />
+              <motion.button
+                type="submit"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-7 py-3 rounded-2xl font-fredoka font-bold text-white shadow-lg transition-all duration-300"
+                style={{ backgroundColor: '#004D6B' }}
+              >
+                Subscribe
+              </motion.button>
+            </form>
+
+            <p className="mt-4 text-sm font-nunito" style={{ color: '#004D6B', opacity: 0.6 }}>
+              Join 50,000+ pet parents. Unsubscribe anytime.
+            </p>
+          </motion.div>
+
+          <div className="pb-6" />
 
         </div>
       </section>
