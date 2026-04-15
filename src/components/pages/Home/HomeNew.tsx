@@ -18,10 +18,10 @@ interface ServiceCardProps {
 const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, color, textColor, link, delay }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
+      initial={{ opacity: 0, y: 70, scale: 0.94 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.55, delay, ease: 'easeOut' }}
       whileHover={{ y: -10, scale: 1.02 }}
       className="group"
     >
@@ -211,45 +211,72 @@ const Home: React.FC = () => {
 
           {/* Section heading */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 60 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
             className="text-center mb-14"
           >
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold mb-3" style={{ color: '#004D6B' }}>
+            <motion.h2
+              className="text-4xl md:text-5xl font-fredoka font-bold mb-3"
+              style={{ color: '#004D6B' }}
+              initial={{ opacity: 0, scale: 0.92 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+            >
               What Makes Us <span style={{ color: '#003050' }}>Special</span> 🌟
-            </h2>
-            <p className="text-lg font-nunito max-w-2xl mx-auto" style={{ color: '#004D6B', opacity: 0.85 }}>
+            </motion.h2>
+            <motion.p
+              className="text-lg font-nunito max-w-2xl mx-auto"
+              style={{ color: '#004D6B', opacity: 0.85 }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
               Discover our unique services designed to make pet parenting easier and more fun!
-            </p>
+            </motion.p>
           </motion.div>
 
           {/* Service cards */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {services.map((service, index) => (
-              <ServiceCard key={index} {...service} delay={index * 0.1} />
+              <ServiceCard key={index} {...service} delay={index * 0.15} />
             ))}
           </div>
 
           {/* Features bar */}
-          <div className="rounded-3xl bg-sunny-yellow px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="rounded-3xl bg-sunny-yellow px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ delay: 0.15 + index * 0.12, duration: 0.5, ease: 'easeOut' }}
                 className="text-center"
               >
-                <div className="w-16 h-16 bg-white/50 rounded-full flex items-center justify-center mx-auto mb-3 text-charcoal">
+                <motion.div
+                  className="w-16 h-16 bg-white/50 rounded-full flex items-center justify-center mx-auto mb-3 text-charcoal"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ delay: 0.2 + index * 0.12, type: 'spring', stiffness: 200, damping: 14 }}
+                >
                   {feature.icon}
-                </div>
+                </motion.div>
                 <h3 className="font-fredoka font-semibold mb-1 text-charcoal">{feature.title}</h3>
                 <p className="text-sm font-nunito text-charcoal/70">{feature.description}</p>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           {/* Divider */}
           <div className="border-t border-white/40 mt-14 mb-14" />

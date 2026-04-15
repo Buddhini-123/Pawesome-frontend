@@ -5,12 +5,12 @@
 /* Import custom animations */
 @import './styles/animations.css';
 
-/* Hero card desktop sizing */
+/* Hero card desktop sizing — laptop → desktop → 4K */
 @media (min-width: 768px) {
   .hero-card {
-    width: 950px !important;
-    height: 520px !important;
-    max-width: 950px !important;
+    width: clamp(640px, 58vw, 980px) !important;
+    max-width: clamp(640px, 58vw, 980px) !important;
+    height: clamp(440px, 42vh, 560px) !important;
   }
 }
 
