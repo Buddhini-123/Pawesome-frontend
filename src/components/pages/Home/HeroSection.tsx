@@ -141,7 +141,7 @@ const HeroSection: React.FC = () => {
               bottom: '-6%',
               left: 'calc(-1 * clamp(120px, 13vw, 210px))',
               width: 'clamp(120px, 13vw, 210px)',
-              zIndex: 30, x: hamX, y: hamY,
+              zIndex: 2, x: hamX, y: hamY,
             }}
           >
             <motion.img
@@ -161,7 +161,7 @@ const HeroSection: React.FC = () => {
               top: '-28%',
               left: 'calc(-1 * clamp(260px, 26vw, 430px))',
               width: 'clamp(260px, 26vw, 430px)',
-              zIndex: 10, x: rabX, y: rabY,
+              zIndex: 1, x: rabX, y: rabY,
             }}
           >
             <motion.img
@@ -177,7 +177,7 @@ const HeroSection: React.FC = () => {
           {/* Blue card */}
           <motion.div
             className="hero-card bg-primary-blue rounded-3xl flex flex-col gap-6 px-8 py-8 md:px-14 md:py-12 items-center justify-center text-center w-full max-w-sm"
-            style={{ boxShadow: '0 20px 60px rgba(27,187,255,0.28)' }}
+            style={{ boxShadow: '0 20px 60px rgba(27,187,255,0.28)', position: 'relative', zIndex: 3 }}
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -188,9 +188,9 @@ const HeroSection: React.FC = () => {
               transition={{ delay: 0.2 }}
               className="flex flex-col items-center w-full"
             >
-              <p className="font-nunito text-white/60 text-sm md:text-2xl mb-2">The one-stop shop for</p>
+              {/* <p className="font-nunito text-white/60 text-sm md:text-2xl mb-2">The one-stop shop for</p> */}
               <h1 className="font-fredoka font-bold text-white leading-tight text-3xl md:text-[4rem]">
-                Everything your
+                Everything Your
               </h1>
               <div className="flex items-center justify-center gap-3">
                 <AnimatePresence mode="wait">
@@ -207,7 +207,7 @@ const HeroSection: React.FC = () => {
                 </AnimatePresence>
               </div>
               <h1 className="font-fredoka font-bold text-white leading-tight text-3xl md:text-[4rem]">
-                needs
+                Needs
               </h1>
             </motion.div>
 
@@ -217,7 +217,7 @@ const HeroSection: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
             >
-              Premium food, toys & care products — delivered straight to your door across Sri Lanka.
+              Premium food, toys & care products - delivered straight to your door across Sri Lanka.
             </motion.p>
 
             <motion.div

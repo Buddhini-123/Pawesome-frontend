@@ -119,7 +119,7 @@ const Header: React.FC = () => {
       className={`w-full sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}
     >
       {/* ── Top bar (contact only, tablet + desktop) ───────────────── */}
-      {!isMobile && (
+      {/* {!isMobile && (
         <div className="w-full bg-warm-orange py-2 px-4">
           <div className="container mx-auto flex justify-end items-center">
             <Link to="/contact" className="text-charcoal hover:text-charcoal/70 transition-colors font-nunito text-sm">
@@ -127,7 +127,7 @@ const Header: React.FC = () => {
             </Link>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* ── Main bar ────────────────────────────────────────────────── */}
       <div className="bg-warm-white border-b border-light-gray">
@@ -238,6 +238,23 @@ const Header: React.FC = () => {
                   <span className="absolute -top-1 -right-1 bg-crimson text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">3</span>
                 </Link>
 
+                {/* Cart */}
+                <Link
+                  to="/cart"
+                  className="flex items-center gap-1.5 lg:gap-2 bg-vibrant-orange hover:bg-sunny-yellow transition-all duration-300 px-4 lg:px-6 py-2.5 lg:py-3 rounded-full text-white relative shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                >
+                  <ShoppingCart className="h-5 w-5 lg:h-6 lg:w-6" />
+                  <span className="font-fredoka font-semibold text-base lg:text-lg">My Cart</span>
+                  <AnimatePresence>
+                    {totalItems > 0 && (
+                      <motion.span key="badge" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                        className="absolute -top-2 -right-2 bg-primary-blue text-white text-xs rounded-full h-6 w-6 lg:h-7 lg:w-7 flex items-center justify-center font-bold">
+                        {totalItems}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </Link>
+
                 {/* User profile */}
                 <div className="relative user-menu-container">
                   {isAuthenticated ? (
@@ -280,22 +297,6 @@ const Header: React.FC = () => {
                   </AnimatePresence>
                 </div>
 
-                {/* Cart */}
-                <Link
-                  to="/cart"
-                  className="flex items-center gap-1.5 lg:gap-2 bg-vibrant-orange hover:bg-sunny-yellow transition-all duration-300 px-4 lg:px-6 py-2.5 lg:py-3 rounded-full text-white relative shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
-                >
-                  <ShoppingCart className="h-5 w-5 lg:h-6 lg:w-6" />
-                  <span className="font-fredoka font-semibold text-base lg:text-lg">My Cart</span>
-                  <AnimatePresence>
-                    {totalItems > 0 && (
-                      <motion.span key="badge" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                        className="absolute -top-2 -right-2 bg-primary-blue text-white text-xs rounded-full h-6 w-6 lg:h-7 lg:w-7 flex items-center justify-center font-bold">
-                        {totalItems}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Link>
               </div>
             </div>
           )}
