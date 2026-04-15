@@ -121,9 +121,78 @@ const Home: React.FC = () => {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Features Bar */}
-      <section className="py-12 bg-white border-b border-light-gray">
-        <div className="container mx-auto px-4">
+      {/* Features + Services — merged section */}
+      <section className="relative overflow-hidden bg-sky-light py-20">
+
+        {/* Leaf decorations */}
+        {[
+          { top:  '2%',  left:  '-2%', size: 260, rotate:   15, dur: 7,  delay: 0   },
+          { top:  '5%',  left: '78%',  size: 280, rotate:  -55, dur: 9,  delay: 1.2 },
+          { top: '18%',  left: '90%',  size: 250, rotate:   80, dur: 6,  delay: 0.5 },
+          { top: '30%',  left:  '3%',  size: 270, rotate:  170, dur: 8,  delay: 1.8 },
+          { top: '42%',  left: '52%',  size: 240, rotate:   45, dur: 10, delay: 0.3 },
+          { top: '55%',  left: '88%',  size: 260, rotate: -110, dur: 7,  delay: 2.1 },
+          { top: '62%',  left:  '8%',  size: 280, rotate:  300, dur: 9,  delay: 0.8 },
+          { top: '74%',  left: '65%',  size: 250, rotate:  130, dur: 6,  delay: 1.5 },
+          { top: '82%',  left:  '-1%', size: 270, rotate:  -20, dur: 8,  delay: 0.4 },
+          { top: '91%',  left: '42%',  size: 260, rotate:  250, dur: 7,  delay: 1.0 },
+        ].map((l, i) => (
+          <motion.img
+            key={i}
+            src="/icons/leaf-layer.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute pointer-events-none select-none"
+            style={{
+              top: l.top,
+              left: l.left,
+              width: l.size,
+              height: l.size,
+              opacity: 0.29,
+              mixBlendMode: 'multiply',
+            }}
+            animate={{
+              y: [0, -20, 10, -15, 0],
+              x: [0, 10, -8, 5, 0],
+              rotate: [l.rotate, l.rotate + 12, l.rotate - 8, l.rotate + 5, l.rotate],
+            }}
+            transition={{
+              duration: l.dur,
+              repeat: Infinity,
+              delay: l.delay,
+              ease: 'easeInOut',
+            }}
+          />
+        ))}
+
+        <div className="relative z-10 container mx-auto px-4">
+
+          {/* Section heading */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-3">
+              What Makes Us <span className="text-primary-blue">Special</span> 🌟
+            </h2>
+            <p className="text-lg text-charcoal/60 font-nunito max-w-2xl mx-auto">
+              Discover our unique services designed to make pet parenting easier and more fun!
+            </p>
+          </motion.div>
+
+          {/* Service cards */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            {services.map((service, index) => (
+              <ServiceCard key={index} {...service} delay={index * 0.1} />
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-white/40 mb-14" />
+
+          {/* Features bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
@@ -134,39 +203,15 @@ const Home: React.FC = () => {
                 transition={{ delay: index * 0.1 }}
                 className="text-center"
               >
-                <div className="w-16 h-16 bg-primary-blue/10 rounded-full flex items-center justify-center mx-auto mb-3 text-primary-blue">
+                <div className="w-16 h-16 bg-white/40 rounded-full flex items-center justify-center mx-auto mb-3 text-charcoal">
                   {feature.icon}
                 </div>
                 <h3 className="font-fredoka font-semibold text-charcoal mb-1">{feature.title}</h3>
-                <p className="text-medium-gray text-sm font-fredoka">{feature.description}</p>
+                <p className="text-charcoal/60 text-sm font-nunito">{feature.description}</p>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Services Section */}
-      <section className="py-20 bg-soft-gray">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-4">
-              What Makes Us <span className="text-primary-blue">Special</span> 🌟
-            </h2>
-            <p className="text-xl text-medium-gray font-fredoka font-nunito max-w-2xl mx-auto">
-              Discover our unique services designed to make pet parenting easier and more fun!
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((service, index) => (
-              <ServiceCard key={index} {...service} delay={index * 0.1} />
-            ))}
-          </div>
         </div>
       </section>
 

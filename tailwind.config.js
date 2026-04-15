@@ -34,6 +34,9 @@ module.exports = {
 				"mint-green": "#48FFF2",        // Fresh mint for success states
 				"lavender": "#B791FF",          // Soft purple for special features
 
+				// Section background
+				"sky-light": "#5BD9FF",         // Light blue for page sections
+
 				// Neutrals
 				"warm-white": "#FFFAF0",        // Creamy white backgrounds
 				"soft-gray": "#F5F5F5",         // Light gray for sections

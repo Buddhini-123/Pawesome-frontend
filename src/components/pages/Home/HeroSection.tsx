@@ -3,14 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const PAW_POSITIONS = [
-  { left: '5%',  top: '10%', size: 24, dur: 8,  delay: 0 },
-  { left: '20%', top: '80%', size: 18, dur: 10, delay: 1.2 },
-  { left: '35%', top: '18%', size: 14, dur: 7,  delay: 0.4 },
-  { left: '60%', top: '8%',  size: 20, dur: 9,  delay: 0.9 },
-  { left: '72%', top: '75%', size: 22, dur: 8,  delay: 1.8 },
-  { left: '85%', top: '25%', size: 26, dur: 11, delay: 0.2 },
-  { left: '10%', top: '50%', size: 30, dur: 9,  delay: 0.6 },
-  { left: '50%', top: '88%', size: 16, dur: 7,  delay: 1.5 },
+  { left: '5%',  top: '10%', size: 50, dur: 8,  delay: 0,   img: 'paw-left'  },
+  { left: '20%', top: '80%', size: 44, dur: 10, delay: 1.2, img: 'paw-right' },
+  { left: '35%', top: '18%', size: 40, dur: 7,  delay: 0.4, img: 'paw-left'  },
+  { left: '60%', top: '8%',  size: 46, dur: 9,  delay: 0.9, img: 'paw-right' },
+  { left: '72%', top: '75%', size: 48, dur: 8,  delay: 1.8, img: 'paw-left'  },
+  { left: '85%', top: '25%', size: 54, dur: 11, delay: 0.2, img: 'paw-right' },
+  { left: '10%', top: '50%', size: 42, dur: 9,  delay: 0.6, img: 'paw-left'  },
+  { left: '50%', top: '88%', size: 38, dur: 7,  delay: 1.5, img: 'paw-right' },
+  { left: '28%', top: '45%', size: 44, dur: 8,  delay: 0.3, img: 'paw-left'  },
+  { left: '45%', top: '60%', size: 50, dur: 9,  delay: 1.0, img: 'paw-right' },
+  { left: '65%', top: '40%', size: 42, dur: 7,  delay: 0.7, img: 'paw-left'  },
+  { left: '78%', top: '55%', size: 46, dur: 10, delay: 1.4, img: 'paw-right' },
+  { left: '92%', top: '70%', size: 40, dur: 8,  delay: 0.5, img: 'paw-left'  },
+  { left: '15%', top: '30%', size: 48, dur: 11, delay: 1.7, img: 'paw-right' },
+  { left: '55%', top: '72%', size: 44, dur: 9,  delay: 0.9, img: 'paw-left'  },
+  { left: '40%', top: '5%',  size: 36, dur: 7,  delay: 1.1, img: 'paw-right' },
 ];
 
 const PETS = [
@@ -38,15 +46,16 @@ const HeroSection: React.FC = () => {
       {/* Paw prints */}
       <div className="absolute inset-0 pointer-events-none select-none">
         {PAW_POSITIONS.map((p, i) => (
-          <motion.span
+          <motion.img
             key={i}
+            src={`/icons/${p.img}.png`}
+            alt=""
+            aria-hidden="true"
             className="absolute"
-            style={{ left: p.left, top: p.top, fontSize: p.size, opacity: 0.15 }}
+            style={{ left: p.left, top: p.top, width: p.size, height: p.size, opacity: 1 }}
             animate={{ y: [0, -12, 0] }}
             transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
-          >
-            🐾
-          </motion.span>
+          />
         ))}
       </div>
 
@@ -142,7 +151,6 @@ const HeroSection: React.FC = () => {
       </div>
 
       {/* Animals */}
-
       <motion.img
         src="/icons/catanddog.png"
         alt="Cat and Dog"
