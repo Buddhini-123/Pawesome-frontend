@@ -5,6 +5,15 @@
 /* Import custom animations */
 @import './styles/animations.css';
 
+/* Hero card desktop sizing */
+@media (min-width: 768px) {
+  .hero-card {
+    width: 950px !important;
+    height: 520px !important;
+    max-width: 950px !important;
+  }
+}
+
 /* Custom scrollbar hiding */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* Internet Explorer 10+ */

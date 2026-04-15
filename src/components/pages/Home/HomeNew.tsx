@@ -264,7 +264,7 @@ const Home: React.FC = () => {
           >
             <span className="text-4xl mb-4 block">🐾</span>
             <h2 className="text-4xl md:text-5xl font-fredoka font-bold mb-3" style={{ color: '#004D6B' }}>
-              The Pawsome Newsletter
+              Join the Pawsome Family
             </h2>
             <p className="font-nunito mb-8 text-lg" style={{ color: '#004D6B', opacity: 0.8 }}>
               Get exclusive deals, pet care tips, and new product alerts delivered straight to your inbox. No spam — just tail wags. 🐶

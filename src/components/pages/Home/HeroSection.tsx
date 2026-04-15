@@ -22,9 +22,9 @@ const PAW_POSITIONS = [
 ];
 
 const PETS = [
-  { icon: '/icons/dog.png',    name: 'dogs' },
-  { icon: '/icons/cat.png',    name: 'cats' },
-  { icon: '/icons/bird.png',   name: 'birds' },
+  { icon: '/icons/dog.png',    name: 'dogs'    },
+  { icon: '/icons/cat.png',    name: 'cats'    },
+  { icon: '/icons/bird.png',   name: 'birds'   },
   { icon: '/icons/rabbit.png', name: 'rabbits' },
 ];
 
@@ -39,10 +39,7 @@ const HeroSection: React.FC = () => {
   const pet = PETS[currentPet] ?? PETS[0];
 
   return (
-    <section
-      className="relative overflow-hidden bg-sunny-yellow flex items-stretch"
-      style={{ height: '80vh', minHeight: '560px' }}
-    >
+    <section className="relative overflow-hidden bg-sunny-yellow min-h-[520px] md:h-[80vh] flex items-center md:items-stretch">
       {/* Paw prints */}
       <div className="absolute inset-0 pointer-events-none select-none">
         {PAW_POSITIONS.map((p, i) => (
@@ -60,10 +57,44 @@ const HeroSection: React.FC = () => {
       </div>
 
       {/* Card */}
-      <div className="relative z-10 flex items-center pl-10 md:pl-14">
+      <div className="relative z-10 flex items-center justify-center w-full px-4 py-10 md:py-0">
+        <div className="relative">
+
+          {/* Hamster — peeks from upper-left */}
+          <motion.img
+            src="/icons/hamster-hero.png"
+            alt=""
+            aria-hidden="true"
+            className="hidden md:block absolute select-none pointer-events-none"
+            style={{ bottom: '-6%', left: '-160px', width: '160px', zIndex: 30 }}
+            // initial={{ opacity: 0, x: -20 }}
+            // animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
+            transition={{
+              opacity: { duration: 0.5, delay: 0.6 },
+              x: { duration: 0.5, delay: 0.6 },
+              y: { duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1 },
+            }}
+          />
+
+          {/* Rabbit — peeks from lower-left */}
+          <motion.img
+            src="/icons/rabbit-hero.png"
+            alt=""
+            aria-hidden="true"
+            className="hidden md:block absolute select-none pointer-events-none"
+            style={{ bottom: '0%', left: '-350px', right:'0px', width: '350px', zIndex: 10 }}
+            // initial={{ opacity: 0, x: -20 }}
+            // animate={{ opacity: 1, x: 0, y: [0, -7, 0] }}
+            transition={{
+              opacity: { duration: 0.5, delay: 0.8 },
+              x: { duration: 0.5, delay: 0.8 },
+              y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 },
+            }}
+          />
+
         <motion.div
-          className="bg-primary-blue rounded-3xl flex flex-col gap-6 px-10 py-10 items-center text-center"
-          style={{ width: '560px', height: '560px', boxShadow: '0 20px 60px rgba(27,187,255,0.28)' }}
+          className="hero-card bg-primary-blue rounded-3xl flex flex-col gap-6 px-8 py-8 md:px-14 md:py-12 items-center justify-center text-center w-full max-w-sm"
+          style={{ boxShadow: '0 20px 60px rgba(27,187,255,0.28)' }}
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -73,18 +104,17 @@ const HeroSection: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex-shrink-0"
+            className="flex flex-col items-center w-full"
           >
-            <p className="font-nunito text-white/60 text-sm mb-1">The one-stop shop for</p>
-            <h1 className="font-fredoka font-bold text-white leading-tight" style={{ fontSize: '2.4rem' }}>
+            <p className="font-nunito text-white/60 text-sm md:text-2xl mb-2">The one-stop shop for</p>
+            <h1 className="font-fredoka font-bold text-white leading-tight text-3xl md:text-[4rem]">
               Everything your
             </h1>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-3">
               <AnimatePresence mode="wait">
                 <motion.span
                   key={currentPet}
-                  className="font-fredoka font-bold text-sunny-yellow"
-                  style={{ fontSize: '2.6rem' }}
+                  className="font-fredoka font-bold text-sunny-yellow text-3xl md:text-[4.2rem]"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
@@ -93,27 +123,27 @@ const HeroSection: React.FC = () => {
                   {pet.name}
                 </motion.span>
               </AnimatePresence>
-              <AnimatePresence mode="wait">
+              {/* <AnimatePresence mode="wait">
                 <motion.img
                   key={currentPet}
                   src={pet.icon}
                   alt=""
-                  className="w-9 h-9 object-contain"
+                  className="w-8 h-8 md:w-12 md:h-12 object-contain"
                   initial={{ opacity: 0, scale: 0.6 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.6 }}
                   transition={{ duration: 0.25 }}
                 />
-              </AnimatePresence>
+              </AnimatePresence> */}
             </div>
-            <h1 className="font-fredoka font-bold text-white leading-tight" style={{ fontSize: '2.4rem' }}>
-              needs.
+            <h1 className="font-fredoka font-bold text-white leading-tight text-3xl md:text-[4rem]">
+              needs
             </h1>
           </motion.div>
 
           {/* Subtext */}
           <motion.p
-            className="font-nunito text-white/65 text-sm leading-relaxed flex-shrink-0"
+            className="font-nunito text-white/65 text-sm md:text-2xl leading-relaxed flex-shrink-0"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
@@ -121,33 +151,31 @@ const HeroSection: React.FC = () => {
             Premium food, toys & care products — delivered straight to your door across Sri Lanka.
           </motion.p>
 
-          {/* Spacer */}
-          <div className="flex-1" />
 
           {/* CTAs */}
           <motion.div
-            className="flex-shrink-0"
+            className="flex flex-col items-center w-full"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
           >
-            <div className="flex flex-col gap-3 mb-4">
+            <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
               <Link
                 to="/shop"
-                className="flex items-center justify-center bg-sunny-yellow text-charcoal font-fredoka font-bold px-6 py-3 rounded-2xl text-base hover:scale-[1.02] transition-all duration-300 shadow-md"
+                className="flex items-center justify-center bg-sunny-yellow text-charcoal font-fredoka font-bold px-8 py-3.5 rounded-2xl text-lg hover:scale-[1.02] transition-all duration-300 shadow-md"
               >
                 Shop now
               </Link>
               <Link
                 to="/subscriptions"
-                className="flex items-center justify-center bg-white/10 text-white font-fredoka font-semibold px-6 py-3 rounded-2xl text-base border border-white/20 hover:bg-white/20 transition-all duration-300"
+                className="flex items-center justify-center bg-white/10 text-white font-fredoka font-semibold px-8 py-3.5 rounded-2xl text-lg border border-white/20 hover:bg-white/20 transition-all duration-300"
               >
-                See subscription plans
+                Subscription plans
               </Link>
             </div>
           </motion.div>
-
         </motion.div>
+        </div>
       </div>
 
       {/* Animals */}
