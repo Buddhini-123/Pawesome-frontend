@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { giftService, PresetGiftBox } from '../../../services/gift.service';
 import PresetBoxCard from '../../common/PresetBoxCard';
-import { Package, Sparkles, Gift, Star, Heart, ArrowRight, Wand2, Palette, Gamepad2, Plus, Cookie, Tag, Mail, Zap, CheckCircle } from 'lucide-react';
+import { Package, Sparkles, Gift, Star, Heart, Wand2, Palette, Gamepad2, Plus, Cookie, Tag, Mail, Zap, CheckCircle } from 'lucide-react';
 
 // ── Paw prints for hero background ────────────────────────────────
 const PAW_POSITIONS = [
@@ -42,11 +42,6 @@ const ILLUSTRATIONS = [
   { src: 'hypnotize-illustrations.png', left: '3%', top: '75%', size:  90, rotate: -15, dur: 9,  delay: 1.6, opacity: 0.13, section: 'build'   },
   { src: 'small-hear-illustrations.png', left: '55%', top: '95%', size: 70, rotate: 30, dur: 5, delay: 0.8, opacity: 0.16, section: 'build'   },
 
-  // Pet types section
-  { src: 'cat-illustrations.png',      left: '2%',  top: '10%', size: 110, rotate: -10, dur: 7,  delay: 0.4, opacity: 0.18, section: 'pets'    },
-  { src: 'heart-illustrations.png',    left: '88%', top: '15%', size:  85, rotate:  20, dur: 6,  delay: 1.1, opacity: 0.20, section: 'pets'    },
-  { src: 'scribble-illustrations.png', left: '80%', top: '68%', size:  90, rotate: -25, dur: 8,  delay: 0.6, opacity: 0.15, section: 'pets'    },
-  { src: 'dog-illustrations.png',      left: '4%',  top: '65%', size: 100, rotate:  15, dur: 7,  delay: 1.8, opacity: 0.15, section: 'pets'    },
 ];
 
 // ── Leaf configs (matching homepage) ──────────────────────────────
@@ -191,9 +186,34 @@ const HeroIllust: React.FC<{
 };
 
 const Gifts: React.FC = () => {
-  const [presetBoxes, setPresetBoxes]       = useState<PresetGiftBox[]>([]);
+  const [presetBoxes, setPresetBoxes]           = useState<PresetGiftBox[]>([]);
   const [isLoadingPresets, setIsLoadingPresets] = useState(true);
   const [selectedOccasion, setSelectedOccasion] = useState('all');
+
+  // ── Section refs for scroll-driven parallax ──────────────────────
+  const heroRef   = useRef<HTMLElement>(null);
+  const presetRef = useRef<HTMLElement>(null);
+  const buildRef  = useRef<HTMLElement>(null);
+
+  // Raw scroll progress per section
+  const { scrollYProgress: heroP   } = useScroll({ target: heroRef,   offset: ['start start', 'end start'] });
+  const { scrollYProgress: presetP } = useScroll({ target: presetRef, offset: ['start end',   'end start'] });
+  const { scrollYProgress: buildP  } = useScroll({ target: buildRef,  offset: ['start end',   'end start'] });
+
+  // Spring-smooth the raw values — feels natural, not snappy
+  const heroS   = useSpring(heroP,   { stiffness: 55, damping: 22, restDelta: 0.001 });
+  const presetS = useSpring(presetP, { stiffness: 55, damping: 22, restDelta: 0.001 });
+  const buildS  = useSpring(buildP,  { stiffness: 55, damping: 22, restDelta: 0.001 });
+
+  // Y transforms — background layers move more, content moves less
+  const heroIllustY = useTransform(heroS,   [0, 1], [0,   -150]);
+  const heroPawY    = useTransform(heroS,   [0, 1], [0,    -70]);
+  const heroTextY   = useTransform(heroS,   [0, 1], [0,    -45]);
+
+  const presetBgY   = useTransform(presetS, [0, 1], [80,   -80]);
+  const presetLeafY = useTransform(presetS, [0, 1], [50,   -60]);
+
+  const buildBgY    = useTransform(buildS,  [0, 1], [80,   -80]);
 
   useEffect(() => {
     const fetchPresetBoxes = async () => {
@@ -215,80 +235,83 @@ const Gifts: React.FC = () => {
     <div className="min-h-screen bg-warm-white">
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-primary-blue min-h-[580px] md:min-h-[640px] flex items-center">
+      <section ref={heroRef} className="relative overflow-hidden bg-primary-blue min-h-[580px] md:min-h-[640px] flex items-center">
 
-        {/* ── Scattered illustrations ─────────────────────────────── */}
+        {/* ── Illustrations layer — fastest parallax ──────────────── */}
+        <motion.div style={{ y: heroIllustY }} className="absolute inset-0">
 
-        {/* Dog — large, right edge bottom */}
-        <HeroIllust
-          src="/icons/illustrations/dog-illustrations.png"
-          className="hidden md:block"
-          style={{ width: 480, height: 480, bottom: -30, right: -30, objectFit: 'contain' }}
-          floatY={[0, -16, 0]}
-          dur={5}
-          hoverX={-20} hoverY={-28}
-          clickEffect="bounce"
-        />
+          {/* Dog — large, right edge bottom */}
+          <HeroIllust
+            src="/icons/illustrations/dog-illustrations.png"
+            className="hidden md:block"
+            style={{ width: 480, height: 480, bottom: -30, right: -30, objectFit: 'contain' }}
+            floatY={[0, -16, 0]}
+            dur={5}
+            hoverX={-20} hoverY={-28}
+            clickEffect="bounce"
+          />
 
-        {/* Cat — large, left edge bottom */}
-        <HeroIllust
-          src="/icons/illustrations/cat-illustrations.png"
-          className="hidden md:block"
-          style={{ width: 460, height: 460, bottom: -20, left: -30, objectFit: 'contain', opacity: 0.85 }}
-          floatY={[0, -12, 0]}
-          floatRotate={[0, 4, 0]}
-          dur={4.5} delay={0.6}
-          hoverX={20} hoverY={-24}
-          clickEffect="wiggle"
-          baseRotate={0}
-        />
+          {/* Cat — large, left edge bottom */}
+          <HeroIllust
+            src="/icons/illustrations/cat-illustrations.png"
+            className="hidden md:block"
+            style={{ width: 460, height: 460, bottom: -20, left: -30, objectFit: 'contain', opacity: 0.85 }}
+            floatY={[0, -12, 0]}
+            floatRotate={[0, 4, 0]}
+            dur={4.5} delay={0.6}
+            hoverX={20} hoverY={-24}
+            clickEffect="wiggle"
+            baseRotate={0}
+          />
 
-        {/* Heart — top-right */}
-        <HeroIllust
-          src="/icons/illustrations/heart-illustrations.png"
-          style={{ width: 110, height: 110, top: '6%', right: '14%', opacity: 0.9 }}
-          floatY={[0, -12, 0]}
-          floatRotate={[-6, 6, -6]}
-          dur={3.8} delay={0.4}
-          hoverY={-30}
-          clickEffect="pulse"
-        />
+          {/* Heart — top-right */}
+          <HeroIllust
+            src="/icons/illustrations/heart-illustrations.png"
+            style={{ width: 110, height: 110, top: '6%', right: '14%', opacity: 0.9 }}
+            floatY={[0, -12, 0]}
+            floatRotate={[-6, 6, -6]}
+            dur={3.8} delay={0.4}
+            hoverY={-30}
+            clickEffect="pulse"
+          />
 
-        {/* Small heart — upper-left area */}
-        <HeroIllust
-          src="/icons/illustrations/small-hear-illustrations.png"
-          style={{ width: 72, height: 72, top: '12%', left: '22%', opacity: 0.85 }}
-          floatY={[0, -10, 0]}
-          dur={3.2} delay={1.0}
-          hoverY={-22}
-          clickEffect="pulse"
-        />
+          {/* Small heart — upper-left area */}
+          <HeroIllust
+            src="/icons/illustrations/small-hear-illustrations.png"
+            style={{ width: 72, height: 72, top: '12%', left: '22%', opacity: 0.85 }}
+            floatY={[0, -10, 0]}
+            dur={3.2} delay={1.0}
+            hoverY={-22}
+            clickEffect="pulse"
+          />
 
-        {/* Scribble — top-centre accent */}
-        <HeroIllust
-          src="/icons/illustrations/scribble-illustrations.png"
-          style={{ width: 200, height: 200, top: '-20px', left: '38%', opacity: 0.22 }}
-          floatY={[0, -8, 0]}
-          floatRotate={[15, 22, 15]}
-          dur={9} delay={0}
-          hoverX={0} hoverY={-18}
-          clickEffect="spin"
-          baseRotate={15}
-        />
+          {/* Scribble — top-centre accent */}
+          <HeroIllust
+            src="/icons/illustrations/scribble-illustrations.png"
+            style={{ width: 200, height: 200, top: '-20px', left: '38%', opacity: 0.22 }}
+            floatY={[0, -8, 0]}
+            floatRotate={[15, 22, 15]}
+            dur={9} delay={0}
+            hoverX={0} hoverY={-18}
+            clickEffect="spin"
+            baseRotate={15}
+          />
 
-        {/* Hypnotize — bottom-centre */}
-        <HeroIllust
-          src="/icons/illustrations/hypnotize-illustrations.png"
-          style={{ width: 130, height: 130, bottom: '8%', left: '44%', opacity: 0.28 }}
-          floatY={[0, -6, 0]}
-          floatRotate={[0, 360, 360]}
-          dur={14} delay={0}
-          hoverY={-20}
-          clickEffect="spin"
-        />
+          {/* Hypnotize — bottom-centre */}
+          <HeroIllust
+            src="/icons/illustrations/hypnotize-illustrations.png"
+            style={{ width: 130, height: 130, bottom: '8%', left: '44%', opacity: 0.28 }}
+            floatY={[0, -6, 0]}
+            floatRotate={[0, 360, 360]}
+            dur={14} delay={0}
+            hoverY={-20}
+            clickEffect="spin"
+          />
 
-        {/* Paw prints — subtle white tint */}
-        <div className="absolute inset-0 pointer-events-none select-none">
+        </motion.div>
+
+        {/* ── Paw prints — mid parallax ────────────────────────────── */}
+        <motion.div style={{ y: heroPawY }} className="absolute inset-0 pointer-events-none select-none">
           {PAW_POSITIONS.map((p, i) => (
             <motion.img
               key={i}
@@ -300,10 +323,11 @@ const Gifts: React.FC = () => {
               transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
             />
           ))}
-        </div>
+        </motion.div>
 
-        {/* ── Text content — centred over illustrations ────────────── */}
-        <div className="relative z-10 container mx-auto px-6 lg:px-12 py-20 md:py-24 flex justify-center">
+        {/* ── Text content — slowest parallax ─────────────────────── */}
+        <motion.div style={{ y: heroTextY }} className="relative z-10 w-full">
+        <div className="container mx-auto px-6 lg:px-12 py-20 md:py-24 flex justify-center">
           <motion.div
             className="text-center max-w-2xl"
             initial={{ opacity: 0, y: 40 }}
@@ -356,6 +380,7 @@ const Gifts: React.FC = () => {
 
           </motion.div>
         </div>
+        </motion.div>{/* end heroTextY wrapper */}
       </section>
 
       {/* ── Benefits strip ─────────────────────────────────────────── */}
@@ -389,13 +414,15 @@ const Gifts: React.FC = () => {
       </section>
 
       {/* ── Preset Gift Boxes ──────────────────────────────────────── */}
-      <section id="preset-boxes" className="relative overflow-hidden bg-sky-light py-20 px-4">
+      <section ref={presetRef} id="preset-boxes" className="relative overflow-hidden bg-sky-light py-20 px-4">
 
-        {/* Hand-drawn illustrations */}
-        <IllustrationBg section="preset" />
+        {/* Hand-drawn illustrations — deep background, fastest parallax */}
+        <motion.div style={{ y: presetBgY }} className="absolute inset-0 pointer-events-none">
+          <IllustrationBg section="preset" />
+        </motion.div>
 
-        {/* Leaf decorations */}
-        <div className="absolute inset-0 pointer-events-none select-none">
+        {/* Leaf decorations — mid layer, medium parallax */}
+        <motion.div style={{ y: presetLeafY }} className="absolute inset-0 pointer-events-none select-none">
           {LEAVES.map((l, i) => (
             <motion.img
               key={i}
@@ -410,7 +437,7 @@ const Gifts: React.FC = () => {
               transition={{ duration: l.dur, repeat: Infinity, delay: l.delay, ease: 'easeInOut' }}
             />
           ))}
-        </div>
+        </motion.div>
 
         <div className="relative z-10 container mx-auto max-w-7xl">
 
@@ -510,7 +537,7 @@ const Gifts: React.FC = () => {
           )}
 
           {/* OR divider */}
-          <motion.div
+          {/* <motion.div
             className="mt-16 flex items-center justify-center gap-6"
             initial={{ opacity: 0, scaleX: 0 }}
             whileInView={{ opacity: 1, scaleX: 1 }}
@@ -520,14 +547,16 @@ const Gifts: React.FC = () => {
             <div className="h-0.5 w-28 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #1BBBFF66)' }} />
             <span className="font-fredoka font-bold text-2xl" style={{ color: '#004D6B' }}>OR</span>
             <div className="h-0.5 w-28 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #1BBBFF66)' }} />
-          </motion.div>
+          </motion.div> */}
 
         </div>
       </section>
 
       {/* ── Build Your Own ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden py-24 px-4" style={{ background: 'linear-gradient(160deg, #E8F7FF 0%, #FFFAF0 55%)' }}>
-        <IllustrationBg section="build" />
+      <section ref={buildRef} className="relative overflow-hidden py-24 px-4" style={{ background: 'linear-gradient(160deg, #E8F7FF 0%, #FFFAF0 55%)' }}>
+        <motion.div style={{ y: buildBgY }} className="absolute inset-0 pointer-events-none">
+          <IllustrationBg section="build" />
+        </motion.div>
         <div className="relative z-10 container mx-auto max-w-7xl">
 
           {/* ── Heading ─────────────────────────────────────────────── */}
@@ -763,67 +792,6 @@ const Gifts: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Shop by pet type ───────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-sky-light py-20 px-4">
-        <IllustrationBg section="pets" />
-        <div className="relative z-10 container mx-auto max-w-5xl">
-
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.7, ease: 'easeOut' }}
-          >
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold mb-3" style={{ color: '#004D6B' }}>
-              A Box for Every Pet 🐾
-            </h2>
-            <p className="font-nunito text-lg" style={{ color: '#004D6B', opacity: 0.8 }}>
-              From playful pups to curious cats — we've got them all covered.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            {[
-              { emoji: '🐕', name: 'Dogs',       color: '#FF8B61', text: '#7A2800', count: '120+ items' },
-              { emoji: '🐱', name: 'Cats',        color: '#1BBBFF', text: '#004D6B', count: '90+ items'  },
-              { emoji: '🦜', name: 'Birds',        color: '#48FFF2', text: '#004D50', count: '50+ items'  },
-              { emoji: '🐹', name: 'Small Pets',   color: '#B791FF', text: '#2D0066', count: '60+ items'  },
-            ].map((pet, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 70, scale: 0.94 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.55, delay: i * 0.1, ease: 'easeOut' }}
-                whileHover={{ y: -10, scale: 1.03 }}
-                className="group"
-              >
-                <Link
-                  to="/gifts/customize"
-                  className="relative overflow-hidden flex flex-col items-center gap-3 p-7 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 text-center block"
-                  style={{ backgroundColor: pet.color }}
-                >
-                  <span className="absolute bottom-2 right-3 text-white/10 text-5xl select-none pointer-events-none">🐾</span>
-                  <div className="w-20 h-20 bg-white/25 rounded-full flex items-center justify-center text-5xl group-hover:scale-110 transition-transform duration-300">
-                    {pet.emoji}
-                  </div>
-                  <h3 className="font-fredoka font-bold text-xl" style={{ color: pet.text }}>{pet.name}</h3>
-                  <p className="font-nunito text-xs" style={{ color: pet.text, opacity: 0.8 }}>{pet.count}</p>
-                  <div
-                    className="flex items-center gap-1 font-fredoka font-semibold text-sm group-hover:gap-2 transition-all duration-300"
-                    style={{ color: pet.text }}
-                  >
-                    <span>Build a box</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-
-        </div>
-      </section>
 
     </div>
   );
