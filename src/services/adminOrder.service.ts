@@ -257,7 +257,7 @@ class AdminOrderService {
   }
 
   async sendInvoice(orderId: string): Promise<{ message: string }> {
-    const response = await axiosInstance.post(`/api/admin/orders/${orderId}/send-invoice`);
+    const response = await axiosInstance.post(`/admin/orders/${orderId}/send-invoice`);
     return response.data;
   }
 

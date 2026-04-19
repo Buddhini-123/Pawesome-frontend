@@ -375,7 +375,7 @@ class LoyaltyService {
   // Get points balance
   async getPointsBalance(loyaltyCardId: string): Promise<number> {
     try {
-      const response = await api.request<{ balance: number }>(`/loyalty/balance/${loyaltyCardId}`);
+      const response = await api.request<{ balance: number }>('/loyalty/balance');
 
       if (response.success && response.data) {
         return response.data.balance;

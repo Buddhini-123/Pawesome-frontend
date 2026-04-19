@@ -1,4 +1,5 @@
 import { ApiResponse } from '../types';
+import { API_BASE_URL } from '../config';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -10,8 +11,7 @@ interface RequestOptions {
 }
 
 class ApiService {
-  // private baseURL: string = 'https://api.pawsome.lk/api';
-  private baseURL: string = 'http://localhost:8000/api';
+  private baseURL: string = API_BASE_URL;
 
   private defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',

@@ -177,7 +177,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Fetch current user data from backend
-      const response = await api.get("/users/me");
+      const response = await api.get("/auth/user");
 
       if (response.success && response.data) {
         let backendUser: any = response.data;

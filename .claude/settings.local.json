@@ -5,7 +5,17 @@
       "Bash([ -f \"src/components/common/Header.optimized.tsx\" ])",
       "Bash([ -f \"src/components/common/Header.backup.tsx\" ])",
       "Bash(npx tsc:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(choco install *)",
+      "Bash(winget install *)",
+      "Bash(npm install *)",
+      "Bash(git config *)",
+      "Bash(curl -s \"https://api.github.com/repos/Buddhini-123/Pawesome-frontend/pulls?state=open&per_page=100\")",
+      "Bash(curl -s \"https://api.github.com/repos/Buddhini-123/Pawesome-frontend/pulls?state=all&per_page=10\")",
+      "Bash(curl -s \"https://api.github.com/repos/Buddhini-123/Pawesome-frontend/pulls?state=all&per_page=100\")",
+      "Bash(netstat -ano)",
+      "Bash(powershell *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ]
   }
 }
