@@ -15,7 +15,8 @@
       "Bash(curl -s \"https://api.github.com/repos/Buddhini-123/Pawesome-frontend/pulls?state=all&per_page=100\")",
       "Bash(netstat -ano)",
       "Bash(powershell *)",
-      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "WebFetch(domain:pawsome.lk)"
     ]
   }
 }

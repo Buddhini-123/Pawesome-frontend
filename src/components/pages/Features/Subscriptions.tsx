@@ -1,5 +1,5 @@
 // src/pages/Subscriptions.tsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -23,12 +23,163 @@ import {
   SkipForward,
   Trash2,
   Repeat,
+  Sparkles,
+  Wand2,
+  Zap,
+  CheckCircle,
+  Star,
+  Gift,
+  Tag,
+  Mail,
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion'
 import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
 import { api } from "../../../services/api"
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+
+// ── Paw prints for hero background (matches Gifts page) ───────────────
+const PAW_POSITIONS = [
+  { left:  '4%', top: '12%', size: 44, dur: 7,  delay: 0,   img: 'paw-left'  },
+  { left: '12%', top: '72%', size: 36, dur: 9,  delay: 1.2, img: 'paw-right' },
+  { left: '80%', top: '18%', size: 48, dur: 8,  delay: 0.5, img: 'paw-right' },
+  { left: '88%', top: '68%', size: 38, dur: 7,  delay: 1.8, img: 'paw-left'  },
+  { left: '50%', top: '82%', size: 32, dur: 10, delay: 0.3, img: 'paw-right' },
+  { left: '38%', top:  '6%', size: 40, dur: 8,  delay: 0.9, img: 'paw-left'  },
+  { left: '65%', top: '78%', size: 34, dur: 9,  delay: 1.5, img: 'paw-right' },
+  { left: '25%', top: '35%', size: 38, dur: 7,  delay: 0.6, img: 'paw-left'  },
+];
+
+// ── Hand-drawn illustrations (scattered per section) ──────────────────
+const SUB_ILLUSTRATIONS = [
+  // How section
+  { src: 'heart-illustrations.png',    left: '5%',  top: '15%', size:  90, rotate: -18, dur: 7,  delay: 0.3, opacity: 0.18, section: 'how'    },
+  { src: 'dog-illustrations.png',      left: '88%', top: '8%',  size: 110, rotate:  20, dur: 8,  delay: 0.9, opacity: 0.15, section: 'how'    },
+  { src: 'scribble-illustrations.png', left: '92%', top: '60%', size:  85, rotate: -30, dur: 6,  delay: 1.4, opacity: 0.14, section: 'how'    },
+  { src: 'hypnotize-illustrations.png',left: '2%',  top: '65%', size:  95, rotate:  12, dur: 9,  delay: 0.6, opacity: 0.13, section: 'how'    },
+  { src: 'small-hear-illustrations.png',left:'50%', top: '92%', size:  65, rotate:  25, dur: 5,  delay: 2.0, opacity: 0.16, section: 'how'    },
+  { src: 'cat-illustrations.png',      left: '40%', top: '3%',  size: 100, rotate:  -5, dur: 7,  delay: 1.2, opacity: 0.13, section: 'how'    },
+
+  // Plan builder section
+  { src: 'scribble-illustrations.png', left: '1%',  top: '10%', size:  95, rotate:  18, dur: 8,  delay: 0.5, opacity: 0.14, section: 'plan'   },
+  { src: 'heart-illustrations.png',    left: '90%', top: '5%',  size:  80, rotate: -22, dur: 6,  delay: 1.0, opacity: 0.18, section: 'plan'   },
+  { src: 'dog-illustrations.png',      left: '85%', top: '70%', size: 105, rotate:  10, dur: 7,  delay: 0.2, opacity: 0.14, section: 'plan'   },
+  { src: 'hypnotize-illustrations.png',left: '3%',  top: '75%', size:  90, rotate: -15, dur: 9,  delay: 1.6, opacity: 0.13, section: 'plan'   },
+  { src: 'small-hear-illustrations.png',left:'55%', top: '95%', size:  70, rotate:  30, dur: 5,  delay: 0.8, opacity: 0.16, section: 'plan'   },
+];
+
+// ── Leaf configs (matches Gifts page) ─────────────────────────────────
+const SUB_LEAVES = [
+  { top:  '2%', left:  '-2%', size: 260, rotate:   15, dur: 7,  delay: 0   },
+  { top:  '5%', left:  '78%', size: 280, rotate:  -55, dur: 9,  delay: 1.2 },
+  { top: '55%', left:  '88%', size: 260, rotate: -110, dur: 7,  delay: 2.1 },
+  { top: '62%', left:   '8%', size: 280, rotate:  300, dur: 9,  delay: 0.8 },
+  { top: '30%', left:   '3%', size: 270, rotate:  170, dur: 8,  delay: 1.8 },
+  { top: '74%', left:  '65%', size: 250, rotate:  130, dur: 6,  delay: 1.5 },
+];
+
+// ── Step card color palette (matches Gifts page) ──────────────────────
+const SUB_STEP_COLORS = [
+  { bg: '#FF8B61', text: '#7A2800' },
+  { bg: '#1BBBFF', text: '#004D6B' },
+  { bg: '#48FFF2', text: '#004D50' },
+  { bg: '#FFDB4D', text: '#7A5500' },
+  { bg: '#FC6884', text: '#7A0030' },
+  { bg: '#B791FF', text: '#2D0066' },
+];
+
+// ── Subscription "How to" steps ───────────────────────────────────────
+const SUB_STEPS = [
+  { id: 1, title: 'Pick Products',   emoji: '🛒', desc: 'Browse & select favourites',    illust: 'scribble-illustrations.png',  Icon: ShoppingCart },
+  { id: 2, title: 'Set Schedule',    emoji: '📅', desc: 'Daily, weekly, monthly',        illust: 'dog-illustrations.png',       Icon: Calendar     },
+  { id: 3, title: 'Unlock Benefits', emoji: '🎁', desc: 'Save 10% + free shipping',      illust: 'heart-illustrations.png',     Icon: Award        },
+  { id: 4, title: 'Relax & Enjoy',   emoji: '📦', desc: 'Auto-deliver, we handle rest',  illust: 'cat-illustrations.png',       Icon: Package      },
+];
+
+// ── Top-level benefits strip (matches Gifts page style) ───────────────
+const SUB_BENEFITS = [
+  { icon: <PercentIcon  className="w-7 h-7" />, title: 'Save Up to 10%',  desc: 'On every subscription order' },
+  { icon: <TruckIcon    className="w-7 h-7" />, title: 'Free Delivery',   desc: 'On orders above Rs. 2,000'   },
+  { icon: <RefreshCw    className="w-7 h-7" />, title: 'Skip Anytime',    desc: 'Flexible delivery control'   },
+  { icon: <ShieldCheck  className="w-7 h-7" />, title: 'Priority Care',   desc: '24/7 member support'         },
+];
+
+// ── Reusable illustration background layer ────────────────────────────
+const SubIllustrationBg: React.FC<{ section: string }> = ({ section }) => (
+  <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+    {SUB_ILLUSTRATIONS.filter(il => il.section === section).map((il, i) => (
+      <motion.img
+        key={i}
+        src={`/icons/illustrations/${il.src}`}
+        alt="" aria-hidden="true"
+        className="absolute"
+        style={{ left: il.left, top: il.top, width: il.size, height: il.size, opacity: il.opacity, rotate: `${il.rotate}deg` }}
+        animate={{ y: [0, -14, 6, -10, 0], rotate: [il.rotate, il.rotate + 8, il.rotate - 5, il.rotate + 3, il.rotate] }}
+        transition={{ duration: il.dur, repeat: Infinity, delay: il.delay, ease: 'easeInOut' }}
+      />
+    ))}
+  </div>
+);
+
+// ── Interactive hero illustration (matches Gifts page) ────────────────
+type SubIllustState = 'floating' | 'hovered' | 'clicked' | 'returning';
+type SubClickEffect = 'bounce' | 'spin' | 'wiggle' | 'pulse';
+
+const SubHeroIllust: React.FC<{
+  src: string;
+  className?: string;
+  style: React.CSSProperties;
+  floatY: number[];
+  floatRotate?: number[];
+  dur: number;
+  delay?: number;
+  hoverX?: number;
+  hoverY?: number;
+  clickEffect: SubClickEffect;
+  baseRotate?: number;
+}> = ({ src, className = '', style, floatY, floatRotate, dur, delay = 0, hoverX = 0, hoverY = -24, clickEffect, baseRotate = 0 }) => {
+  const [state, setState] = useState<SubIllustState>('floating');
+
+  const animate = (() => {
+    if (state === 'hovered') return { x: hoverX, y: hoverY, scale: 1.14, rotate: baseRotate + 6 };
+    if (state === 'clicked') {
+      if (clickEffect === 'bounce') return { y: [0, -55, 14, -28, 5, 0], scale: [1, 1.28, 0.88, 1.16, 0.96, 1], rotate: baseRotate };
+      if (clickEffect === 'spin')   return { rotate: [baseRotate, baseRotate + 360], scale: [1, 1.18, 1] };
+      if (clickEffect === 'wiggle') return { x: [0, -18, 18, -12, 12, -6, 6, 0], rotate: [baseRotate, baseRotate - 14, baseRotate + 14, baseRotate] };
+      if (clickEffect === 'pulse')  return { scale: [1, 1.55, 0.82, 1.28, 0.94, 1], rotate: baseRotate };
+    }
+    if (state === 'returning') return { x: 0, y: 0, scale: 1, rotate: baseRotate };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const a: any = { y: floatY };
+    if (floatRotate) a.rotate = floatRotate;
+    return a;
+  })();
+
+  const transition = (() => {
+    if (state === 'hovered')   return { duration: 0.22, ease: 'easeOut' as const };
+    if (state === 'clicked')   return { duration: clickEffect === 'spin' ? 0.6 : 0.52, ease: 'easeOut' as const };
+    if (state === 'returning') return { type: 'spring' as const, stiffness: 38, damping: 11 };
+    return { duration: dur, repeat: Infinity, delay, ease: 'easeInOut' as const };
+  })();
+
+  return (
+    <motion.img
+      src={src}
+      alt="" aria-hidden="true"
+      className={`absolute select-none cursor-pointer ${className}`}
+      style={style}
+      animate={animate}
+      transition={transition}
+      onHoverStart={() => { if (state === 'floating') setState('hovered'); }}
+      onHoverEnd={() => { if (state === 'hovered') setState('returning'); }}
+      onClick={() => setState('clicked')}
+      onAnimationComplete={() => {
+        if (state === 'clicked') setState('returning');
+        else if (state === 'returning') setState('floating');
+      }}
+    />
+  );
+};
 
 interface Subscription {
   id: number;
@@ -180,6 +331,23 @@ const Subscriptions = () => {
   const [perPage, setPerPage] = useState(12);
   const [totalProducts, setTotalProducts] = useState(0);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  // ── Section refs for scroll-driven parallax (matches Gifts page) ────
+  const heroRef = useRef<HTMLElement>(null);
+  const howRef  = useRef<HTMLElement>(null);
+  const planRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroP } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const { scrollYProgress: howP  } = useScroll({ target: howRef,  offset: ['start end',   'end start'] });
+  const { scrollYProgress: planP } = useScroll({ target: planRef, offset: ['start end',   'end start'] });
+  const heroS = useSpring(heroP, { stiffness: 55, damping: 22, restDelta: 0.001 });
+  const howS  = useSpring(howP,  { stiffness: 55, damping: 22, restDelta: 0.001 });
+  const planS = useSpring(planP, { stiffness: 55, damping: 22, restDelta: 0.001 });
+  const heroIllustY = useTransform(heroS, [0, 1], [0, -150]);
+  const heroPawY    = useTransform(heroS, [0, 1], [0,  -70]);
+  const heroTextY   = useTransform(heroS, [0, 1], [0,  -45]);
+  const howBgY      = useTransform(howS,  [0, 1], [80, -80]);
+  const howLeafY    = useTransform(howS,  [0, 1], [50, -60]);
+  const planBgY     = useTransform(planS, [0, 1], [80, -80]);
 
   const fetchSubscriptions = async () => {
     try {
@@ -556,202 +724,432 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
   };
 
   return (
-    <div className="min-h-screen bg-soft-gray">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center items-center mb-6">
-            <Package className="text-vibrant-orange mr-3 h-12 w-12" />
-            <h1 className="text-4xl md:text-5xl font-fredoka font-bold text-calm-blue">
-              Pawsome Subscriptions
-            </h1>
-          </div>
-          <p className="text-xl text-calm-blue max-w-3xl mx-auto">
-            Never run out of your pet's essentials with our convenient subscription service
-          </p>
-        </div>
+    <div className="min-h-screen bg-warm-white">
 
-        {/* How to Subscribe Section */}
-        <div className="max-w-6xl mx-auto mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="bg-white rounded-3xl shadow-2xl overflow-hidden"
-          >
-            {/* Section Header */}
-            <div className="bg-warm-orange p-8 text-center">
-              <h2 className="text-4xl font-fredoka font-bold text-charcoal mb-2">
-                How to Start Your Subscription
-              </h2>
-              <p className="text-charcoal/90 text-lg">
-                Four simple steps to never run out of pet essentials
-              </p>
-            </div>
-            
-            {/* Steps Grid */}
-            <div className="p-8 md:p-12">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                {/* Step 1 */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-vibrant-orange"
-                >
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-vibrant-orange rounded-full flex items-center justify-center text-white font-fredoka font-bold text-xl shadow-lg">
-                    1
-                  </div>
-                  <div className="ml-4">
-                    <div className="flex items-center mb-3">
-                      <ShoppingCart className="h-6 w-6 text-vibrant-orange mr-2" />
-                      <h3 className="font-fredoka font-bold text-xl text-charcoal">
-                        Choose Your Products
-                      </h3>
-                    </div>
-                    <p className="text-medium-gray leading-relaxed">
-                      Browse our extensive catalog of premium pet products. Select food, treats, toys, and grooming essentials your pet loves.
-                    </p>
-                  </div>
-                </motion.div>
+      {/* ── Hero (Gifts-page theme) ─────────────────────────────────── */}
+      <section ref={heroRef} className="relative overflow-hidden bg-primary-blue min-h-[560px] md:min-h-[620px] flex items-center">
+        {/* Interactive illustrations — fastest parallax */}
+        <motion.div style={{ y: heroIllustY }} className="absolute inset-0">
+          <SubHeroIllust
+            src="/icons/illustrations/dog-illustrations.png"
+            className="hidden md:block"
+            style={{ width: 460, height: 460, bottom: -30, right: -30, objectFit: 'contain' }}
+            floatY={[0, -16, 0]} dur={5} hoverX={-20} hoverY={-28} clickEffect="bounce"
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/cat-illustrations.png"
+            className="hidden md:block"
+            style={{ width: 440, height: 440, bottom: -20, left: -30, objectFit: 'contain', opacity: 0.85 }}
+            floatY={[0, -12, 0]} floatRotate={[0, 4, 0]} dur={4.5} delay={0.6}
+            hoverX={20} hoverY={-24} clickEffect="wiggle"
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/heart-illustrations.png"
+            style={{ width: 110, height: 110, top: '6%', right: '14%', opacity: 0.9 }}
+            floatY={[0, -12, 0]} floatRotate={[-6, 6, -6]} dur={3.8} delay={0.4}
+            hoverY={-30} clickEffect="pulse"
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/small-hear-illustrations.png"
+            style={{ width: 72, height: 72, top: '12%', left: '22%', opacity: 0.85 }}
+            floatY={[0, -10, 0]} dur={3.2} delay={1.0}
+            hoverY={-22} clickEffect="pulse"
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/scribble-illustrations.png"
+            style={{ width: 200, height: 200, top: '-20px', left: '38%', opacity: 0.22 }}
+            floatY={[0, -8, 0]} floatRotate={[15, 22, 15]} dur={9}
+            hoverY={-18} clickEffect="spin" baseRotate={15}
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/hypnotize-illustrations.png"
+            style={{ width: 130, height: 130, bottom: '8%', left: '44%', opacity: 0.28 }}
+            floatY={[0, -6, 0]} floatRotate={[0, 360, 360]} dur={14}
+            hoverY={-20} clickEffect="spin"
+          />
+        </motion.div>
 
-                {/* Step 2 */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-primary-blue"
-                >
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-primary-blue rounded-full flex items-center justify-center text-white font-fredoka font-bold text-xl shadow-lg">
-                    2
-                  </div>
-                  <div className="ml-4">
-                    <div className="flex items-center mb-3">
-                      <Calendar className="h-6 w-6 text-primary-blue mr-2" />
-                      <h3 className="font-fredoka font-bold text-xl text-charcoal">
-                        Set Your Schedule
-                      </h3>
-                    </div>
-                    <p className="text-medium-gray leading-relaxed">
-                      Choose delivery frequency - daily, weekly, or monthly. Set start and end dates that work for your lifestyle.
-                    </p>
-                  </div>
-                </motion.div>
+        {/* Paw prints — mid parallax */}
+        <motion.div style={{ y: heroPawY }} className="absolute inset-0 pointer-events-none select-none">
+          {PAW_POSITIONS.map((p, i) => (
+            <motion.img
+              key={i}
+              src={`/icons/${p.img}.png`}
+              alt="" aria-hidden="true"
+              className="absolute"
+              style={{ left: p.left, top: p.top, width: p.size, height: p.size, opacity: 0.10, filter: 'brightness(0) invert(1)' }}
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
+            />
+          ))}
+        </motion.div>
 
-                {/* Step 3 */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-mint-green"
-                >
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-mint-green rounded-full flex items-center justify-center text-white font-fredoka font-bold text-xl shadow-lg">
-                    3
-                  </div>
-                  <div className="ml-4">
-                    <div className="flex items-center mb-3">
-                      <Award className="h-6 w-6 text-mint-green mr-2" />
-                      <h3 className="font-fredoka font-bold text-xl text-charcoal">
-                        Unlock Benefits
-                      </h3>
-                    </div>
-                    <p className="text-medium-gray leading-relaxed">
-                      Enjoy 10% off every order, free shipping on orders over Rs. 2,000, and exclusive member perks.
-                    </p>
-                  </div>
-                </motion.div>
+        {/* Text — slowest parallax */}
+        <motion.div style={{ y: heroTextY }} className="relative z-10 w-full">
+          <div className="container mx-auto px-6 lg:px-12 py-20 md:py-24 flex justify-center">
+            <motion.div
+              className="text-center max-w-2xl"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+            >
+              <motion.h1
+                className="font-fredoka font-bold text-5xl md:text-6xl lg:text-7xl text-white leading-tight mb-5"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.7 }}
+              >
+                Never Run
+                <br />
+                <span className="text-sunny-yellow">Out Again</span>
+              </motion.h1>
 
-                {/* Step 4 */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-sunny-yellow"
-                >
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-sunny-yellow rounded-full flex items-center justify-center text-white font-fredoka font-bold text-xl shadow-lg">
-                    4
-                  </div>
-                  <div className="ml-4">
-                    <div className="flex items-center mb-3">
-                      <Package className="h-6 w-6 text-sunny-yellow mr-2" />
-                      <h3 className="font-fredoka font-bold text-xl text-charcoal">
-                        Sit Back & Relax
-                      </h3>
-                    </div>
-                    <p className="text-medium-gray leading-relaxed">
-                      We'll handle the rest! Track deliveries, manage subscriptions, and earn rewards automatically.
-                    </p>
-                  </div>
-                </motion.div>
-              </div>
+              <motion.p
+                className="font-nunito text-white/80 text-lg md:text-xl mb-10 leading-relaxed"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28, duration: 0.6 }}
+              >
+                Curated boxes of your pet's essentials — delivered on your schedule, with 10% off every order and zero commitment.
+              </motion.p>
 
-              {/* Benefits Cards */}
-              <div className="bg-yellow-50 rounded-2xl p-8 mb-8">
-                <h3 className="text-2xl font-fredoka font-bold text-center text-charcoal mb-8">
-                  Subscription Benefits
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
-                  >
-                    <div className="bg-sunny-yellow rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <PercentIcon className="h-10 w-10 text-white" />
-                    </div>
-                    <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Save 10%</h4>
-                    <p className="text-medium-gray">On every subscription order</p>
-                    <p className="text-2xl font-fredoka font-bold text-vibrant-orange mt-2">Rs. 250+</p>
-                    <p className="text-xs text-medium-gray">Average monthly savings</p>
-                  </motion.div>
-                  
-                  <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
-                  >
-                    <div className="bg-primary-blue rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <Package className="h-10 w-10 text-white" />
-                    </div>
-                    <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Free Shipping</h4>
-                    <p className="text-medium-gray">On orders above Rs. 2,000</p>
-                    <p className="text-2xl font-fredoka font-bold text-primary-blue mt-2">Always</p>
-                    <p className="text-xs text-medium-gray">No delivery charges</p>
-                  </motion.div>
-                  
-                  <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
-                  >
-                    <div className="bg-mint-green rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <HeadphonesIcon className="h-10 w-10 text-white" />
-                    </div>
-                    <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Priority Support</h4>
-                    <p className="text-medium-gray">24/7 dedicated assistance</p>
-                    <p className="text-2xl font-fredoka font-bold text-mint-green mt-2">24/7</p>
-                    <p className="text-xs text-medium-gray">Always here to help</p>
-                  </motion.div>
-                </div>
-              </div>
-
-              {/* CTA Section */}
-              <div className="text-center">
-                <motion.button
+              <motion.div
+                className="flex flex-row items-center justify-center gap-4 flex-wrap"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.42, duration: 0.6 }}
+              >
+                <button
                   onClick={handleOpenModal}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-warm-orange hover:bg-sunny-yellow text-white font-fredoka font-bold text-xl px-16 py-5 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
+                  className="flex items-center gap-2 bg-sunny-yellow text-charcoal font-fredoka font-bold px-8 py-3.5 rounded-2xl shadow-lg hover:scale-[1.04] hover:shadow-xl transition-all duration-300"
                 >
-                  Browse Products & Start Subscription
-                </motion.button>
-                <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-medium-gray">
-                  <div className="flex items-center">
-                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
-                    <span>No commitment</span>
+                  <Package className="w-5 h-5" /> Browse Products
+                </button>
+                <button
+                  onClick={() => setShowSidebar(true)}
+                  className="flex items-center gap-2 bg-white/15 border-2 border-white/40 text-white font-fredoka font-bold px-8 py-3.5 rounded-2xl hover:bg-white/25 hover:scale-[1.04] transition-all duration-300"
+                >
+                  <Repeat className="w-5 h-5" /> My Subscriptions
+                </button>
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ── Benefits strip ──────────────────────────────────────────── */}
+      <section className="bg-primary-blue py-8 px-4">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {SUB_BENEFITS.map((b, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                className="flex flex-col items-center text-center gap-2"
+              >
+                <motion.div
+                  className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-white mb-1"
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.15 + i * 0.1, type: 'spring', stiffness: 200, damping: 14 }}
+                >
+                  {b.icon}
+                </motion.div>
+                <h4 className="font-fredoka font-bold text-white text-sm md:text-base">{b.title}</h4>
+                <p className="font-nunito text-white/70 text-xs hidden md:block">{b.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works ────────────────────────────────────────────── */}
+      <section ref={howRef} className="relative overflow-hidden bg-sky-light py-20 px-4">
+        {/* Illustration bg — fastest parallax */}
+        <motion.div style={{ y: howBgY }} className="absolute inset-0 pointer-events-none">
+          <SubIllustrationBg section="how" />
+        </motion.div>
+        {/* Leaf layer — mid parallax */}
+        <motion.div style={{ y: howLeafY }} className="absolute inset-0 pointer-events-none select-none">
+          {SUB_LEAVES.map((l, i) => (
+            <motion.img
+              key={i}
+              src="/icons/leaf-layer.png"
+              alt="" aria-hidden="true"
+              className="absolute"
+              style={{ top: l.top, left: l.left, width: l.size, height: l.size, opacity: 0.22, mixBlendMode: 'multiply' }}
+              animate={{ y: [0, -20, 10, -15, 0], rotate: [l.rotate, l.rotate + 10, l.rotate - 6, l.rotate + 4, l.rotate] }}
+              transition={{ duration: l.dur, repeat: Infinity, delay: l.delay, ease: 'easeInOut' }}
+            />
+          ))}
+        </motion.div>
+
+        <div className="relative z-10 container mx-auto max-w-7xl">
+          {/* Heading */}
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 60 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+          >
+            <motion.h2
+              className="text-4xl md:text-5xl font-fredoka font-bold mb-3"
+              style={{ color: '#004D6B' }}
+              initial={{ opacity: 0, scale: 0.92 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+            >
+              How Subscriptions Work 🐾
+            </motion.h2>
+            <motion.p
+              className="font-nunito text-lg max-w-2xl mx-auto"
+              style={{ color: '#004D6B', opacity: 0.82 }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              Four simple steps to never worry about running out of pet essentials again.
+            </motion.p>
+          </motion.div>
+
+          {/* Step cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+            {SUB_STEPS.map((step, i) => {
+              const col = SUB_STEP_COLORS[i];
+              const StepIcon = step.Icon;
+              return (
+                <motion.div
+                  key={step.id}
+                  initial={{ opacity: 0, y: 40, scale: 0.93 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, margin: '-30px' }}
+                  transition={{ duration: 0.45, delay: i * 0.08, ease: 'easeOut' }}
+                  whileHover={{ y: -7, scale: 1.03 }}
+                  className="relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-default"
+                  style={{ backgroundColor: col.bg, minHeight: 180 }}
+                >
+                  {/* Decorative step number */}
+                  <span
+                    className="absolute -top-1 right-1 font-fredoka font-bold leading-none select-none pointer-events-none"
+                    style={{ fontSize: 64, color: col.text, opacity: 0.12, lineHeight: 1 }}
+                  >
+                    {String(step.id).padStart(2, '0')}
+                  </span>
+                  {/* Illustration */}
+                  <img
+                    src={`/icons/illustrations/${step.illust}`}
+                    alt="" aria-hidden
+                    className="absolute bottom-0 right-0 w-14 h-14 object-contain pointer-events-none select-none"
+                    style={{ opacity: 0.18 }}
+                  />
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-col items-center text-center p-4 md:p-5">
+                    <div
+                      className="w-11 h-11 bg-white/30 rounded-xl flex items-center justify-center mb-2"
+                      style={{ color: col.text }}
+                    >
+                      <StepIcon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-fredoka font-bold text-lg leading-tight mb-1" style={{ color: col.text }}>
+                      {step.title}
+                    </h3>
+                    <div className="h-px w-8 rounded-full mb-1.5" style={{ backgroundColor: `${col.text}55` }} />
+                    <p className="font-nunito text-sm leading-snug" style={{ color: col.text, opacity: 0.74 }}>
+                      {step.desc}
+                    </p>
                   </div>
-                  <div className="flex items-center">
-                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
-                    <span>Cancel anytime</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
-                    <span>Modify as needed</span>
-                  </div>
-                </div>
-              </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Start Your Plan CTA (split layout like Gifts "Build Your Own") ── */}
+      <section ref={planRef} className="relative overflow-hidden py-24 px-4" style={{ background: 'linear-gradient(160deg, #E8F7FF 0%, #FFFAF0 55%)' }}>
+        <motion.div style={{ y: planBgY }} className="absolute inset-0 pointer-events-none">
+          <SubIllustrationBg section="plan" />
+        </motion.div>
+        <div className="relative z-10 container mx-auto max-w-7xl">
+          {/* Heading */}
+          <motion.div
+            className="text-center mb-14"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          >
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <img src="/icons/illustrations/scribble-illustrations.png" alt="" aria-hidden className="w-10 h-10 opacity-40" style={{ rotate: '-18deg' }} />
+              <h2 className="font-fredoka font-bold text-4xl md:text-5xl" style={{ color: '#004D6B' }}>
+                Start Your Plan
+              </h2>
+              <img src="/icons/illustrations/heart-illustrations.png" alt="" aria-hidden className="w-9 h-9 opacity-40" style={{ rotate: '12deg' }} />
             </div>
+            <p className="font-nunito text-lg max-w-xl mx-auto" style={{ color: '#004D6B', opacity: 0.70 }}>
+              Pick your products, set a schedule, and save 10% on every delivery.
+            </p>
+          </motion.div>
+
+          {/* Main layout: CTA card (left) + feature pills (right) */}
+          <div className="flex flex-col md:flex-row gap-6 mb-12 items-stretch">
+            {/* CTA showcase card */}
+            <motion.div
+              initial={{ opacity: 0, x: -40, scale: 0.96 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.65, ease: 'easeOut' }}
+              className="relative overflow-hidden rounded-3xl bg-primary-blue lg:w-[40%] flex-shrink-0"
+              style={{ minHeight: 460, boxShadow: '0 24px 64px rgba(27,187,255,0.32)' }}
+            >
+              <motion.img
+                src="/icons/illustrations/dog-illustrations.png"
+                alt="" aria-hidden
+                className="absolute bottom-0 right-0 pointer-events-none select-none"
+                style={{ width: '62%', opacity: 0.58 }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <img
+                src="/icons/illustrations/scribble-illustrations.png"
+                alt="" aria-hidden
+                className="absolute top-5 right-5 w-14 pointer-events-none select-none"
+                style={{ opacity: 0.14, rotate: '28deg' }}
+              />
+              <img
+                src="/icons/illustrations/small-hear-illustrations.png"
+                alt="" aria-hidden
+                className="absolute bottom-36 left-6 w-10 pointer-events-none select-none"
+                style={{ opacity: 0.18, rotate: '-18deg' }}
+              />
+
+              <div className="relative z-10 flex flex-col h-full p-8 pt-10">
+                <h3 className="font-fredoka font-bold text-white leading-tight mb-3" style={{ fontSize: 'clamp(1.8rem, 2.4vw, 2.5rem)' }}>
+                  Your pet's<br />
+                  <span className="text-sunny-yellow">favourites</span>,<br />
+                  on autopilot.
+                </h3>
+                <p className="font-nunito text-white/65 text-sm mb-6 leading-relaxed" style={{ maxWidth: 240 }}>
+                  Pick from our full catalogue — food, treats, toys, grooming & more.
+                </p>
+
+                <div className="flex flex-col gap-2.5 mb-8">
+                  {[
+                    '10% off every recurring order',
+                    'Free delivery over Rs. 2,000',
+                    'Pause, skip, or cancel any time',
+                    'Loyalty points on every box',
+                  ].map(text => (
+                    <div key={text} className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-sunny-yellow flex-shrink-0" />
+                      <span className="font-nunito text-white/80 text-sm">{text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleOpenModal}
+                  className="inline-flex items-center gap-2 bg-sunny-yellow text-charcoal font-fredoka font-bold px-8 py-3.5 rounded-2xl shadow-lg hover:scale-105 transition-all duration-300 self-start"
+                >
+                  <ShoppingCart className="w-4 h-4" /> Build My Box
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Right feature grid */}
+            <div className="flex-1 grid grid-cols-2 gap-3">
+              {[
+                { Icon: PercentIcon, title: 'Save 10%',         desc: 'Every recurring order' },
+                { Icon: TruckIcon,   title: 'Free Delivery',    desc: 'Above Rs. 2,000'       },
+                { Icon: Calendar,    title: 'Flexible Schedule',desc: 'Daily · Weekly · Monthly' },
+                { Icon: RefreshCw,   title: 'Skip Anytime',     desc: 'Full control, always'  },
+                { Icon: Award,       title: 'Loyalty Points',   desc: 'Earn on every box'     },
+                { Icon: ShieldCheck, title: 'Priority Care',    desc: '24/7 member support'   },
+              ].map((f, i) => {
+                const col = SUB_STEP_COLORS[i];
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 30, scale: 0.94 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, margin: '-30px' }}
+                    transition={{ duration: 0.45, delay: i * 0.07, ease: 'easeOut' }}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    className="relative overflow-hidden rounded-2xl p-4 md:p-5 shadow-md hover:shadow-xl transition-all duration-300 cursor-default"
+                    style={{ backgroundColor: col.bg, minHeight: 140 }}
+                  >
+                    <div
+                      className="w-11 h-11 bg-white/30 rounded-xl flex items-center justify-center mb-2"
+                      style={{ color: col.text }}
+                    >
+                      <f.Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-fredoka font-bold text-base md:text-lg leading-tight mb-0.5" style={{ color: col.text }}>
+                      {f.title}
+                    </h3>
+                    <p className="font-nunito text-xs md:text-sm leading-snug" style={{ color: col.text, opacity: 0.74 }}>
+                      {f.desc}
+                    </p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Features bar (matches Gifts page) */}
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="relative overflow-hidden rounded-3xl bg-sunny-yellow px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
+            <img src="/icons/illustrations/scribble-illustrations.png" alt="" aria-hidden
+              className="absolute -top-5 -left-5 w-24 opacity-10 pointer-events-none select-none" style={{ rotate: '-20deg' }} />
+            <img src="/icons/illustrations/heart-illustrations.png" alt="" aria-hidden
+              className="absolute -bottom-4 -right-4 w-20 opacity-10 pointer-events-none select-none" style={{ rotate: '15deg' }} />
+
+            {[
+              { Icon: Sparkles, title: 'Hand-picked',    desc: 'Premium brands only'   },
+              { Icon: Tag,      title: 'Save 10%',       desc: 'On every order'        },
+              { Icon: Mail,     title: 'Gift-ready',     desc: 'Add a personal note'   },
+              { Icon: Zap,      title: 'Fast Dispatch',  desc: 'Order before 2 PM'     },
+            ].map((f, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ delay: 0.12 + i * 0.10, duration: 0.45, ease: 'easeOut' }}
+                className="relative z-10 text-center"
+              >
+                <motion.div
+                  className="w-14 h-14 bg-white/55 rounded-2xl flex items-center justify-center mx-auto mb-3 text-charcoal"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.18 + i * 0.10, type: 'spring', stiffness: 220, damping: 14 }}
+                  whileHover={{ scale: 1.12, rotate: -5 }}
+                >
+                  <f.Icon className="w-6 h-6" />
+                </motion.div>
+                <h3 className="font-fredoka font-bold text-charcoal mb-0.5">{f.title}</h3>
+                <p className="text-sm font-nunito text-charcoal/65">{f.desc}</p>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
+      </section>
+
+      {/* ── Confirmed plan wrapper (keeps existing logic) ───────────── */}
+      <div className="container mx-auto px-4 py-12">
 
         {/* Selected Products Section - Enhanced Design */}
         {confirmedProducts.length > 0 && (
@@ -770,18 +1168,20 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
               </div>
 
               {/* Header Section */}
-              <div className="relative bg-vibrant-orange p-8">
-                <div className="flex items-center justify-between">
+              <div className="relative bg-primary-blue p-8 overflow-hidden">
+                <img src="/icons/illustrations/scribble-illustrations.png" alt="" aria-hidden className="absolute -top-3 -right-3 w-20 pointer-events-none select-none" style={{ opacity: 0.14, rotate: '18deg' }} />
+                <img src="/icons/illustrations/heart-illustrations.png" alt="" aria-hidden className="absolute -bottom-4 left-6 w-14 pointer-events-none select-none" style={{ opacity: 0.16, rotate: '-12deg' }} />
+                <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <h2 className="text-3xl font-fredoka font-bold text-white mb-2 flex items-center">
                       <Package className="mr-3 h-8 w-8" />
                       Your Subscription Plan
                     </h2>
-                    <p className="text-white/90">Customize your delivery preferences and manage products</p>
+                    <p className="font-nunito text-white/80">Customize your delivery preferences and manage products</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-white/80 text-sm">Total Products</p>
-                    <p className="text-3xl font-fredoka font-bold text-white">{confirmedProducts.length}</p>
+                    <p className="text-white/75 text-sm font-nunito">Total Products</p>
+                    <p className="text-3xl font-fredoka font-bold text-sunny-yellow">{confirmedProducts.length}</p>
                   </div>
                 </div>
               </div>
@@ -1095,8 +1495,10 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
               className="fixed inset-2 sm:inset-4 md:inset-6 z-50 flex flex-col rounded-3xl overflow-hidden shadow-2xl bg-white pointer-events-auto"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-vibrant-orange via-orange-400 to-sunny-yellow px-6 py-5 flex-shrink-0">
-                <div className="flex items-center justify-between">
+              <div className="relative overflow-hidden bg-primary-blue px-6 py-5 flex-shrink-0">
+                <img src="/icons/illustrations/scribble-illustrations.png" alt="" aria-hidden className="absolute -top-3 -right-2 w-16 pointer-events-none select-none" style={{ opacity: 0.16, rotate: '22deg' }} />
+                <img src="/icons/illustrations/small-hear-illustrations.png" alt="" aria-hidden className="absolute bottom-0 left-1/3 w-10 pointer-events-none select-none" style={{ opacity: 0.20, rotate: '-14deg' }} />
+                <div className="relative z-10 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="bg-white/20 rounded-2xl p-2">
                       <ShoppingCart className="h-6 w-6 text-white" />
@@ -1105,7 +1507,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       <h2 className="text-xl font-fredoka font-bold text-white leading-tight">
                         Build Your Subscription Box
                       </h2>
-                      <p className="text-white/80 text-sm font-fredoka">
+                      <p className="text-white/75 text-sm font-nunito">
                         Pick the products your pet loves — save on every delivery
                       </p>
                     </div>
@@ -1116,10 +1518,10 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="bg-white rounded-2xl px-4 py-2 flex items-center gap-2 shadow-md"
+                        className="bg-sunny-yellow rounded-2xl px-4 py-2 flex items-center gap-2 shadow-md"
                       >
-                        <Check className="h-4 w-4 text-vibrant-orange" />
-                        <span className="font-fredoka font-bold text-vibrant-orange text-sm">
+                        <Check className="h-4 w-4 text-charcoal" />
+                        <span className="font-fredoka font-bold text-charcoal text-sm">
                           {selectedProducts.length} selected
                         </span>
                       </motion.div>
@@ -1141,7 +1543,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                     onClick={() => handleCategoryChange('all')}
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-fredoka font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                       selectedCategory === 'all'
-                        ? 'bg-vibrant-orange text-white shadow-sm'
+                        ? 'bg-primary-blue text-white shadow-sm'
                         : 'bg-soft-gray text-medium-gray hover:bg-light-gray'
                     }`}
                   >
@@ -1153,7 +1555,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       onClick={() => handleCategoryChange(cat.slug)}
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-fredoka font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                         selectedCategory === cat.slug
-                          ? 'bg-vibrant-orange text-white shadow-sm'
+                          ? 'bg-primary-blue text-white shadow-sm'
                           : 'bg-soft-gray text-medium-gray hover:bg-light-gray'
                       }`}
                     >
@@ -1213,7 +1615,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           className={`p-2 rounded-xl transition-all ${
                             currentPage === 1
                               ? 'bg-light-gray text-medium-gray cursor-not-allowed'
-                              : 'bg-white text-charcoal hover:bg-vibrant-orange hover:text-white shadow-sm'
+                              : 'bg-white text-charcoal hover:bg-primary-blue hover:text-white shadow-sm'
                           }`}
                         >
                           <ChevronLeft className="h-5 w-5" />
@@ -1237,7 +1639,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                                 onClick={() => handlePageChange(pageNum)}
                                 className={`w-9 h-9 rounded-xl font-fredoka font-semibold text-sm transition-all ${
                                   currentPage === pageNum
-                                    ? 'bg-vibrant-orange text-white shadow-sm'
+                                    ? 'bg-primary-blue text-white shadow-sm'
                                     : 'bg-white text-charcoal hover:bg-soft-gray shadow-sm'
                                 }`}
                               >
@@ -1253,7 +1655,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           className={`p-2 rounded-xl transition-all ${
                             currentPage === totalPages
                               ? 'bg-light-gray text-medium-gray cursor-not-allowed'
-                              : 'bg-white text-charcoal hover:bg-vibrant-orange hover:text-white shadow-sm'
+                              : 'bg-white text-charcoal hover:bg-primary-blue hover:text-white shadow-sm'
                           }`}
                         >
                           <ChevronRight className="h-5 w-5" />
@@ -1310,7 +1712,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       whileTap={selectedProducts.length > 0 ? { scale: 0.97 } : {}}
                       className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-fredoka font-bold text-sm transition-all ${
                         selectedProducts.length > 0
-                          ? 'bg-vibrant-orange hover:bg-orange-600 text-white shadow-md'
+                          ? 'bg-sunny-yellow hover:brightness-95 text-charcoal shadow-md'
                           : 'bg-light-gray text-medium-gray cursor-not-allowed'
                       }`}
                     >
@@ -2179,7 +2581,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, quantity
       whileHover={!isOutOfStock ? { y: -3 } : {}}
       className={`relative bg-white rounded-2xl overflow-hidden flex flex-col transition-all duration-200 ${
         isSelected
-          ? 'ring-2 ring-vibrant-orange shadow-lg shadow-orange-100'
+          ? 'ring-2 ring-primary-blue shadow-lg shadow-blue-100'
           : 'shadow-sm hover:shadow-md'
       } ${isOutOfStock ? 'opacity-70' : ''}`}
     >
@@ -2216,7 +2618,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, quantity
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute top-2 right-2 bg-vibrant-orange text-white rounded-full p-1 shadow-md"
+            className="absolute top-2 right-2 bg-primary-blue text-white rounded-full p-1 shadow-md"
           >
             <Check className="h-3.5 w-3.5" />
           </motion.div>
@@ -2280,7 +2682,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, quantity
                 <div className="flex items-center gap-2">
                   <button
                     onClick={(e) => { e.stopPropagation(); onQuantityChange(String(product.id), -1); }}
-                    className="w-7 h-7 rounded-lg bg-white hover:bg-vibrant-orange hover:text-white text-charcoal flex items-center justify-center transition-colors shadow-sm"
+                    className="w-7 h-7 rounded-lg bg-white hover:bg-primary-blue hover:text-white text-charcoal flex items-center justify-center transition-colors shadow-sm"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
@@ -2289,7 +2691,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, quantity
                   </span>
                   <button
                     onClick={(e) => { e.stopPropagation(); onQuantityChange(String(product.id), 1); }}
-                    className="w-7 h-7 rounded-lg bg-white hover:bg-vibrant-orange hover:text-white text-charcoal flex items-center justify-center transition-colors shadow-sm"
+                    className="w-7 h-7 rounded-lg bg-white hover:bg-primary-blue hover:text-white text-charcoal flex items-center justify-center transition-colors shadow-sm"
                   >
                     <Plus className="h-3 w-3" />
                   </button>
@@ -2308,7 +2710,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, quantity
               ? 'bg-soft-gray text-medium-gray cursor-not-allowed'
               : isSelected
                 ? 'bg-red-50 hover:bg-red-100 text-red-500 border border-red-200'
-                : 'bg-vibrant-orange hover:bg-orange-600 text-white shadow-sm'
+                : 'bg-sunny-yellow hover:brightness-95 text-charcoal shadow-sm'
           }`}
         >
           {isOutOfStock ? 'Unavailable' : isSelected ? '✓ Added — Remove' : '+ Add to Box'}
