@@ -303,7 +303,7 @@ const Subscriptions = () => {
   const [endDate, setEndDate] = useState('')
   const [deliveryFrequency, setDeliveryFrequency] = useState('monthly')
   const [productQuantities, setProductQuantities] = useState<Record<string, number>>({})
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [showSidebar, setShowSidebar] = useState(false)
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null)
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -480,9 +480,10 @@ const Subscriptions = () => {
         setProductQuantities(newQuantities)
         return prev.filter(p => p.id !== product.id)
       } else {
-        // Add product with default quantity (respect min_subscription_quantity)
+        // Use quantity already set on product (e.g. from modal stepper), else fall back to min
         const minQty = product.min_subscription_quantity || 1;
-        setProductQuantities(prev => ({ ...prev, [product.id]: minQty }))
+        const qty = product.quantity && product.quantity >= minQty ? product.quantity : minQty;
+        setProductQuantities(prev => ({ ...prev, [product.id]: qty }))
         return [...prev, product]
       }
     })
@@ -592,7 +593,9 @@ const Subscriptions = () => {
         console.log('[Subscriptions] Weight:', productData?.weight);
         console.log('[Subscriptions] Dimensions:', productData?.dimensions);
 
-        setSelectedProduct(productData);
+        // Pre-seed quantity: use the saved cart quantity so the stepper starts at the right value
+        const savedQty = productQuantities[productData.id];
+        setSelectedProduct({ ...productData, quantity: savedQty || productData.quantity || 1 });
         setShowProductModal(true);
       } else {
         // Product not found or API error
@@ -1684,7 +1687,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                         <p className="text-sm font-fredoka font-semibold text-charcoal">
                           {selectedProducts.length} product{selectedProducts.length > 1 ? 's' : ''} in your box
                         </p>
-                        <p className="text-sm font-fredoka text-mint-green font-semibold">
+                        <p className="text-sm font-fredoka text-primary-blue font-semibold">
                           Subscription total: Rs.{' '}
                           {selectedProducts.reduce((total, product) => {
                             const qty = productQuantities[product.id] || 1;
@@ -2268,279 +2271,256 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
 
       {/* Product Details Modal */}
       <AnimatePresence>
-        {showProductModal && selectedProduct && (
-          <>
-            {/* Modal Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 z-50"
-              onClick={() => setShowProductModal(false)}
-            />
+        {showProductModal && selectedProduct && (() => {
+          const isOutOfStock = !selectedProduct.is_in_stock || selectedProduct.stock_quantity <= 0;
+          const isAlreadyAdded = selectedProducts.some(p => p.id === selectedProduct.id);
+          const currencyCode = typeof selectedProduct.currency === 'object'
+            ? (selectedProduct.currency as any)?.code || 'Rs.'
+            : selectedProduct.currency || 'Rs.';
+          const subPrice = selectedProduct.subscription_discount_percentage && selectedProduct.subscription_discount_percentage > 0
+            ? (selectedProduct.price * (1 - selectedProduct.subscription_discount_percentage / 100)).toFixed(2)
+            : null;
+          const minQty = selectedProduct.min_subscription_quantity || 1;
+          const maxQty = Math.min(
+            selectedProduct.stock_quantity || 99,
+            selectedProduct.max_subscription_quantity || 99
+          );
+          const currentQty = Math.max(minQty, selectedProduct.quantity || minQty);
+          const brandName = typeof selectedProduct.brand === 'object'
+            ? (selectedProduct.brand as any)?.name
+            : selectedProduct.brand;
 
-            {/* Modal Content */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-0 flex items-center justify-center p-4 z-50"
-            >
-              <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                {/* Modal Header */}
-                <div className="relative h-80 bg-primary-blue">
-                  <div className="absolute inset-0 bg-black/20" />
-                  <button
-                    onClick={() => setShowProductModal(false)}
-                    className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-colors z-10"
-                  >
-                    <X className="h-6 w-6 text-white" />
-                  </button>
-                  <div className="relative h-full flex items-center justify-center">
-                    <motion.img
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      src={getProductImageSrc(selectedProduct)}
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
-                      alt={selectedProduct?.name || "Product image"}
-                      className="max-h-64 max-w-sm object-contain drop-shadow-2xl"
+          return (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 z-50"
+                onClick={() => setShowProductModal(false)}
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 16 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                className="fixed inset-0 flex items-center justify-center p-4 z-50"
+              >
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+
+                  {/* ── Header ─────────────────────────────────────────── */}
+                  <div className="relative flex-shrink-0 bg-primary-blue px-5 py-4 flex items-center gap-3">
+                    <img
+                      src="/icons/illustrations/scribble-illustrations.png"
+                      alt="" aria-hidden="true"
+                      className="absolute right-14 top-0 h-full w-auto opacity-10 pointer-events-none select-none"
+                      style={{ rotate: '18deg' }}
                     />
-
-                  </div>
-                </div>
-
-                {/* Modal Body */}
-                <div className="p-8 overflow-y-auto max-h-[calc(90vh-320px)]">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left Column - Product Info */}
-                    <div>
-                      <div className="mb-6">
-                        <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-2">
-                          {selectedProduct.name}
-                        </h2>
-                        <p className="text-lg text-medium-gray flex items-center gap-2">
-                          by <span className="font-fredoka font-semibold text-vibrant-orange">
-                            {typeof selectedProduct.brand === 'object' ? (selectedProduct.brand as any)?.name : selectedProduct.brand}
-                          </span>
-                        </p>
-                      </div>
-
-                      {/* Stock Badge */}
-                      <div className="mb-6">
-                        <span className={`px-3 py-1 rounded-full text-sm font-fredoka font-medium ${
-                          selectedProduct.is_in_stock
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {selectedProduct.is_in_stock ? '✓ In Stock' : '✗ Out of Stock'}
-                        </span>
-                      </div>
-
-                      {/* Description */}
-                      <div className="mb-6">
-                        <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-2">Description</h3>
-                        <p className="text-medium-gray leading-relaxed">
-                          {selectedProduct.description || `Premium ${
-                            typeof selectedProduct.category === 'object' ? (selectedProduct.category as any)?.name : selectedProduct.category
-                          } for your beloved pet. This high-quality product from ${
-                            typeof selectedProduct.brand === 'object' ? (selectedProduct.brand as any)?.name : selectedProduct.brand
-                          } is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
-                        </p>
-                      </div>
-
-                      {/* Product Specifications */}
-                      {(selectedProduct.weight || selectedProduct.dimensions) && (
-                        <div className="mb-6">
-                          <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-3">Product Specifications</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Weight */}
-                            {selectedProduct.weight && (
-                              <div className="bg-primary-blue/10 border border-primary-blue/30 rounded-xl p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Package className="h-5 w-5 text-primary-blue" />
-                                  <span className="font-fredoka font-semibold text-charcoal">Weight</span>
-                                </div>
-                                <p className="text-2xl font-fredoka font-bold text-primary-blue">
-                                  {selectedProduct.weight} kg
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Dimensions */}
-                            {selectedProduct.dimensions && (
-                              <div className="bg-lavender/10 border border-lavender/30 rounded-xl p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Package className="h-5 w-5 text-lavender" />
-                                  <span className="font-fredoka font-semibold text-charcoal">Dimensions</span>
-                                </div>
-                                <p className="text-lg font-fredoka font-bold text-lavender">
-                                  {selectedProduct.dimensions.length} × {selectedProduct.dimensions.width} × {selectedProduct.dimensions.height}
-                                  <span className="text-sm text-medium-gray ml-1">
-                                    {selectedProduct.dimensions.unit || 'cm'}
-                                  </span>
-                                </p>
-                                <p className="text-xs text-medium-gray mt-1">
-                                  (L × W × H)
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Features */}
-                      <div className="mb-6">
-                        <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-3">Key Features</h3>
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Check className="h-5 w-5 text-green-500" />
-                            </div>
-                            <p className="text-medium-gray">High-quality ingredients and materials</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Check className="h-5 w-5 text-green-500" />
-                            </div>
-                            <p className="text-medium-gray">Veterinarian recommended</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Check className="h-5 w-5 text-green-500" />
-                            </div>
-                            <p className="text-medium-gray">Suitable for all life stages</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Check className="h-5 w-5 text-green-500" />
-                            </div>
-                            <p className="text-medium-gray">100% satisfaction guarantee</p>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="bg-white/20 rounded-xl p-2 flex-shrink-0">
+                      <Eye className="h-5 w-5 text-white" />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-fredoka font-bold text-base text-white leading-tight truncate">
+                        {selectedProduct.name}
+                      </h2>
+                      <p className="text-white/60 text-xs font-nunito">Product Details</p>
+                    </div>
+                    <button
+                      onClick={() => setShowProductModal(false)}
+                      className="flex-shrink-0 p-2 bg-white/15 hover:bg-white/30 rounded-xl transition-colors"
+                    >
+                      <X className="h-5 w-5 text-white" />
+                    </button>
+                  </div>
 
-                    {/* Right Column - Pricing and Actions */}
-                    <div>
-                      {/* Pricing Card */}
-                      <div className="bg-yellow-50 rounded-2xl p-6 mb-6">
-                        <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-4">Pricing Options</h3>
-                        
-                        <div className="flex items-baseline gap-2 mb-3">
-                          <span className="text-3xl font-fredoka font-bold text-charcoal">
-                            {typeof selectedProduct?.currency === 'object'
-                              ? (selectedProduct.currency as any)?.code || 'Rs.'
-                              : selectedProduct?.currency || 'Rs.'} {selectedProduct.price}
+                  {/* ── Body ───────────────────────────────────────────── */}
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 min-h-0">
+
+                      {/* Image panel */}
+                      <div className="bg-primary-blue/8 flex items-center justify-center p-8 md:min-h-[280px]" style={{ background: 'rgba(0,77,107,0.06)' }}>
+                        <motion.img
+                          initial={{ scale: 0.85, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.12 }}
+                          src={getProductImageSrc(selectedProduct)}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
+                          alt={selectedProduct.name}
+                          className="max-h-52 max-w-full object-contain drop-shadow-lg"
+                        />
+                      </div>
+
+                      {/* Info panel */}
+                      <div className="p-6 flex flex-col gap-4">
+
+                        {/* Name · Brand · Stock */}
+                        <div>
+                          <h3 className="text-2xl font-fredoka font-bold text-charcoal leading-tight">
+                            {selectedProduct.name}
+                          </h3>
+                          {brandName && (
+                            <p className="text-sm font-nunito text-medium-gray mt-0.5">
+                              by{' '}
+                              <span className="font-semibold text-primary-blue">{brandName}</span>
+                            </p>
+                          )}
+                          <span className={`inline-block mt-2 px-3 py-0.5 rounded-full text-xs font-fredoka font-semibold ${
+                            isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {isOutOfStock ? '✗ Out of Stock' : '✓ In Stock'}
                           </span>
                         </div>
-                        {selectedProduct.subscription_discount_percentage && selectedProduct.subscription_discount_percentage > 0 && (
-                          <div className="bg-mint-green/10 border border-mint-green/30 rounded-xl p-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-fredoka font-medium text-charcoal">Subscribe & Save</span>
-                              <span className="bg-mint-green text-white text-xs px-2 py-1 rounded-full font-fredoka font-bold">
-                                Save {selectedProduct.subscription_discount_percentage}%
+
+                        {/* Pricing */}
+                        <div className="rounded-2xl border border-primary-blue/20 overflow-hidden" style={{ background: 'rgba(0,77,107,0.04)' }}>
+                          <div className="px-4 py-3 flex items-baseline gap-1">
+                            <span className="text-xs font-nunito text-medium-gray mr-1">Regular</span>
+                            <span className="text-2xl font-fredoka font-bold text-charcoal">
+                              {currencyCode} {selectedProduct.price?.toLocaleString()}
+                            </span>
+                          </div>
+                          {subPrice && (
+                            <div className="bg-primary-blue px-4 py-2.5 flex items-center justify-between">
+                              <span className="text-xs font-fredoka font-semibold text-white/80">
+                                Subscribe & Save {selectedProduct.subscription_discount_percentage}%
+                              </span>
+                              <span className="font-fredoka font-bold text-sunny-yellow text-base">
+                                {currencyCode} {subPrice}
+                                <span className="text-white/60 text-xs font-normal ml-1">/delivery</span>
                               </span>
                             </div>
-                            <p className="text-xl font-fredoka font-bold text-mint-green mt-1">
-                              {typeof selectedProduct?.currency === 'object'
-                                ? (selectedProduct.currency as any)?.code || 'Rs.'
-                                : selectedProduct?.currency || 'Rs.'} {(selectedProduct.price * (1 - selectedProduct.subscription_discount_percentage / 100)).toFixed(2)}
-                              <span className="text-sm text-medium-gray font-normal ml-1">per delivery</span>
+                          )}
+                        </div>
+
+                        {/* Description — only if present */}
+                        {selectedProduct.description && (
+                          <div>
+                            <p className="text-xs font-nunito font-semibold text-medium-gray uppercase tracking-wide mb-1">
+                              Description
+                            </p>
+                            <p className="text-sm font-nunito text-medium-gray leading-relaxed line-clamp-4">
+                              {selectedProduct.description}
                             </p>
                           </div>
                         )}
-                      </div>
 
-                      {/* Benefits */}
-                      <div className="bg-blue-50 rounded-2xl p-6 mb-6">
-                        <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-3">Why Choose Subscription?</h3>
-                        <div className="space-y-3">
-                          {/* <div className="flex items-center gap-3">
-                            <PercentIcon className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Save 10% on every order</span>
-                          </div> */}
-                          <div className="flex items-center gap-3">
-                            <TruckIcon className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Products to your doorstep</span>
+                        {/* Specs — only if data exists */}
+                        {(selectedProduct.weight || selectedProduct.dimensions) && (
+                          <div className="grid grid-cols-2 gap-2">
+                            {selectedProduct.weight && (
+                              <div className="bg-primary-blue/10 border border-primary-blue/20 rounded-xl p-3 text-center">
+                                <Package className="h-4 w-4 text-primary-blue mx-auto mb-1" />
+                                <p className="text-xs font-nunito text-medium-gray">Weight</p>
+                                <p className="font-fredoka font-bold text-primary-blue text-sm">{selectedProduct.weight} kg</p>
+                              </div>
+                            )}
+                            {selectedProduct.dimensions && (
+                              <div className="bg-primary-blue/10 border border-primary-blue/20 rounded-xl p-3 text-center">
+                                <Package className="h-4 w-4 text-primary-blue mx-auto mb-1" />
+                                <p className="text-xs font-nunito text-medium-gray">Dimensions</p>
+                                <p className="font-fredoka font-bold text-primary-blue text-xs">
+                                  {selectedProduct.dimensions.length}×{selectedProduct.dimensions.width}×{selectedProduct.dimensions.height}
+                                  <span className="text-medium-gray font-normal"> {selectedProduct.dimensions.unit || 'cm'}</span>
+                                </p>
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-3">
-                            <Calendar className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Flexible delivery schedule</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <ShieldCheck className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Cancel or pause anytime</span>
-                          </div>
-                        </div>
-                      </div>
+                        )}
 
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Quantity
-                        </label>
-                        <input
-                          type="number"
-                          min={1}
-                          value={selectedProduct.quantity || 1}
-                          onChange={(e) =>
-                            setSelectedProduct({
-                              ...selectedProduct,
-                              quantity: parseInt(e.target.value, 10),
-                            })
-                          }
-                          className="border rounded-xl px-3 py-2 w-24"
-                        />
                       </div>
-                      {/* Action Buttons */}
-                      <div className="space-y-3">
+                    </div>
+                  </div>
+
+                  {/* ── Footer ─────────────────────────────────────────── */}
+                  <div className="flex-shrink-0 border-t border-light-gray bg-white px-5 py-4">
+                    <div className="flex items-center gap-3 flex-wrap">
+
+                      {/* Quantity stepper */}
+                      <div className="flex items-center gap-1 bg-soft-gray rounded-xl p-1">
                         <button
+                          onClick={() => setSelectedProduct({ ...selectedProduct, quantity: Math.max(minQty, currentQty - 1) })}
+                          disabled={isOutOfStock || currentQty <= minQty}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm hover:bg-primary-blue hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-9 text-center font-fredoka font-bold text-charcoal text-sm select-none">
+                          {currentQty}
+                        </span>
+                        <button
+                          onClick={() => setSelectedProduct({ ...selectedProduct, quantity: Math.min(maxQty, currentQty + 1) })}
+                          disabled={isOutOfStock || currentQty >= maxQty}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm hover:bg-primary-blue hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      {/* CTA — three states */}
+                      {isOutOfStock ? (
+                        <button
+                          disabled
+                          className="flex-1 min-w-[140px] py-3 px-5 rounded-2xl font-fredoka font-bold text-sm bg-light-gray text-medium-gray cursor-not-allowed"
+                        >
+                          Out of Stock
+                        </button>
+                      ) : isAlreadyAdded ? (
+                        <>
+                          {/* Update quantity for the product already in cart */}
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => {
+                              setProductQuantities(prev => ({ ...prev, [selectedProduct.id]: currentQty }));
+                              toast.success('Quantity updated');
+                              setShowProductModal(false);
+                            }}
+                            className="flex-1 min-w-[140px] py-3 px-5 rounded-2xl font-fredoka font-bold text-sm bg-primary-blue text-white shadow-md hover:brightness-110 transition-all"
+                          >
+                            ✓ Update Quantity
+                          </motion.button>
+                          {/* Remove from subscription */}
+                          <button
+                            onClick={() => {
+                              handleProductToggle(selectedProduct);
+                              setShowProductModal(false);
+                            }}
+                            title="Remove from subscription"
+                            className="py-3 px-4 bg-red-50 border-2 border-red-200 text-red-500 hover:bg-red-100 rounded-2xl transition-colors flex-shrink-0"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.97 }}
                           onClick={() => {
                             handleProductToggle(selectedProduct);
                             setShowProductModal(false);
                           }}
-                          className={`w-full py-4 px-6 rounded-2xl font-fredoka font-bold text-lg transition-all transform hover:scale-105 ${
-                            selectedProducts.some(p => p.id === selectedProduct.id)
-                              ? 'bg-light-gray text-medium-gray'
-                              : 'bg-vibrant-orange hover:bg-sunny-yellow text-white shadow-lg'
-                          }`}
-                          disabled={selectedProducts.some(p => p.id === selectedProduct.id)}
+                          className="flex-1 min-w-[140px] py-3 px-5 rounded-2xl font-fredoka font-bold text-sm bg-primary-blue text-white shadow-md hover:brightness-110 transition-all"
                         >
-                          {selectedProducts.some(p => p.id === selectedProduct.id)
-                            ? 'Already Added to Subscription'
-                            : 'Add to Subscription'
-                          }
-                        </button>
-                        <button
-                          onClick={() => setShowProductModal(false)}
-                          className="w-full py-3 px-6 bg-white border-2 border-light-gray rounded-2xl font-fredoka font-medium text-charcoal hover:bg-soft-gray transition-colors"
-                        >
-                          Close
-                        </button>
-                      </div>
+                          + Add to Subscription
+                        </motion.button>
+                      )}
 
-                      {/* Trust Badges */}
-                      <div className="mt-6 flex items-center justify-center gap-4 text-xs text-medium-gray">
-                        <div className="flex items-center gap-1">
-                          <ShieldCheck className="h-4 w-4" />
-                          <span>Secure</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Heart className="h-4 w-4" />
-                          <span>Pet Safe</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Award className="h-4 w-4" />
-                          <span>Quality Assured</span>
-                        </div>
-                      </div>
+                      {/* Close */}
+                      <button
+                        onClick={() => setShowProductModal(false)}
+                        className="py-3 px-4 bg-soft-gray hover:bg-light-gray rounded-2xl font-fredoka font-medium text-charcoal text-sm transition-colors flex-shrink-0"
+                      >
+                        Close
+                      </button>
                     </div>
                   </div>
+
                 </div>
-              </div>
-            </motion.div>
-          </>
-        )}
+              </motion.div>
+            </>
+          );
+        })()}
       </AnimatePresence>
     </div>
   )
