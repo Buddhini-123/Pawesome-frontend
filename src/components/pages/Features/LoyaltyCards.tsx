@@ -604,6 +604,11 @@ const LoyaltyCards: React.FC = () => {
                 <div className="absolute -bottom-2 left-2 right-2 h-52 bg-black/20 rounded-2xl -z-10" />
               </motion.div>
 
+              {/* Expiry note */}
+              <p className="font-nunito text-white/55 text-xs text-center -mt-4 mb-4">
+                🕐 Points expire on <span className="text-white/80 font-semibold">31st December 2026</span>
+              </p>
+
               {/* CTAs */}
               <motion.div
                 className="flex flex-row items-center justify-center gap-4"
