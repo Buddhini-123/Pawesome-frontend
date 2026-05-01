@@ -244,8 +244,8 @@ const LoyaltyCards: React.FC = () => {
     { id: 'dashboard', name: 'Dashboard',      icon: TrendingUp },
     { id: 'rewards',   name: 'Rewards',         icon: Gift       },
     { id: 'history',   name: 'History',         icon: History    },
-    { id: 'badges',    name: 'Badges',          icon: Star       },
-    { id: 'deals',     name: 'Exclusive Deals', icon: Crown      },
+    // { id: 'badges',    name: 'Badges',          icon: Star       }, // hidden — feature ready, not yet launched
+    // { id: 'deals',     name: 'Exclusive Deals', icon: Crown      }, // hidden — feature ready, not yet launched
     { id: 'referral',  name: 'Refer Friends',   icon: Users      },
   ];
 
