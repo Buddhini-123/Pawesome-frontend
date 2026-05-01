@@ -60,18 +60,17 @@ const LoyaltyDashboard: React.FC<LoyaltyDashboardProps> = ({ onNavigateToRewards
     .slice(0, 3);
 
   // Format expiry date for display
-  const formatExpiryDate = (expiryDate: string): string => {
-    try {
-      return new Date(expiryDate).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return expiryDate;
-    }
+  const formatExpiryDate = (expiryDate: string | null | undefined): string => {
+    if (!expiryDate) return '';
+    const d = new Date(expiryDate);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   // Show loading skeleton during initial load
@@ -134,7 +133,7 @@ const LoyaltyDashboard: React.FC<LoyaltyDashboardProps> = ({ onNavigateToRewards
         </motion.div>
       )}
 
-      {balanceData && !balanceLoading && (
+      {balanceData && !balanceLoading && (formatExpiryDate(balanceData.expiry_date) || balanceData.expiring_soon > 0) && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

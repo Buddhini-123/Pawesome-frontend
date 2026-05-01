@@ -229,7 +229,7 @@ const HeroSection: React.FC = () => {
               transition={{ delay: 0.45 }}
             >
               <Link
-                to="/shop"
+                to="/subscriptions"
                 className="flex items-center justify-center bg-sunny-yellow text-charcoal font-fredoka font-bold px-10 py-3.5 rounded-2xl text-lg hover:scale-[1.02] transition-all duration-300 shadow-md w-full max-w-xs"
               >
                 Shop Now
