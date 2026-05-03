@@ -1751,17 +1751,17 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
             >
               <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden pointer-events-auto">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-vibrant-orange to-sunny-yellow p-6">
+                <div className="p-6" style={{ background: 'linear-gradient(135deg, #A4F7FF 0%, #78EEFF 100%)' }}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-2xl font-fredoka font-bold text-white">Set Your Schedule</h2>
-                      <p className="text-white/80 text-sm mt-0.5">How often should we deliver?</p>
+                      <h2 className="text-2xl font-fredoka font-bold" style={{ color: '#004D6B' }}>Set Your Schedule</h2>
+                      <p className="text-sm mt-0.5" style={{ color: '#004D6B', opacity: 0.7 }}>How often should we deliver?</p>
                     </div>
                     <button
                       onClick={() => setIsScheduleModalOpen(false)}
-                      className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                      className="p-2 bg-white/40 hover:bg-white/60 rounded-full transition-colors"
                     >
-                      <X className="h-5 w-5 text-white" />
+                      <X className="h-5 w-5" style={{ color: '#004D6B' }} />
                     </button>
                   </div>
                 </div>
@@ -1784,12 +1784,14 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           }}
                           className={`flex flex-col items-center p-4 rounded-2xl border-2 transition-all ${
                             intervalType === opt.value
-                              ? 'border-vibrant-orange bg-orange-50 shadow-md'
+                              ? 'shadow-md'
                               : 'border-light-gray bg-white hover:border-gray-300'
                           }`}
+                          style={intervalType === opt.value ? { borderColor: '#FF6B35', background: '#FFF4F0' } : {}}
                         >
                           <span className="text-2xl mb-1">{opt.emoji}</span>
-                          <span className={`text-sm font-fredoka font-bold ${intervalType === opt.value ? 'text-vibrant-orange' : 'text-charcoal'}`}>
+                          <span className={`text-sm font-fredoka font-bold ${intervalType === opt.value ? '' : 'text-charcoal'}`}
+                            style={intervalType === opt.value ? { color: '#FF6B35' } : {}}>
                             {opt.label}
                           </span>
                           <span className="text-xs text-medium-gray mt-0.5">{opt.desc}</span>
@@ -1813,9 +1815,10 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           onClick={() => setIntervalValue(opt.v)}
                           className={`py-2.5 px-4 rounded-xl text-sm font-fredoka font-medium transition-all border-2 ${
                             intervalValue === opt.v
-                              ? 'bg-vibrant-orange border-vibrant-orange text-white'
+                              ? 'text-white'
                               : 'bg-white border-light-gray text-charcoal hover:border-gray-300'
                           }`}
+                          style={intervalValue === opt.v ? { background: '#FF6B35', borderColor: '#FF6B35' } : {}}
                         >
                           {opt.label}
                         </button>
@@ -1831,9 +1834,10 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           onClick={() => setIntervalValue(opt.v)}
                           className={`py-2.5 px-4 rounded-xl text-sm font-fredoka font-medium transition-all border-2 ${
                             intervalValue === opt.v
-                              ? 'bg-vibrant-orange border-vibrant-orange text-white'
+                              ? 'text-white'
                               : 'bg-white border-light-gray text-charcoal hover:border-gray-300'
                           }`}
+                          style={intervalValue === opt.v ? { background: '#FF6B35', borderColor: '#FF6B35' } : {}}
                         >
                           {opt.label}
                         </button>
@@ -1851,9 +1855,10 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                           onClick={() => setIntervalValue(opt.v)}
                           className={`py-2.5 px-4 rounded-xl text-sm font-fredoka font-medium transition-all border-2 ${
                             intervalValue === opt.v
-                              ? 'bg-vibrant-orange border-vibrant-orange text-white'
+                              ? 'text-white'
                               : 'bg-white border-light-gray text-charcoal hover:border-gray-300'
                           }`}
+                          style={intervalValue === opt.v ? { background: '#FF6B35', borderColor: '#FF6B35' } : {}}
                         >
                           {opt.label}
                         </button>
@@ -1869,7 +1874,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       </label>
                       <input
                         type="date"
-                        className="w-full border-2 border-light-gray rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-vibrant-orange focus:border-transparent"
+                        className="w-full border-2 border-light-gray rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent" style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
                         value={startDate}
                         min={new Date().toISOString().split("T")[0]}
                         onChange={e => setStartDate(e.target.value)}
@@ -1881,7 +1886,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       </label>
                       <input
                         type="date"
-                        className="w-full border-2 border-light-gray rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-vibrant-orange focus:border-transparent"
+                        className="w-full border-2 border-light-gray rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent" style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
                         min={startDate || new Date().toISOString().split("T")[0]}
                         value={endDate}
                         onChange={e => setEndDate(e.target.value)}
@@ -1891,16 +1896,16 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
 
                   {/* Summary pill */}
                   {startDate && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 flex items-center gap-3">
-                      <Repeat className="h-4 w-4 text-vibrant-orange flex-shrink-0" />
-                      <p className="text-sm font-fredoka text-charcoal">
+                    <div className="rounded-2xl px-4 py-3 flex items-center gap-3" style={{ background: 'rgba(164,247,255,0.25)', border: '1px solid rgba(164,247,255,0.8)' }}>
+                      <Repeat className="h-4 w-4 flex-shrink-0" style={{ color: '#FF6B35' }} />
+                      <p className="text-sm font-fredoka" style={{ color: '#004D6B' }}>
                         Delivering{' '}
-                        <span className="font-bold text-vibrant-orange">
+                        <span className="font-bold" style={{ color: '#FF6B35' }}>
                           {intervalType === 'weekly' ? `every ${intervalValue === 1 ? 'week' : `${intervalValue} weeks`}` :
                            intervalType === 'monthly' ? `every ${intervalValue === 1 ? 'month' : `${intervalValue} months`}` :
                            `every ${intervalValue} days`}
                         </span>
-                        {' '}starting <span className="font-bold text-vibrant-orange">{new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        {' '}starting <span className="font-bold" style={{ color: '#FF6B35' }}>{new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         {endDate ? ` until ${new Date(endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ' (ongoing)'}
                       </p>
                     </div>
@@ -1928,9 +1933,10 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       disabled={!startDate}
                       className={`flex-1 font-fredoka font-bold py-3 rounded-xl transition-all ${
                         startDate
-                          ? 'bg-vibrant-orange hover:bg-orange-600 text-white shadow-md hover:shadow-lg'
+                          ? 'text-white shadow-md hover:shadow-lg'
                           : 'bg-light-gray text-medium-gray cursor-not-allowed'
                       }`}
+                      style={startDate ? { background: '#FF6B35' } : {}}
                     >
                       Confirm & Continue
                     </button>

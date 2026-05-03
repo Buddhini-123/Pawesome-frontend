@@ -301,15 +301,15 @@ const LoyaltyCards: React.FC = () => {
           {/* Illustrations layer */}
           <motion.div style={{ y: heroIllustY }} className="absolute inset-0">
             <HeroIllust
-              src="/icons/illustrations/dog-illustrations.png"
+              src="/icons/Bunny.png"
               className="hidden md:block"
               style={{ width: 420, height: 420, bottom: -20, right: -20, objectFit: 'contain' }}
               floatY={[0, -16, 0]} dur={5} hoverX={-20} hoverY={-28} clickEffect="bounce"
             />
             <HeroIllust
-              src="/icons/illustrations/cat-illustrations.png"
+              src="/icons/rabbitandhamster.png"
               className="hidden md:block"
-              style={{ width: 400, height: 400, bottom: -16, left: -24, objectFit: 'contain', opacity: 0.85 }}
+              style={{ width: 400, height: 400, bottom: -16, left: -24, objectFit: 'contain', opacity: 0.9 }}
               floatY={[0, -12, 0]} floatRotate={[0, 4, 0]} dur={4.5} delay={0.6}
               hoverX={20} hoverY={-24} clickEffect="wiggle"
             />
@@ -329,12 +329,6 @@ const LoyaltyCards: React.FC = () => {
               style={{ width: 180, height: 180, top: '-18px', left: '40%', opacity: 0.20 }}
               floatY={[0, -8, 0]} floatRotate={[15, 22, 15]} dur={9} delay={0}
               hoverY={-18} clickEffect="spin" baseRotate={15}
-            />
-            <HeroIllust
-              src="/icons/illustrations/hypnotize-illustrations.png"
-              style={{ width: 120, height: 120, bottom: '10%', left: '46%', opacity: 0.28 }}
-              floatY={[0, -6, 0]} floatRotate={[0, 360, 360]} dur={14} delay={0}
-              hoverY={-20} clickEffect="spin"
             />
           </motion.div>
 
@@ -474,15 +468,15 @@ const LoyaltyCards: React.FC = () => {
         {/* Illustrations layer */}
         <motion.div style={{ y: heroIllustY }} className="absolute inset-0">
           <HeroIllust
-            src="/icons/illustrations/dog-illustrations.png"
+            src="/icons/Bunny.png"
             className="hidden md:block"
             style={{ width: 400, height: 400, bottom: -16, right: -20, objectFit: 'contain' }}
             floatY={[0, -16, 0]} dur={5} hoverX={-20} hoverY={-28} clickEffect="bounce"
           />
           <HeroIllust
-            src="/icons/illustrations/cat-illustrations.png"
+            src="/icons/rabbitandhamster.png"
             className="hidden md:block"
-            style={{ width: 380, height: 380, bottom: -12, left: -24, objectFit: 'contain', opacity: 0.85 }}
+            style={{ width: 380, height: 380, bottom: -12, left: -24, objectFit: 'contain', opacity: 0.9 }}
             floatY={[0, -12, 0]} floatRotate={[0, 4, 0]} dur={4.5} delay={0.6}
             hoverX={20} hoverY={-24} clickEffect="wiggle"
           />
@@ -502,12 +496,6 @@ const LoyaltyCards: React.FC = () => {
             style={{ width: 170, height: 170, top: '-16px', left: '40%', opacity: 0.18 }}
             floatY={[0, -8, 0]} floatRotate={[15, 22, 15]} dur={9} delay={0}
             hoverY={-18} clickEffect="spin" baseRotate={15}
-          />
-          <HeroIllust
-            src="/icons/illustrations/hypnotize-illustrations.png"
-            style={{ width: 110, height: 110, bottom: '10%', left: '46%', opacity: 0.26 }}
-            floatY={[0, -6, 0]} floatRotate={[0, 360, 360]} dur={14} delay={0}
-            hoverY={-20} clickEffect="spin"
           />
         </motion.div>
 

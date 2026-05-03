@@ -229,14 +229,7 @@ const Header: React.FC = () => {
               {/* Actions */}
               <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
 
-                {/* Wishlist — desktop only */}
-                <Link
-                  to="/wishlist"
-                  className="hidden lg:flex relative p-3 rounded-full bg-soft-pink/20 hover:bg-soft-pink/30 transition-all duration-300 group"
-                >
-                  <Heart className="h-6 w-6 text-soft-pink group-hover:scale-110 transition-transform duration-300" />
-                  <span className="absolute -top-1 -right-1 bg-crimson text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">3</span>
-                </Link>
+                {/* Wishlist — hidden */}
 
                 {/* User profile */}
                 <div className="relative user-menu-container">
@@ -270,7 +263,7 @@ const Header: React.FC = () => {
                       >
                         <Link to="/account"  className="block px-4 py-3 text-sm text-charcoal hover:bg-primary-blue/10 transition-colors rounded-xl mx-2" onClick={() => setShowUserMenu(false)}>👤 {user?.name || 'My Account'}</Link>
                         <Link to="/orders"   className="block px-4 py-3 text-sm text-charcoal hover:bg-primary-blue/10 transition-colors rounded-xl mx-2" onClick={() => setShowUserMenu(false)}>📦 My Orders</Link>
-                        <Link to="/wishlist" className="block px-4 py-3 text-sm text-charcoal hover:bg-primary-blue/10 transition-colors rounded-xl mx-2" onClick={() => setShowUserMenu(false)}>❤️ Wishlist</Link>
+                        {/* <Link to="/wishlist" className="block px-4 py-3 text-sm text-charcoal hover:bg-primary-blue/10 transition-colors rounded-xl mx-2" onClick={() => setShowUserMenu(false)}>❤️ Wishlist</Link> */}
                         <hr className="my-2 mx-4 border-light-gray" />
                         <button onClick={handleLogout} className="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-charcoal hover:bg-crimson/10 transition-colors rounded-xl mx-2">
                           <LogOut className="h-4 w-4" /> Logout
@@ -410,7 +403,7 @@ const Header: React.FC = () => {
                       {[
                         { to: '/account',  emoji: '👤', label: 'Account' },
                         { to: '/orders',   emoji: '📦', label: 'Orders'  },
-                        { to: '/wishlist', emoji: '❤️', label: 'Wishlist' },
+                        // { to: '/wishlist', emoji: '❤️', label: 'Wishlist' }, // hidden
                       ].map(({ to, emoji, label }) => (
                         <Link
                           key={to}

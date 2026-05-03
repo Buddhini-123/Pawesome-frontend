@@ -28,7 +28,9 @@ import {
   Weight,
   Activity,
   ArrowLeft,
-  Eye
+  Eye,
+  EyeOff,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useLoyalty } from '../../../hooks/useLoyalty';
@@ -60,6 +62,14 @@ const Account: React.FC = () => {
   // Default Address State
   const [defaultAddress, setDefaultAddress] = useState<any>(null);
   const [loadingAddress, setLoadingAddress] = useState(false);
+
+  // Change Password State
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: '', newPass: '', confirm: '' });
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   // Pet Management State
   const [pets, setPets] = useState<Pet[]>(user?.pets || []);
@@ -422,6 +432,33 @@ const Account: React.FC = () => {
   const handleViewPetProfile = (pet: Pet) => {
     setSelectedPet(pet);
     setShowPetProfile(true);
+  };
+
+  const handleChangePassword = async () => {
+    const { current, newPass, confirm } = passwordForm;
+    if (!current || !newPass || !confirm) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+    if (newPass !== confirm) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (newPass.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await api.post('/auth/change-password', { current_password: current, new_password: newPass });
+      toast.success('Password changed successfully');
+      setPasswordForm({ current: '', newPass: '', confirm: '' });
+      setShowPasswordForm(false);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to change password');
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const renderContent = () => {
@@ -1334,15 +1371,111 @@ const Account: React.FC = () => {
                   Security
                 </h3>
                 <div className="space-y-4">
-                  <button className="w-full p-4 bg-soft-gray hover:bg-light-gray rounded-xl text-left transition-colors group">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-fredoka font-semibold text-charcoal">Change Password</p>
-                        <p className="text-sm text-medium-gray">Last changed 3 months ago</p>
+                  <div className="bg-soft-gray rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setShowPasswordForm(v => !v)}
+                      className="w-full p-4 text-left hover:bg-light-gray transition-colors group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Lock className="h-5 w-5 text-mint-green" />
+                          <div>
+                            <p className="font-fredoka font-semibold text-charcoal">Change Password</p>
+                            <p className="text-sm text-medium-gray">Update your account password</p>
+                          </div>
+                        </div>
+                        <ChevronRight className={`h-5 w-5 text-medium-gray transition-transform duration-200 ${showPasswordForm ? 'rotate-90' : ''}`} />
                       </div>
-                      <ChevronRight className="h-5 w-5 text-medium-gray group-hover:text-charcoal transition-colors" />
-                    </div>
-                  </button>
+                    </button>
+
+                    <AnimatePresence>
+                      {showPasswordForm && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.22 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 space-y-3 border-t border-light-gray pt-4">
+                            {/* Current Password */}
+                            <div className="relative">
+                              <label className="text-xs font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-1 block">Current Password</label>
+                              <input
+                                type={showCurrentPw ? 'text' : 'password'}
+                                value={passwordForm.current}
+                                onChange={e => setPasswordForm(f => ({ ...f, current: e.target.value }))}
+                                placeholder="Enter current password"
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-2.5 pr-10 text-sm font-nunito focus:outline-none focus:border-primary-blue transition-colors"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowCurrentPw(v => !v)}
+                                className="absolute right-3 top-8 text-medium-gray hover:text-charcoal transition-colors"
+                              >
+                                {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+
+                            {/* New Password */}
+                            <div className="relative">
+                              <label className="text-xs font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-1 block">New Password</label>
+                              <input
+                                type={showNewPw ? 'text' : 'password'}
+                                value={passwordForm.newPass}
+                                onChange={e => setPasswordForm(f => ({ ...f, newPass: e.target.value }))}
+                                placeholder="Min. 8 characters"
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-2.5 pr-10 text-sm font-nunito focus:outline-none focus:border-primary-blue transition-colors"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowNewPw(v => !v)}
+                                className="absolute right-3 top-8 text-medium-gray hover:text-charcoal transition-colors"
+                              >
+                                {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div className="relative">
+                              <label className="text-xs font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-1 block">Confirm New Password</label>
+                              <input
+                                type={showConfirmPw ? 'text' : 'password'}
+                                value={passwordForm.confirm}
+                                onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))}
+                                placeholder="Re-enter new password"
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-2.5 pr-10 text-sm font-nunito focus:outline-none focus:border-primary-blue transition-colors"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPw(v => !v)}
+                                className="absolute right-3 top-8 text-medium-gray hover:text-charcoal transition-colors"
+                              >
+                                {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-3 pt-1">
+                              <button
+                                onClick={() => { setShowPasswordForm(false); setPasswordForm({ current: '', newPass: '', confirm: '' }); }}
+                                className="flex-1 py-2.5 rounded-xl border-2 border-light-gray text-charcoal font-fredoka font-medium text-sm hover:bg-light-gray transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleChangePassword}
+                                disabled={passwordLoading}
+                                className="flex-1 py-2.5 rounded-xl bg-primary-blue text-white font-fredoka font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60"
+                              >
+                                {passwordLoading ? 'Saving...' : 'Update Password'}
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                   
                   <button className="w-full p-4 bg-soft-gray hover:bg-light-gray rounded-xl text-left transition-colors group">
                     <div className="flex items-center justify-between">
@@ -1352,36 +1485,6 @@ const Account: React.FC = () => {
                       </div>
                       <ChevronRight className="h-5 w-5 text-medium-gray group-hover:text-charcoal transition-colors" />
                     </div>
-                  </button>
-                </div>
-              </div>
-              
-              {/* Payment Methods */}
-              <div>
-                <h3 className="text-xl font-fredoka font-semibold text-charcoal mb-4 flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2 text-vibrant-orange" />
-                  Payment Methods
-                </h3>
-                <div className="space-y-4">
-                  <div className="p-4 bg-soft-gray rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-8 bg-primary-blue rounded flex items-center justify-center">
-                          <CreditCard className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-fredoka font-semibold text-charcoal">•••• •••• •••• 4242</p>
-                          <p className="text-sm text-medium-gray">Expires 12/25</p>
-                        </div>
-                      </div>
-                      <button className="text-coral-red hover:text-coral-red/80 transition-colors">
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <button className="w-full p-4 border-2 border-dashed border-light-gray hover:border-primary-blue rounded-xl transition-colors text-primary-blue font-fredoka font-medium">
-                    + Add New Payment Method
                   </button>
                 </div>
               </div>
