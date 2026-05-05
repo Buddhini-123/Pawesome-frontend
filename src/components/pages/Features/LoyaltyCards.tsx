@@ -296,7 +296,7 @@ const LoyaltyCards: React.FC = () => {
       <div className="min-h-screen bg-warm-white">
 
         {/* Hero */}
-        <section className="relative overflow-hidden bg-primary-blue min-h-[580px] md:min-h-[640px] flex items-center">
+        <section className="relative overflow-hidden min-h-[580px] md:min-h-[640px] flex items-center" style={{ background: '#FD7C9C' }}>
 
           {/* Illustrations layer */}
           <motion.div style={{ y: heroIllustY }} className="absolute inset-0">
@@ -431,7 +431,7 @@ const LoyaltyCards: React.FC = () => {
         </section>
 
         {/* Benefits strip */}
-        <section className="bg-primary-blue py-8 px-4" style={{ borderTop: '2px solid rgba(255,255,255,0.12)' }}>
+        <section className="py-8 px-4" style={{ background: '#e96a87', borderTop: '2px solid rgba(255,255,255,0.15)' }}>
           <div className="container mx-auto">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {BENEFITS.map((b, i) => (
@@ -463,7 +463,7 @@ const LoyaltyCards: React.FC = () => {
     <div className="min-h-screen bg-warm-white">
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-primary-blue min-h-[520px] md:min-h-[580px] flex items-center">
+      <section className="relative overflow-hidden min-h-[520px] md:min-h-[580px] flex items-center" style={{ background: '#FD7C9C' }}>
 
         {/* Illustrations layer */}
         <motion.div style={{ y: heroIllustY }} className="absolute inset-0">
@@ -627,7 +627,7 @@ const LoyaltyCards: React.FC = () => {
       </section>
 
       {/* ── Benefits strip ─────────────────────────────────────────────── */}
-      <section className="bg-primary-blue py-7 px-4" style={{ borderTop: '2px solid rgba(255,255,255,0.12)' }}>
+      <section className="py-7 px-4" style={{ background: '#e96a87', borderTop: '2px solid rgba(255,255,255,0.15)' }}>
         <div className="container mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {BENEFITS.map((b, i) => (

@@ -16,7 +16,9 @@
       "Bash(netstat -ano)",
       "Bash(powershell *)",
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
-      "WebFetch(domain:pawsome.lk)"
+      "WebFetch(domain:pawsome.lk)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
