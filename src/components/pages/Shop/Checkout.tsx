@@ -269,8 +269,12 @@ const Checkout: React.FC = () => {
     const fetchAddresses = async () => {
       try {
         const res = await api.get('/users/addresses');
-        setAddresses((res.data as any).data);
-        if ((res.data as any).data.length) setSelectedAddressId((res.data as any).data[0].id);
+        if (res.success && res.data) {
+          const list = (res.data as any)?.data ?? [];
+          const safeList = Array.isArray(list) ? list : [];
+          setAddresses(safeList);
+          if (safeList.length) setSelectedAddressId(safeList[0].id);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -497,10 +501,18 @@ const Checkout: React.FC = () => {
         district: formData.shippingAddress.state,
         postal_code: formData.shippingAddress.pincode
       });
-      
-      console.log(res);
-      
-      return (res.data as any).data.address.id;
+
+      if (!res.success || !res.data) {
+        throw new Error(res.error || 'Failed to save delivery address. Please try again.');
+      }
+
+      const responseData = (res.data as any);
+      const address =
+        responseData?.data?.address ??
+        responseData?.address ??
+        responseData?.data ??
+        responseData;
+      return address?.id ?? null;
     }
   };
   const buildShippingAddress = () => {
@@ -736,16 +748,14 @@ const Checkout: React.FC = () => {
 
         if (err.response?.status === 422) {
           // Laravel validation errors
-          const errors = err.response.data.errors;
+          const errData = err.response?.data;
+          const errors = errData?.errors;
 
           if (errors) {
-            // Convert { field: ["error1", "error2"] } → array of messages
             const messages = Object.values(errors).flat();
-
-            // Join with line breaks or commas
-            errorMessage = messages.join(", "); 
-          } else if (err.response.data.message) {
-            errorMessage = err.response.data.message;
+            errorMessage = (messages as string[]).join(", ");
+          } else if (errData?.message) {
+            errorMessage = errData.message;
           }
         } else if (err.message) {
           errorMessage = err.message;
