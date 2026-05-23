@@ -1,215 +1,142 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
-import { useCart } from '../../../hooks/useCart';
 import { useNavigate } from 'react-router-dom';
 import { api, host } from "../../../services/api";
 
-interface Product {
-  id: string;
+// Step 1 — Interfaces
+interface GiftItem {
+  id: string;       // "theme-5" or "prod-12"
+  rawId: number;    // the actual DB id (5 or 12)
   name: string;
   price: number;
   image: string;
   description: string;
-  category: string;
+  type: 'theme' | 'product';
 }
 
-interface Step {
+interface GiftStep {
   id: number;
+  key: string;
   title: string;
   shortTitle: string;
-  products: Product[];
+  type: 'theme' | 'product';
+  items: GiftItem[];
   minSelection: number;
-  maxSelection?: number;
+  maxSelection: number;
 }
 
-interface Theme {
-  id: number;
-  name: string;
-  description: string;
-  image_url: string;
-  price_range: {
-    min: number;
-    max: number;
-    formatted: string;
-    currency: string;
-  };
-  target_categories: JSON;
-}
+// Step 4 — Image helper
+const getItemImage = (item: any, type: string): string => {
+  if (type === 'theme') {
+    if (item.image_url) return item.image_url.startsWith('http')
+      ? item.image_url
+      : `${host}/storage/${item.image_url}`;
+  }
+  // product
+  if (item.primary_image?.image_url) return item.primary_image.image_url;
+  if (item.primary_image?.path)      return `${host}/storage/${item.primary_image.path}`;
+  return 'https://via.placeholder.com/300x300/f0f0f0/999999?text=No+Image';
+};
 
 const GiftCustomizer: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selections, setSelections] = useState<{ [key: number]: string[] }>({});
   const [isStepCompleted, setIsStepCompleted] = useState<{ [key: number]: boolean }>({});
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [themes, setThemes] = useState<Theme[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [priorityProducts, setPriorityProducts] = useState<{ [key: number]: any[] }>({
-    1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [],
-  });
 
-  const { addItem } = useCart();
+  // Step 2 — Single steps state (replaces themes + priorityProducts)
+  const [steps, setSteps] = useState<GiftStep[]>([]);
+
+  // Step 2 — Personalization state
+  const [giftDetails, setGiftDetails] = useState({
+    recipient_name: '',
+    custom_message: '',
+    occasion: '',
+  });
+  const [showPersonalizeModal, setShowPersonalizeModal] = useState(false);
+
   const navigate = useNavigate();
 
+  // Step 3 — Single API call to /gifts/sections
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSections = async () => {
       try {
-        const themeRes = await api.get("/gifts/themes");
-        setThemes((themeRes.data as any).data || []);
+        const res = await api.get('/gifts/sections');
+        const sectionsData: any[] = (res.data as any).data || [];
 
-        const priorities = [2, 3, 4, 5, 6, 7];
-        const responses = await Promise.all(
-          priorities.map(p => api.get(`/products?gift_priority=${p}`))
-        );
+        const stepMinMax: Record<string, { min: number; max: number; short: string }> = {
+          theme:          { min: 1, max: 1, short: 'Theme Card' },
+          toy:            { min: 1, max: 1, short: 'Pet Toy' },
+          treat:          { min: 1, max: 3, short: 'Treats' },
+          care:           { min: 1, max: 2, short: 'Care Products' },
+          accessory:      { min: 1, max: 2, short: 'Accessories' },
+          greeting_card:  { min: 1, max: 1, short: 'Greeting Card' },
+          wrapping_paper: { min: 1, max: 1, short: 'Wrapping Paper' },
+        };
 
-        const productsByPriority: { [key: number]: any[] } = {};
-        priorities.forEach((p, index) => {
-          productsByPriority[p] = (responses[index].data as any).data || [];
+        const built: GiftStep[] = sectionsData.map((section: any) => {
+          const config = stepMinMax[section.key] ?? { min: 1, max: 1, short: section.label };
+
+          const items: GiftItem[] = (section.items || []).map((item: any) => ({
+            id:          `${section.type}-${item.id}`,
+            rawId:       item.id,
+            name:        item.name,
+            price:       section.type === 'theme'
+                           ? (item.price_range?.min ?? 0)
+                           : Number(item.price),
+            image:       getItemImage(item, section.type),
+            description: item.description ?? '',
+            type:        section.type,
+          }));
+
+          return {
+            id:           section.step,
+            key:          section.key,
+            title:        section.label,
+            shortTitle:   config.short,
+            type:         section.type,
+            items,
+            minSelection: config.min,
+            maxSelection: config.max,
+          };
         });
 
-        setPriorityProducts(productsByPriority);
+        setSteps(built);
       } catch (e) {
-        console.error("Error fetching data:", e);
-        setError("Failed to load gift customization data");
+        console.error('Error fetching gift sections:', e);
+        setError('Failed to load gift customization data');
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    fetchSections();
   }, []);
 
-  const getSteps = (): Step[] => [
-    {
-      id: 1,
-      title: "Choose a Theme Card",
-      shortTitle: "Theme Card",
-      minSelection: 1,
-      maxSelection: 1,
-      products: themes.map((theme) => ({
-        id: `theme-${theme.id}`, // <--- Prefixed ID
-        name: theme.name,
-        price: theme.price_range?.min ?? 0,
-        image: `${host}/storage/${theme.image_url}`,
-        description: theme.description,
-        category: "theme",
-      })),
-    },
-    {
-      id: 2,
-      title: "Select Your Main Theme Pet Toy",
-      shortTitle: "Main Toy",
-      minSelection: 1,
-      maxSelection: 1,
-      products: priorityProducts[2].map(p => ({
-        id: `prod-${p.id}`, // <--- Prefixed ID
-        name: p.name,
-        price: p.price,
-        image: `${host}/storage/${p.primary_image.path}`,
-        description: p.description,
-        category: "main_toy",
-      })),
-    },
-    {
-      id: 3,
-      title: "Select Your Complementary Pet Toys",
-      shortTitle: "Extra Toys",
-      minSelection: 1,
-      maxSelection: 3,
-      products: priorityProducts[3].map(p => ({
-        id: `prod-${p.id}`, // <--- Prefixed ID
-        name: p.name,
-        price: p.price,
-        image: `${host}/storage/${p.primary_image.path}`,
-        description: p.description,
-        category: "extra_toys",
-      })),
-    },
-    {
-      id: 4,
-      title: "Select Your Pet Treats",
-      shortTitle: "Treats",
-      minSelection: 1,
-      maxSelection: 3,
-      products: priorityProducts[4].map(p => ({
-        id: `prod-${p.id}`, // <--- Prefixed ID
-        name: p.name,
-        price: p.price,
-        image: `${host}/storage/${p.primary_image.path}`,
-        description: p.description,
-        category: "treats",
-      })),
-    },
-    {
-      id: 5,
-      title: "Select Pet Care Products",
-      shortTitle: "Care Products",
-      minSelection: 1,
-      maxSelection: 2,
-      products: priorityProducts[5].map(p => ({
-        id: `prod-${p.id}`, // <--- Prefixed ID
-        name: p.name,
-        price: p.price,
-        image: `${host}/storage/${p.primary_image.path}`,
-        description: p.description,
-        category: "care_products",
-      })),
-    },
-    {
-      id: 6,
-      title: "Select Pet Accessories & Clothing",
-      shortTitle: "Accessories",
-      minSelection: 1,
-      maxSelection: 2,
-      products: priorityProducts[6].map(p => ({
-        id: `prod-${p.id}`, // <--- Prefixed ID
-        name: p.name,
-        price: p.price,
-        image: `${host}/storage/${p.primary_image.path}`,
-        description: p.description,
-        category: "accessories",
-      })),
-    },
-    {
-      id: 7,
-      title: "Add A Greeting Card",
-      shortTitle: "Greeting Card",
-      minSelection: 1,
-      maxSelection: 1,
-      products: priorityProducts[7].map(p => ({
-        id: `prod-${p.id}`, // <--- Prefixed ID
-        name: p.name,
-        price: p.price,
-        image: `${host}/storage/${p.primary_image.path}`,
-        description: p.description,
-        category: "greeting_card",
-      })),
-    }
-  ];
-
-  const steps = getSteps();
-
+  // Step 5 — handleProductSelect now uses step.items
   const handleProductSelect = (stepId: number, productId: string) => {
     const step = steps.find(s => s.id === stepId);
     if (!step) return;
 
     const currentSelections = selections[stepId] || [];
-    
+
     if (currentSelections.includes(productId)) {
       const newSelections = currentSelections.filter(id => id !== productId);
       setSelections(prev => ({ ...prev, [stepId]: newSelections }));
       setIsStepCompleted(prev => ({ ...prev, [stepId]: newSelections.length >= step.minSelection }));
     } else {
       let newSelections = [...currentSelections];
-      
+
       if (step.maxSelection === 1) {
         newSelections = [productId];
-      } else if (!step.maxSelection || currentSelections.length < step.maxSelection) {
+      } else if (currentSelections.length < step.maxSelection) {
         newSelections.push(productId);
       } else {
         return;
       }
-      
+
       setSelections(prev => ({ ...prev, [stepId]: newSelections }));
       setIsStepCompleted(prev => ({ ...prev, [stepId]: newSelections.length >= step.minSelection }));
     }
@@ -219,55 +146,87 @@ const GiftCustomizer: React.FC = () => {
   const goToNextStep = () => { if (canProceedToNext() && currentStep < steps.length) setCurrentStep(currentStep + 1); };
   const goToPreviousStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
 
-  const handleAddToCart = async () => {
-    if (!canProceedToNext()) return; 
+  // Step 6 — Handle adding gift box to cart
+  const handleAddGiftBoxToCart = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      navigate('/login', { state: { from: '/gifts/customize' } });
+      return;
+    }
 
-    setIsAddingToCart(true);
+    setShowPersonalizeModal(true);
+  };
+
+  const submitGiftBoxToCart = async () => {
+    setShowPersonalizeModal(false);
+    setIsSubmitting(true);
 
     try {
-      // Collect all products
-      const selectedProductsMap: { [id: string]: any } = {};
-
-      Object.entries(selections).forEach(([stepId, productIds]) => {
-        const step = steps.find(s => s.id === parseInt(stepId));
-        if (!step) return;
-
-        productIds.forEach((productId) => {
-          const product = step.products.find(p => p.id === productId);
-          if (!product) return;
-
-          // Because IDs are now unique (prefixed), this checks for true duplicates only
-          if (selectedProductsMap[product.id]) {
-            selectedProductsMap[product.id].quantity += 1;
-          } else {
-            selectedProductsMap[product.id] = {
-              ...product, // Pass the whole product object including the new unique ID
-              quantity: 1,
-            };
-          }
+      // Collect selected products (non-theme steps)
+      const productMap: Record<number, number> = {};
+      steps.forEach(step => {
+        if (step.type !== 'product') return;
+        const ids = selections[step.id] ?? [];
+        ids.forEach(id => {
+          const item = step.items.find(p => p.id === id);
+          if (!item) return;
+          productMap[item.rawId] = (productMap[item.rawId] ?? 0) + 1;
         });
       });
 
-      const selectedProducts = Object.values(selectedProductsMap);
+      const products = Object.entries(productMap).map(([productId, quantity]) => ({
+        product_id: Number(productId),
+        quantity,
+      }));
 
-      if (selectedProducts.length === 0) {
-        setIsAddingToCart(false);
-        return;
+      console.log('Adding gift box to cart:', { products, count: products.length });
+
+      if (products.length === 0) {
+        throw new Error('No products selected. Please select at least one product.');
       }
 
-      // FIX 2: Use sequential await loop to prevent state batching issues
-      for (const product of selectedProducts) {
-        await addItem(product);
-        // Small delay to allow React Context/State to settle
-        await new Promise(resolve => setTimeout(resolve, 100));
+      // Add to cart via new endpoint
+      const res = await api.post<any>('/cart/add-gift-box', {
+        products,
+        recipient_name: giftDetails.recipient_name || undefined,
+        gift_message: giftDetails.custom_message || undefined,
+      });
+
+      console.log('API Response:', res);
+
+      // Check if the API call succeeded
+      if (!res || !res.data) {
+        throw new Error('Invalid response from server');
       }
 
-      setIsAddingToCart(false);
-      navigate("/cart");
+      const apiResponse = res.data as any;
 
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      setIsAddingToCart(false);
+      if (!apiResponse.success) {
+        throw new Error(apiResponse.message || 'Failed to add gift box to cart');
+      }
+
+      const responseData = apiResponse.data || apiResponse;
+      const totalQuantity = responseData.total_quantity ?? products.reduce((sum, p) => sum + p.quantity, 0);
+
+      console.log('Navigating to confirmation with:', { totalQuantity, products: products.length });
+
+      // Navigate to success page
+      navigate('/gifts/cart-confirmation', {
+        state: {
+          itemsAdded: totalQuantity,
+          productsCount: products.length,
+          recipientName: giftDetails.recipient_name || null,
+        },
+        replace: true,
+      });
+
+    } catch (err: any) {
+      console.error('Failed to add gift box to cart:', err);
+      alert(err.message || 'Failed to add gift box to cart. Please try again.');
+      setError(err.message || 'Failed to add gift box to cart. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+      setShowPersonalizeModal(false);
     }
   };
 
@@ -287,8 +246,8 @@ const GiftCustomizer: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-amber-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-red-500 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="px-6 py-3 bg-vibrant-orange text-white rounded-xl font-semibold"
           >
             Retry
@@ -300,14 +259,24 @@ const GiftCustomizer: React.FC = () => {
 
   const currentStepData = steps[currentStep - 1];
 
+  if (!currentStepData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-amber-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-gray-500">No steps available.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-amber-50">
       <section className="pt-8 pb-12 px-4">
         <div className="container mx-auto max-w-7xl">
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 0.8 }} 
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-sunny-yellow text-center mb-12"
           >
             Let's Wrap it !!!
@@ -315,12 +284,12 @@ const GiftCustomizer: React.FC = () => {
 
           <div className="flex flex-wrap justify-center gap-3 mb-12">
             {steps.map((step) => (
-              <motion.button 
-                key={step.id} 
-                onClick={() => setCurrentStep(step.id)} 
+              <motion.button
+                key={step.id}
+                onClick={() => setCurrentStep(step.id)}
                 disabled={step.id > 1 && !isStepCompleted[step.id - 1]}
                 className={`px-6 py-3 rounded-full font-semibold text-sm md:text-base transition-all duration-300 ${
-                  step.id === currentStep ? 'bg-charcoal text-white shadow-lg' : 
+                  step.id === currentStep ? 'bg-charcoal text-white shadow-lg' :
                   isStepCompleted[step.id] ? 'bg-green-500 text-white shadow-md' :
                   step.id === 1 || isStepCompleted[step.id - 1] ? 'bg-vibrant-orange text-white hover:bg-sunny-yellow shadow-md' :
                   'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -339,7 +308,7 @@ const GiftCustomizer: React.FC = () => {
       <section className="px-4 pb-16">
         <div className="container mx-auto max-w-7xl">
           <AnimatePresence mode="wait">
-            <motion.div 
+            <motion.div
               key={currentStep}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -347,130 +316,134 @@ const GiftCustomizer: React.FC = () => {
               transition={{ duration: 0.5 }}
               className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl"
             >
-            <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-charcoal mb-4">
-                {currentStepData.title}
-              </h2>
-              <p className="text-lg text-gray-600">
-                {currentStepData.maxSelection === 1 
-                  ? "Choose one option" 
-                  : `Select ${currentStepData.minSelection}-${currentStepData.maxSelection || 'unlimited'} options`
-                }
-              </p>
-            </div>
-
-            {currentStepData.products.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No products available for this step.</p>
+              <div className="text-center mb-8">
+                <h2 className="text-3xl md:text-4xl font-bold text-charcoal mb-4">
+                  {currentStepData.title}
+                </h2>
+                <p className="text-lg text-gray-600">
+                  {currentStepData.maxSelection === 1
+                    ? "Choose one option"
+                    : `Select ${currentStepData.minSelection}–${currentStepData.maxSelection} options`
+                  }
+                </p>
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {currentStepData.products.map((product) => {
-                    const isSelected = (selections[currentStep] || []).includes(product.id);
-                    
-                    return (
-                      <motion.div 
-                        key={product.id} 
-                        className={`relative bg-white rounded-2xl p-6 shadow-lg cursor-pointer transition-all duration-300 ${
-                          isSelected ? 'ring-4 ring-vibrant-orange bg-gradient-to-br from-vibrant-orange/5 to-sunny-yellow/5' : 'hover:shadow-xl hover:scale-105'
-                        }`} 
-                        onClick={() => handleProductSelect(currentStep, product.id)} 
-                        whileHover={{ y: -5 }} 
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {isSelected && (
-                          <motion.div 
-                            initial={{ scale: 0 }} 
-                            animate={{ scale: 1 }} 
-                            className="absolute -top-2 -right-2 bg-vibrant-orange text-white rounded-full p-2 shadow-lg z-10"
-                          >
-                            <Check className="h-4 w-4" />
-                          </motion.div>
-                        )}
-                        
-                        <div className="text-center mb-4">
-                          <img 
-                            src={product.image} 
-                            alt={product.name} 
-                            className="w-full h-48 object-cover rounded-xl mb-4"
-                            onError={(e) => { 
-                              e.currentTarget.src = "https://via.placeholder.com/300x300/f0f0f0/999999?text=Product+Image"; 
-                            }} 
-                          />
-                          <h3 className="text-xl font-bold text-charcoal mb-2">{product.name}</h3>
-                          <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-                          <div className="text-2xl font-bold text-vibrant-orange">Rs.{product.price}</div>
-                        </div>
-                        
-                        <div className="text-center">
-                          <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
-                            isSelected ? 'bg-vibrant-orange text-white' : 'bg-gray-100 text-charcoal hover:bg-vibrant-orange hover:text-white'
-                          }`}>
-                            {isSelected ? 'Selected' : 'Select'}
-                          </button>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+
+              {/* Step 5 — step.items */}
+              {currentStepData.items.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg">No products available for this step.</p>
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    {currentStepData.items.map((product) => {
+                      const isSelected = (selections[currentStep] || []).includes(product.id);
 
-                <div className="flex justify-between items-center">
-                  <button 
-                    onClick={goToPreviousStep} 
-                    disabled={currentStep === 1} 
-                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                      currentStep === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-charcoal hover:bg-gray-200'
-                    }`}
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                    <span>Previous</span>
-                  </button>
+                      return (
+                        <motion.div
+                          key={product.id}
+                          className={`relative bg-white rounded-2xl p-6 shadow-lg cursor-pointer transition-all duration-300 ${
+                            isSelected ? 'ring-4 ring-vibrant-orange bg-gradient-to-br from-vibrant-orange/5 to-sunny-yellow/5' : 'hover:shadow-xl hover:scale-105'
+                          }`}
+                          onClick={() => handleProductSelect(currentStep, product.id)}
+                          whileHover={{ y: -5 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute -top-2 -right-2 bg-vibrant-orange text-white rounded-full p-2 shadow-lg z-10"
+                            >
+                              <Check className="h-4 w-4" />
+                            </motion.div>
+                          )}
 
-                  {currentStep < steps.length ? (
-                    <button 
-                      onClick={goToNextStep} 
-                      disabled={!canProceedToNext()} 
+                          <div className="text-center mb-4">
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-full h-48 object-cover rounded-xl mb-4"
+                              onError={(e) => {
+                                e.currentTarget.src = "https://via.placeholder.com/300x300/f0f0f0/999999?text=Product+Image";
+                              }}
+                            />
+                            <h3 className="text-xl font-bold text-charcoal mb-2">{product.name}</h3>
+                            <p className="text-gray-600 text-sm mb-3">{product.description}</p>
+                            <div className="text-2xl font-bold text-vibrant-orange">Rs.{product.price}</div>
+                          </div>
+
+                          <div className="text-center">
+                            <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+                              isSelected ? 'bg-vibrant-orange text-white' : 'bg-gray-100 text-charcoal hover:bg-vibrant-orange hover:text-white'
+                            }`}>
+                              {isSelected ? 'Selected' : 'Select'}
+                            </button>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={goToPreviousStep}
+                      disabled={currentStep === 1}
                       className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                        canProceedToNext() ? 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        currentStep === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-charcoal hover:bg-gray-200'
                       }`}
                     >
-                      <span>Next</span>
-                      <ArrowRight className="h-5 w-5" />
+                      <ArrowLeft className="h-5 w-5" />
+                      <span>Previous</span>
                     </button>
-                  ) : (
-                    <button 
-                      onClick={handleAddToCart} 
-                      disabled={!canProceedToNext() || isAddingToCart} 
-                      className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-bold text-lg transition-all duration-300 ${
-                        canProceedToNext() && !isAddingToCart ? 'bg-gradient-to-r from-mint to-emerald-500 text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      {isAddingToCart ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          <span>Adding to Cart...</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCart className="h-5 w-5" />
-                          <span>Add to Cart</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
+
+                    {/* Step 7 — Updated final button */}
+                    {currentStep < steps.length ? (
+                      <button
+                        onClick={goToNextStep}
+                        disabled={!canProceedToNext()}
+                        className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                          canProceedToNext() ? 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white hover:shadow-lg' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        <span>Next</span>
+                        <ArrowRight className="h-5 w-5" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleAddGiftBoxToCart}
+                        disabled={!canProceedToNext() || isSubmitting}
+                        className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-bold text-lg transition-all duration-300 ${
+                          canProceedToNext() && !isSubmitting
+                            ? 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white hover:shadow-lg'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                            <span>Adding to Cart...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="h-5 w-5" />
+                            <span>Add to Cart</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
       </section>
 
-      {/* Summary Sidebar (Hidden on Mobile) */}
+      {/* Step 9 — Summary sidebar with running total */}
       <div className="fixed top-1/2 right-4 transform -translate-y-1/2 bg-white rounded-2xl p-6 shadow-xl border border-gray-200 w-80 hidden xl:block z-50">
         <h3 className="text-xl font-bold text-charcoal mb-4">Your Custom Box</h3>
-        <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+        <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
           {Object.entries(selections).map(([stepId, productIds]) => {
             const step = steps.find(s => s.id === parseInt(stepId));
             if (!step || productIds.length === 0) return null;
@@ -478,7 +451,7 @@ const GiftCustomizer: React.FC = () => {
               <div key={stepId} className="border-b border-gray-100 pb-2">
                 <h4 className="font-semibold text-sm text-gray-700 mb-1">{step.shortTitle}</h4>
                 {productIds.map(productId => {
-                  const product = step.products.find(p => p.id === productId);
+                  const product = step.items.find(p => p.id === productId);
                   if (!product) return null;
                   return (
                     <div key={productId} className="flex justify-between items-center text-sm">
@@ -491,23 +464,127 @@ const GiftCustomizer: React.FC = () => {
             );
           })}
         </div>
+
+        {Object.keys(selections).length > 0 && (() => {
+          const subtotal = steps.reduce((sum, step) => {
+            const ids = selections[step.id] ?? [];
+            return sum + ids.reduce((s, id) => {
+              const item = step.items.find(p => p.id === id);
+              return s + (item?.price ?? 0);
+            }, 0);
+          }, 0);
+          const discountPct = subtotal >= 10000 ? 10 : subtotal >= 5000 ? 8 : subtotal >= 2500 ? 6 : subtotal >= 1000 ? 5 : 0;
+          const discountAmt = subtotal * (discountPct / 100);
+          const finalTotal = subtotal - discountAmt;
+          return (
+            <div className="border-t border-gray-200 pt-3 space-y-1">
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Subtotal</span><span>Rs.{subtotal.toFixed(2)}</span>
+              </div>
+              {discountPct > 0 && (
+                <div className="flex justify-between text-sm text-green-600 font-semibold">
+                  <span>Bundle Discount ({discountPct}%)</span>
+                  <span>- Rs.{discountAmt.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-charcoal text-base">
+                <span>Total</span><span>Rs.{finalTotal.toFixed(2)}</span>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
-      {isAddingToCart && (
-        <motion.div 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
+      {/* Step 7 — Updated loading overlay */}
+      {isSubmitting && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
         >
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }} 
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             className="bg-white rounded-2xl p-8 max-w-md text-center"
           >
-            <div className="text-6xl mb-4">🎁</div>
-            <h3 className="text-2xl font-bold text-charcoal mb-2">Gift Box Created!</h3>
-            <p className="text-gray-600 mb-4">Adding all 7 items to your cart...</p>
+            <div className="text-6xl mb-4">🛒</div>
+            <h3 className="text-2xl font-bold text-charcoal mb-2">Adding to Cart!</h3>
+            <p className="text-gray-600 mb-4">Adding your gift box items...</p>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-vibrant-orange mx-auto"></div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Step 8 — Personalization modal */}
+      {showPersonalizeModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+          >
+            <h3 className="text-2xl font-bold text-charcoal mb-6">Add Gift Details (Optional) 🎁</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Recipient's Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Who is this gift for? (optional)"
+                  value={giftDetails.recipient_name}
+                  onChange={e => setGiftDetails(prev => ({ ...prev, recipient_name: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-vibrant-orange"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Occasion</label>
+                <select
+                  value={giftDetails.occasion}
+                  onChange={e => setGiftDetails(prev => ({ ...prev, occasion: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-vibrant-orange"
+                >
+                  <option value="">Select occasion (optional)</option>
+                  <option value="birthday">Birthday</option>
+                  <option value="christmas">Christmas</option>
+                  <option value="anniversary">Anniversary</option>
+                  <option value="just_because">Just Because</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Gift Message</label>
+                <textarea
+                  rows={3}
+                  placeholder="Write a personal message..."
+                  value={giftDetails.custom_message}
+                  onChange={e => setGiftDetails(prev => ({ ...prev, custom_message: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-vibrant-orange resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowPersonalizeModal(false)}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-charcoal font-semibold hover:bg-gray-50"
+              >
+                Back
+              </button>
+              <button
+                onClick={submitGiftBoxToCart}
+                className="flex-1 px-4 py-3 rounded-xl font-bold bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white hover:shadow-lg transition-all"
+              >
+                Add to Cart
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}

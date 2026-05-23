@@ -41,18 +41,20 @@ const SlideshowBanner = ({ slides, autoPlay = true, interval = 5000 }) => {
               className="w-full h-64 md:h-96 object-cover"
             />
             {/* Overlay Content */}
-            <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col justify-center items-start p-6 md:p-12 text-white">
-              <h2 className="text-2xl md:text-4xl font-bold mb-2">{slide.title}</h2>
-              <p className="text-sm md:text-lg mb-4">{slide.subtitle}</p>
-              {slide.cta && (
-                <button
-                  onClick={slide.onClick}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2 rounded"
-                >
-                  {slide.cta}
-                </button>
-              )}
-            </div>
+            {(slide.title || slide.subtitle || (slide.cta && slide.onClick)) && (
+              <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col justify-center items-start p-6 md:p-12 text-white">
+                {slide.title && <h2 className="text-2xl md:text-4xl font-bold mb-2">{slide.title}</h2>}
+                {slide.subtitle && <p className="text-sm md:text-lg mb-4">{slide.subtitle}</p>}
+                {slide.cta && slide.onClick && (
+                  <button
+                    onClick={slide.onClick}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2 rounded"
+                  >
+                    {slide.cta}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

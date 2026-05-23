@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
-import { AlertCircle, Check, Gift } from 'lucide-react';
+import { AlertCircle, Check, Gift, Loader2 } from 'lucide-react';
 import { formatters } from '../../../utils/formatters';
+import { api } from '../../../services/api';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     password: '',
@@ -16,7 +18,10 @@ const Register: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [emailError, setEmailError] = useState('');
+  const [emailChecking, setEmailChecking] = useState(false);
+  const emailDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const { register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -35,6 +40,24 @@ const Register: React.FC = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+
+    if (name === 'email') {
+      setEmailError('');
+      if (emailDebounceRef.current) clearTimeout(emailDebounceRef.current);
+
+      const trimmed = value.trim();
+      const isValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+      if (!isValidFormat) return;
+
+      setEmailChecking(true);
+      emailDebounceRef.current = setTimeout(async () => {
+        const res = await api.get<{ exists: boolean }>('/auth/check-email', { email: trimmed });
+        setEmailChecking(false);
+        if (res.success && (res.data as any)?.exists) {
+          setEmailError('An account with this email already exists.');
+        }
+      }, 600);
+    }
   };
 
   const validatePassword = (password: string) => {
@@ -57,6 +80,12 @@ const Register: React.FC = () => {
     return;
   }
 
+  // Block if email is already taken
+  if (emailError) {
+    setError(emailError);
+    return;
+  }
+
   // Validate passwords match
   if (formData.password !== formData.confirmPassword) {
     setError('Passwords do not match');
@@ -74,7 +103,7 @@ const Register: React.FC = () => {
 
   try {
     // Use AuthContext register function which handles authentication state
-    await register(formData.email, formData.password, formData.name, formData.phone, formData.referralCode, formData.termsAccepted);
+    await register(formData.email, formData.password, formData.firstName, formData.lastName, formData.phone, formData.referralCode, formData.termsAccepted);
 
     // User is now automatically logged in via AuthContext
     // Redirect to home page
@@ -149,30 +178,60 @@ const Register: React.FC = () => {
 
         {/* Registration form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-              required
-              disabled={isLoading}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <input
+                type="text"
+                name="firstName"
+                placeholder="First Name"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Last Name"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                required
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           <div>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-              required
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 text-base font-fredoka rounded-full bg-soft-gray focus:outline-none focus:ring-2 focus:border-transparent ${
+                  emailError
+                    ? 'ring-2 ring-red-400 focus:ring-red-400'
+                    : 'focus:ring-primary-blue'
+                }`}
+                required
+                disabled={isLoading}
+              />
+              {emailChecking && (
+                <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-medium-gray animate-spin" />
+              )}
+            </div>
+            {emailError && (
+              <p className="mt-1.5 ml-4 text-xs text-red-500 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                {emailError}{' '}
+                <Link to="/login" className="underline font-medium">Sign in instead?</Link>
+              </p>
+            )}
           </div>
 
           <div>

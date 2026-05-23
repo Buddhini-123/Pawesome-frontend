@@ -57,7 +57,7 @@
 
 /* Wave Pattern for Footer */
 .wave-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%232196F3' fill-opacity='1' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%231BBBFF' fill-opacity='1' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: bottom;
   background-size: cover;
@@ -76,7 +76,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #FFD93D;
+  background: #FCE95A;
   opacity: 0;
   border-radius: 20px;
   filter: blur(20px);
@@ -120,7 +120,7 @@
   position: fixed;
   width: 10px;
   height: 10px;
-  background: #FF6B35;
+  background: #FF8B61;
   animation: confetti-fall 3s linear;
   z-index: 9999;
 }
@@ -141,15 +141,15 @@
 
 /* Text Animation */
 .text-gradient-animate {
-  color: #FF6B35;
+  color: #FF8B61;
   animation: color-shift 3s ease infinite;
 }
 
 @keyframes color-shift {
-  0% { color: #FF6B35; }
-  33% { color: #FFD93D; }
-  66% { color: #2196F3; }
-  100% { color: #FF6B35; }
+  0% { color: #FF8B61; }
+  33% { color: #FCE95A; }
+  66% { color: #1BBBFF; }
+  100% { color: #FF8B61; }
 }
 
 /* Blob Shape Animation */
@@ -189,12 +189,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #FF6B35;
+  background: #FF8B61;
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FFD93D;
+  background: #FCE95A;
 }
 
 /* Glassmorphism Effect */
@@ -210,7 +210,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #FFD93D;
+  background: #FCE95A;
   color: #2C3E50;
   padding: 4px 12px;
   border-radius: 20px;

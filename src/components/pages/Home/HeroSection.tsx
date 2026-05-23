@@ -1,328 +1,271 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useScroll } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Heart, Star } from 'lucide-react';
+
+const PAW_POSITIONS = [
+  { left: '5%', top: '10%', size: 50, dur: 8, delay: 0, img: 'paw-left', layer: 1 },
+  { left: '20%', top: '80%', size: 44, dur: 10, delay: 1.2, img: 'paw-right', layer: 3 },
+  { left: '35%', top: '18%', size: 40, dur: 7, delay: 0.4, img: 'paw-left', layer: 2 },
+  { left: '60%', top: '8%', size: 46, dur: 9, delay: 0.9, img: 'paw-right', layer: 1 },
+  { left: '72%', top: '75%', size: 48, dur: 8, delay: 1.8, img: 'paw-left', layer: 2 },
+  { left: '85%', top: '25%', size: 54, dur: 11, delay: 0.2, img: 'paw-right', layer: 3 },
+  { left: '10%', top: '50%', size: 42, dur: 9, delay: 0.6, img: 'paw-left', layer: 1 },
+  { left: '50%', top: '88%', size: 38, dur: 7, delay: 1.5, img: 'paw-right', layer: 2 },
+  { left: '28%', top: '45%', size: 44, dur: 8, delay: 0.3, img: 'paw-left', layer: 3 },
+  { left: '45%', top: '60%', size: 50, dur: 9, delay: 1.0, img: 'paw-right', layer: 1 },
+  { left: '65%', top: '40%', size: 42, dur: 7, delay: 0.7, img: 'paw-left', layer: 2 },
+  { left: '78%', top: '55%', size: 46, dur: 10, delay: 1.4, img: 'paw-right', layer: 3 },
+  { left: '92%', top: '70%', size: 40, dur: 8, delay: 0.5, img: 'paw-left', layer: 1 },
+  { left: '15%', top: '30%', size: 48, dur: 11, delay: 1.7, img: 'paw-right', layer: 2 },
+  { left: '55%', top: '72%', size: 44, dur: 9, delay: 0.9, img: 'paw-left', layer: 3 },
+  { left: '40%', top: '5%', size: 36, dur: 7, delay: 1.1, img: 'paw-right', layer: 1 },
+];
+
+const PETS = [
+  { icon: '/icons/dog.png', name: 'Dogs' },
+  { icon: '/icons/cat.png', name: 'Cats' },
+  { icon: '/icons/bird.png', name: 'Birds' },
+  { icon: '/icons/rabbit.png', name: 'Rabbits' },
+];
 
 const HeroSection: React.FC = () => {
   const [currentPet, setCurrentPet] = useState(0);
-  
-  const pets = [
-    { emoji: '/icons/dog.png', name: 'Dogs' },
-    { emoji: '/icons/cat.png', name: 'Cats' },
-    { emoji: '/icons/bird.png', name: 'Birds' },
-    { emoji: '/icons/rabbit.png', name: 'Rabbits' },
-    { emoji: '/icons/hamster.png', name: 'Hamsters' },
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // ── Scroll parallax ──────────────────────────────────────────────
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
+  const smoothScroll = useSpring(scrollYProgress, { stiffness: 120, damping: 18 });
+
+  const sL1y = useTransform(smoothScroll, [0, 1], [0, -420]); // front paws — scroll fastest
+  const sL2y = useTransform(smoothScroll, [0, 1], [0, -260]); // mid paws
+  const sL3y = useTransform(smoothScroll, [0, 1], [0, -140]); // back paws — scroll slowest
+  const sCardY = useTransform(smoothScroll, [0, 1], [0, -200]);
+  const sHamY = useTransform(smoothScroll, [0, 1], [0, -360]);
+  const sRabY = useTransform(smoothScroll, [0, 1], [0, -280]);
+  const sCatY = useTransform(smoothScroll, [0, 1], [0, -320]);
+  const sCatX = useTransform(smoothScroll, [0, 1], [0, 80]); // drifts right as you scroll
+
+  // ── Mouse parallax ───────────────────────────────────────────────
+  const rawX = useMotionValue(0.5);
+  const rawY = useMotionValue(0.5);
+  const smoothX = useSpring(rawX, { stiffness: 50, damping: 20 });
+  const smoothY = useSpring(rawY, { stiffness: 50, damping: 20 });
+
+  const mL1x = useTransform(smoothX, [0, 1], [-22, 22]);
+  const mL1y = useTransform(smoothY, [0, 1], [-16, 16]);
+  const mL2x = useTransform(smoothX, [0, 1], [-12, 12]);
+  const mL2y = useTransform(smoothY, [0, 1], [-9, 9]);
+  const mL3x = useTransform(smoothX, [0, 1], [-6, 6]);
+  const mL3y = useTransform(smoothY, [0, 1], [-4, 4]);
+  const mCardX = useTransform(smoothX, [0, 1], [-6, 6]);
+  const mCardY = useTransform(smoothY, [0, 1], [-4, 4]);
+  const mHamX = useTransform(smoothX, [0, 1], [-18, 18]);
+  const mHamY = useTransform(smoothY, [0, 1], [-14, 14]);
+  const mRabX = useTransform(smoothX, [0, 1], [-10, 10]);
+  const mRabY = useTransform(smoothY, [0, 1], [-8, 8]);
+  const mCatX = useTransform(smoothX, [0, 1], [14, -14]);
+  const mCatY = useTransform(smoothY, [0, 1], [8, -8]);
+
+  // ── Combined: mouse + scroll ─────────────────────────────────────
+  const l1x = useTransform([mL1x], ([m]: number[]) => m);
+  const l1y = useTransform([mL1y, sL1y], ([m, s]: number[]) => m + s);
+  const l2x = useTransform([mL2x], ([m]: number[]) => m);
+  const l2y = useTransform([mL2y, sL2y], ([m, s]: number[]) => m + s);
+  const l3x = useTransform([mL3x], ([m]: number[]) => m);
+  const l3y = useTransform([mL3y, sL3y], ([m, s]: number[]) => m + s);
+  const cardX = useTransform([mCardX], ([m]: number[]) => m);
+  const cardY = useTransform([mCardY, sCardY], ([m, s]: number[]) => m + s);
+  const hamX = useTransform([mHamX], ([m]: number[]) => m);
+  const hamY = useTransform([mHamY, sHamY], ([m, s]: number[]) => m + s);
+  const rabX = useTransform([mRabX], ([m]: number[]) => m);
+  const rabY = useTransform([mRabY, sRabY], ([m, s]: number[]) => m + s);
+  const catX = useTransform([mCatX, sCatX], ([m, s]: number[]) => m + s);
+  const catY = useTransform([mCatY, sCatY], ([m, s]: number[]) => m + s);
+
+  const layers = [
+    { x: l1x, y: l1y },
+    { x: l2x, y: l2y },
+    { x: l3x, y: l3y },
   ];
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    rawX.set((e.clientX - rect.left) / rect.width);
+    rawY.set((e.clientY - rect.top) / rect.height);
+  };
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPet((prev) => (prev + 1) % pets.length);
-    }, 3000);
-    return () => clearInterval(interval);
+    const id = setInterval(() => setCurrentPet(p => (p + 1) % PETS.length), 2500);
+    return () => clearInterval(id);
   }, []);
 
-  return (
-    <section className="relative overflow-hidden bg-primary-blue">
-      {/* Animated Background Pattern */}
-      <div className="absolute inset-0">
-        {/* Floating Paws */}
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-white/10"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              fontSize: `${Math.random() * 40 + 20}px`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              rotate: [0, 10, -10, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              duration: 6 + Math.random() * 4,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-              ease: "easeInOut",
-            }}
-          >
-            <span>🐾</span>
-          </motion.div>
-        ))}
+  const pet = PETS[currentPet] ?? PETS[0];
 
-        {/* Animated Shapes */}
-        <motion.div
-          className="absolute top-20 left-10 w-64 h-64 bg-sunny-yellow/20 rounded-full blur-3xl"
-          animate={{
-            x: [0, 50, 0],
-            y: [0, -30, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-primary-blue/20 rounded-full blur-3xl"
-          animate={{
-            x: [0, -30, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+  return (
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden bg-sunny-yellow min-h-[520px] md:h-[80vh] flex items-center md:items-stretch"
+      onMouseMove={handleMouseMove}
+    >
+      {/* ── Paw prints ───────────────────────────────────────────── */}
+      <div className="absolute inset-0 pointer-events-none select-none">
+        {PAW_POSITIONS.map((p, i) => {
+          const lyr = layers[(p.layer - 1) % 3];
+          return (
+            <motion.div
+              key={i}
+              className="absolute"
+              style={{ left: p.left, top: p.top, x: lyr.x, y: lyr.y }}
+            >
+              <motion.img
+                src={`/icons/${p.img}.png`}
+                alt=""
+                aria-hidden="true"
+                style={{ width: p.size, height: p.size, opacity: 1 }}
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
+              />
+            </motion.div>
+          );
+        })}
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 py-20 md:py-32">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
+      {/* ── Card area ─────────────────────────────────────────────── */}
+      <div className="relative z-10 flex items-center justify-center w-full px-4 py-10 md:py-0">
+        <motion.div className="relative" style={{ x: cardX, y: cardY }}>
+
+          {/* Hamster — scales from 120px (laptop) → 200px (4K) */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="hidden md:block absolute select-none pointer-events-none"
+            style={{
+              bottom: '-10%',
+              left: 'calc(-1 * clamp(100px, 13vw, 170px))',
+              width: 'clamp(90px, 13vw, 190px)',
+              zIndex: 2, x: hamX, y: hamY,
+            }}
           >
-            {/* Pet Category Switcher */}
-            <motion.div 
-              className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-full px-6 py-3 mb-8"
+            <motion.img
+              src="/icons/hamster-hero.png"
+              alt=""
+              aria-hidden="true"
+              style={{ width: '100%' }}
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+            />
+          </motion.div>
+
+          {/* Rabbit — scales from 260px (laptop) → 420px (4K) */}
+          <motion.div
+            className="hidden md:block absolute select-none pointer-events-none"
+            style={{
+              top: '-28%',
+              left: 'calc(-1 * clamp(230px, 23vw, 400px))',
+              width: 'clamp(240px, 24vw, 410px)',
+              zIndex: 1, x: rabX, y: rabY,
+            }}
+          >
+            <motion.img
+              src="/icons/rabbit-hero.png"
+              alt=""
+              aria-hidden="true"
+              style={{ width: '100%' }}
+              animate={{ y: [0, -7, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+            />
+          </motion.div>
+
+          {/* Blue card */}
+          <motion.div
+            className="hero-card bg-primary-blue rounded-3xl flex flex-col items-center justify-center text-center gap-5 px-8 py-8 md:px-14 md:py-12 w-full max-w-sm"
+            style={{ boxShadow: '0 20px 60px rgba(27,187,255,0.28)', position: 'relative', zIndex: 3 }}
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          >
+            {/* Logo */}
+            <motion.img
+              src="/logo/logo.png"
+              alt="Pawsome Logo"
+              className="mx-auto w-30 md:w-60 object-contain"
+              style={{ filter: 'brightness(0) invert(1)' }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            />
+
+            {/* Heading */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+              className="flex flex-col items-center justify-center w-full gap-0"
             >
-              <span className="text-white font-nunito">Shop for</span>
-              <motion.span
-                key={currentPet}
-                className="text-2xl"
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: 180 }}
-                transition={{ duration: 0.5, type: "spring" }}
-              >
-                 <img
-                  src={pets[currentPet].emoji}
-                  alt={pets[currentPet].name}
-                  className="mx-auto select-none drop-shadow-2xl"
-                  style={{
-                    width: '30px',
-                    height: '20px',
-                  }}
-                />
-              </motion.span>
-              <span className="text-white font-fredoka font-semibold">
-                {pets[currentPet].name}
-              </span>
+              <h1 className="font-fredoka font-bold text-white leading-tight text-3xl md:text-[4rem] text-center w-full" style={{marginBottom:10}}>
+                Everything Your
+              </h1>
               
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currentPet}
+                  className="block font-fredoka font-bold text-sunny-yellow text-3xl md:text-[4.2rem] text-center w-full"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  {pet.name}
+                </motion.span>
+              </AnimatePresence>
+              <h1 className="font-fredoka font-bold text-white leading-tight text-3xl md:text-[4rem] text-center w-full">
+                Needs
+              </h1>
             </motion.div>
 
-            {/* Main Heading */}
-            <motion.h1 
-              className="text-5xl md:text-7xl font-fredoka font-bold text-white mb-6 leading-tight"
-              initial={{ opacity: 0, y: 20 }}
+            {/* CTA */}
+            <motion.div
+              className="w-full flex justify-center"
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.45 }}
             >
-              Everything Your
-              <span className="block text-sunny-yellow drop-shadow-lg">
-                Pet Needs
-              </span>
-              Delivered With 
-              <span className="text-warm-white"> Love </span>
-              <Heart className="inline-block w-12 h-12 text-soft-pink animate-pulse ml-2" />
-            </motion.h1>
-
-            {/* Subtitle */}
-            <motion.p 
-              className="text-xl text-white/90 mb-8 font-nunito leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              From premium food to exciting toys, discover 10,000+ products 
-              for your furry, feathered, and scaly friends. 
-              <span className="block mt-2">
-                🎉 <strong>New customers get 20% off!</strong>
-              </span>
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div 
-              className="flex flex-wrap gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Link
-                to="/shop"
-                className="group inline-flex items-center gap-3 bg-white text-primary-blue px-8 py-4 rounded-full font-fredoka font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-              >
-                Shop Now
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
-              </Link>
-              
               <Link
                 to="/subscriptions"
-                className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md text-white border-2 border-white/50 px-8 py-4 rounded-full font-fredoka font-semibold text-lg hover:bg-white/30 transition-all duration-300"
+                className="flex items-center justify-center bg-sunny-yellow text-charcoal font-fredoka font-bold px-10 py-3.5 rounded-2xl text-lg hover:scale-[1.02] transition-all duration-300 shadow-md w-full max-w-xs"
               >
-                <span className="text-xl">🐾</span>
-                Start Subscription
+                Shop Now
               </Link>
             </motion.div>
 
-            {/* Trust Indicators */}
-            <motion.div 
-              className="flex items-center gap-6 mt-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
+            {/* Subtext */}
+            {/* <motion.p
+              className="font-nunito text-white/65 text-sm md:text-2xl leading-relaxed text-center w-full"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
             >
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <img
-                      key={i}
-                      src={`https://i.pravatar.cc/40?img=${i}`}
-                      alt="Customer"
-                      className="w-10 h-10 rounded-full border-2 border-white"
-                    />
-                  ))}
-                </div>
-                <span className="text-white/90 font-nunito">
-                  <strong>50,000+</strong> Happy Pets
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-sunny-yellow text-sunny-yellow" />
-                ))}
-                <span className="text-white/90 font-nunito ml-2">
-                  <strong>4.9</strong> Rating
-                </span>
-              </div>
-            </motion.div>
+              Premium food, toys & care products - delivered straight to your door across Sri Lanka.
+            </motion.p> */}
           </motion.div>
 
-          {/* Right Content - Animated Pet Showcase */}
-          <motion.div
-            className="relative"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            {/* Main Pet Image Container */}
-            <div className="relative">
-              {/* Blob Background */}
-              <motion.div
-                className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-full"
-                animate={{
-                  scale: [1, 1.05, 1],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                style={{
-                  filter: 'blur(40px)',
-                }}
-              />
-              
-              {/* Pet Image */}
-              <motion.div
-                className="relative z-10 text-center"
-                animate={{
-                  y: [0, -20, 0],
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                <img
-                  src={pets[currentPet].emoji}
-                  alt={pets[currentPet].name}
-                  className="mx-auto select-none drop-shadow-2xl"
-                  style={{
-                    width: '800px',
-                    height: '500px',
-                  }}
-                />
-              </motion.div>
-
-              {/* Floating Product Cards */}
-              <motion.div
-                className="absolute top-10 -left-10 bg-white rounded-2xl p-4 shadow-xl"
-                animate={{
-                  y: [0, -10, 0],
-                  rotate: [-5, 5, -5],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-soft-pink/20 rounded-lg flex items-center justify-center">
-                    <span className="text-2xl">🦴</span>
-                  </div>
-                  <div>
-                    <p className="font-fredoka font-semibold text-charcoal">Premium Treats</p>
-                    <p className="text-sm text-medium-gray">Starting Rs. 299</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="absolute bottom-10 -right-10 bg-white rounded-2xl p-4 shadow-xl"
-                animate={{
-                  y: [0, 10, 0],
-                  rotate: [5, -5, 5],
-                }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 1,
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-primary-blue/20 rounded-lg flex items-center justify-center">
-                    <span className="text-2xl">🎾</span>
-                  </div>
-                  <div>
-                    <p className="font-fredoka font-semibold text-charcoal">Fun Toys</p>
-                    <p className="text-sm text-medium-gray">50% Off Today!</p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Bottom Wave */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
-        <svg
-          className="relative block w-full h-20"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 1440 320"
-        >
-          <path
-            fill="#FFFAF0"
-            fillOpacity="1"
-            d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-          />
-        </svg>
-      </div>
+      {/* ── Cat + Dog — scales from 380px (laptop) → 620px (4K) ────── */}
+      <motion.div
+        className="hidden md:block absolute bottom-0 z-10 select-none pointer-events-none"
+        style={{ right: 'clamp(-160px, -9vw, -60px)', x: catX, y: catY }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <motion.img
+          src="/icons/catanddog.png"
+          alt="Cat and Dog"
+          style={{ width: 'clamp(280px, 28vw, 540px)' }}
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+        />
+      </motion.div>
     </section>
   );
 };

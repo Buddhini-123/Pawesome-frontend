@@ -300,10 +300,82 @@ class LoyaltyService {
     }
   }
 
+  /**
+   * Get available loyalty rewards from catalog
+   * GET /api/loyalty/rewards
+   * Requires authentication (bearer token)
+   *
+   * @param filters Optional filters (tier, type, affordable_only, max_points)
+   * @returns List of available rewards
+   */
+  async getRewards(filters?: {
+    tier?: string;
+    type?: string;
+    affordable_only?: boolean;
+    max_points?: number;
+  }): Promise<any> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters?.tier) queryParams.append('tier', filters.tier);
+      if (filters?.type) queryParams.append('type', filters.type);
+      if (filters?.affordable_only) queryParams.append('affordable_only', 'true');
+      if (filters?.max_points) queryParams.append('max_points', filters.max_points.toString());
+
+      const url = `/loyalty/rewards${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const response = await api.request<any>(url, {
+        method: 'GET'
+      });
+
+      if (response.success && response.data) {
+        // Backend returns { status: 'success', data: { rewards: [...], ... } }
+        // api.request wraps it, so response.data is the full backend body
+        const backendResponse = response.data as any;
+        return backendResponse.data || backendResponse;
+      }
+
+      throw new Error('Failed to fetch rewards');
+    } catch (error: any) {
+      console.error('Failed to fetch rewards:', error);
+      throw new Error(handleLoyaltyApiError(error));
+    }
+  }
+
+  /**
+   * Redeem a specific loyalty reward
+   * POST /api/loyalty/redeem
+   * Requires authentication (bearer token)
+   *
+   * @param rewardId ID of the reward to redeem
+   * @returns Redemption details including reward code and expiration
+   */
+  async redeemReward(rewardId: number): Promise<any> {
+    try {
+      const response = await api.request<any>('/loyalty/redeem', {
+        method: 'POST',
+        body: {
+          reward_id: rewardId
+        }
+      });
+
+      if (response.success && response.data) {
+        // Refresh loyalty balance after redemption
+        await this.getLoyaltyBalance();
+
+        return response.data;
+      }
+
+      throw new Error('Failed to redeem reward');
+    } catch (error: any) {
+      console.error('Reward redemption failed:', error);
+      const message = error.response?.data?.message || handleLoyaltyApiError(error);
+      throw new Error(message);
+    }
+  }
+
   // Get points balance
   async getPointsBalance(loyaltyCardId: string): Promise<number> {
     try {
-      const response = await api.request<{ balance: number }>(`/loyalty/balance/${loyaltyCardId}`);
+      const response = await api.request<{ balance: number }>('/loyalty/balance');
 
       if (response.success && response.data) {
         return response.data.balance;

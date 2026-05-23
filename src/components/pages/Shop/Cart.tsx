@@ -19,12 +19,16 @@ import {
   Lock,
   Weight,
   Ruler,
-  RefreshCw
+  RefreshCw,
+  Tag
 } from 'lucide-react';
 import { useCart } from '../../../hooks/useCart';
 import { useAuth } from '../../../hooks/useAuth';
 import { formatters } from '../../../utils/formatters';
 import { normalizeCartItem } from '../../../utils/cartNormalizer';
+import { groupCartItems } from '../../../utils/cartGrouping';
+import ShippingTierIndicator from '../../common/ShippingTierIndicator';
+import GiftBoxCartGroup from '../../cart/GiftBoxCartGroup';
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
@@ -67,9 +71,8 @@ const Cart: React.FC = () => {
   }, []);
 
   const getShippingCost = (): number => {
-    // Use shipping cost from backend (weight-based calculation)
-    // Falls back to 0 if not available
-    return shippingCost || 0;
+    // Backend is authoritative — always display what it returns
+    return shippingCost;
   };
 
   const getTotalDiscount = (): number => {
@@ -120,7 +123,38 @@ const Cart: React.FC = () => {
       ease: easeInOut
     }
   };
+
   const normalizedCart = cart.map(normalizeCartItem);
+
+  // Debug: Log cart items to check metadata
+  React.useEffect(() => {
+    console.log('[Cart Debug] Normalized cart items:', normalizedCart);
+    console.log('[Cart Debug] Cart items with metadata:', normalizedCart.map(item => ({
+      id: item.id,
+      name: item.product?.name,
+      metadata: item.metadata,
+      has_metadata: !!item.metadata,
+      gift_box_group: item.metadata?.gift_box_group,
+      is_gift_item: item.metadata?.is_gift_item
+    })));
+  }, [normalizedCart]);
+
+  const { giftBoxes, regularItems } = groupCartItems(normalizedCart);
+
+  // Debug: Log grouped results
+  React.useEffect(() => {
+    console.log('[Cart Debug] Gift boxes:', giftBoxes);
+    console.log('[Cart Debug] Regular items:', regularItems);
+    console.log('[Cart Debug] Number of gift box groups:', Object.keys(giftBoxes).length);
+  }, [giftBoxes, regularItems]);
+
+  // Function to remove entire gift box group
+  const handleRemoveGiftBox = async (groupId: string) => {
+    const itemsToRemove = giftBoxes[groupId]?.items || [];
+    for (const item of itemsToRemove) {
+      await removeItem(item.id);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -211,7 +245,7 @@ const Cart: React.FC = () => {
           ))}
 
           {/* Total Weight Card */}
-          {totalWeight > 0 && (
+          {shippingBreakdown?.weight && (
             <motion.div
               className="bg-white rounded-2xl p-4 shadow-lg border-2 border-primary-blue"
               whileHover={{ scale: 1.05, y: -5 }}
@@ -222,7 +256,7 @@ const Cart: React.FC = () => {
               </div>
               <p className="text-sm font-fredoka font-medium text-charcoal mb-1">Total Weight</p>
               <p className="text-lg font-fredoka font-bold text-primary-blue">
-                {totalWeight.toFixed(2)} {weightUnit}
+                {parseFloat(shippingBreakdown.weight).toFixed(2)} {shippingBreakdown.weight_unit ?? weightUnit}
               </p>
             </motion.div>
           )}
@@ -273,13 +307,30 @@ const Cart: React.FC = () => {
               
               <div className="divide-y divide-light-gray">
                 <AnimatePresence>
-                  {normalizedCart.map((item, index) => (
-                    <motion.div 
-                      key={item.id} 
+                  {/* Gift Box Groups */}
+                  {Object.values(giftBoxes).map((giftBox) => (
+                    <div key={giftBox.groupId} className="p-6">
+                      <GiftBoxCartGroup
+                        groupId={giftBox.groupId}
+                        items={giftBox.items}
+                        recipientName={giftBox.recipientName}
+                        giftMessage={giftBox.giftMessage}
+                        isPresetBox={giftBox.isPresetBox}
+                        presetBoxName={giftBox.presetBoxName}
+                        presetBoxOccasion={giftBox.presetBoxOccasion}
+                        onRemoveGroup={() => handleRemoveGiftBox(giftBox.groupId)}
+                      />
+                    </div>
+                  ))}
+
+                  {/* Regular Cart Items */}
+                  {regularItems.map((item, index) => (
+                    <motion.div
+                      key={item.id}
                       className="p-6 hover:bg-soft-gray/30 transition-colors"
                       initial={{ opacity: 0, x: -20 }}
-                      animate={{ 
-                        opacity: removingItem === item.id ? 0 : 1, 
+                      animate={{
+                        opacity: removingItem === item.id ? 0 : 1,
                         x: removingItem === item.id ? -100 : 0,
                         scale: removingItem === item.id ? 0.8 : 1
                       }}
@@ -288,19 +339,68 @@ const Cart: React.FC = () => {
                       onHoverStart={() => setHoveredItem(item.id)}
                       onHoverEnd={() => setHoveredItem(null)}
                     >
+                      {/* ── Deal item card ── */}
+                      {(item as any).is_deal_item ? (
+                        <div className="flex items-center space-x-4">
+                          <div className="w-24 h-24 bg-vibrant-orange/10 border-2 border-vibrant-orange/30 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <Tag className="w-10 h-10 text-vibrant-orange" />
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-fredoka font-bold text-charcoal text-lg">
+                                {(item as any).deal?.title ?? item.product.name}
+                              </h3>
+                              {(item as any).deal?.badge_text && (
+                                <span className="bg-vibrant-orange text-white text-xs font-fredoka font-bold px-2 py-0.5 rounded-full">
+                                  {(item as any).deal.badge_text}
+                                </span>
+                              )}
+                            </div>
+
+                            {(item as any).deal && (
+                              <p className="text-sm text-medium-gray font-fredoka mt-1">
+                                {(item as any).deal.discount_type === 'percentage'
+                                  ? `${(item as any).deal.discount_value}% off qualifying products`
+                                  : `Rs. ${(item as any).deal.discount_value} off qualifying products`}
+                              </p>
+                            )}
+                            {(item as any).deal?.minimum_purchase_amount && (
+                              <p className="text-xs text-medium-gray mt-0.5">
+                                Min. purchase: {formatters.currency((item as any).deal.minimum_purchase_amount)}
+                              </p>
+                            )}
+                            <p className="text-xs text-primary-blue font-fredoka mt-1">
+                              Discount applied at checkout
+                            </p>
+                          </div>
+
+                          {/* Remove only — no quantity controls, no price */}
+                          <motion.button
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-coral-red hover:text-coral-red/80 transition-colors"
+                            title="Remove deal"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </motion.button>
+                        </div>
+                      ) : (
+                      /* ── Regular product card ── */
                       <div className="flex items-center space-x-4">
-                        <motion.div 
+                        <motion.div
                           className="relative"
                           whileHover={{ scale: 1.1 }}
                           transition={{ type: "spring", stiffness: 300 }}
                         >
-                          <img 
-                            src={item.product.image} 
-                            alt={item.product.name} 
+                          <img
+                            src={item.product.image}
+                            alt={item.product.name}
                             className="w-24 h-24 object-cover rounded-2xl shadow-lg"
                           />
                         </motion.div>
-                        
+
                         <div className="flex-1">
                           <h3 className="font-fredoka font-bold text-charcoal text-lg flex items-center">
                             {item.product.name}
@@ -381,9 +481,9 @@ const Cart: React.FC = () => {
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center bg-soft-gray rounded-full p-1">
-                          <motion.button 
+                          <motion.button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             className="bg-white hover:bg-light-gray p-2 rounded-full transition-all shadow-sm hover:shadow-md"
                             disabled={item.quantity <= 1}
@@ -392,8 +492,8 @@ const Cart: React.FC = () => {
                           >
                             <Minus className="h-4 w-4 text-charcoal" />
                           </motion.button>
-                          
-                          <motion.span 
+
+                          <motion.span
                             className="w-12 text-center font-fredoka font-bold text-charcoal text-lg"
                             key={item.quantity}
                             animate={{ scale: [1, 1.2, 1] }}
@@ -401,8 +501,8 @@ const Cart: React.FC = () => {
                           >
                             {item.quantity}
                           </motion.span>
-                          
-                          <motion.button 
+
+                          <motion.button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             className="bg-white hover:bg-light-gray p-2 rounded-full transition-all shadow-sm hover:shadow-md"
                             disabled={item.quantity >= 99}
@@ -412,15 +512,15 @@ const Cart: React.FC = () => {
                             <Plus className="h-4 w-4 text-charcoal" />
                           </motion.button>
                         </div>
-                        
+
                         <div className="text-right">
-                          <motion.p 
+                          <motion.p
                             className="font-fredoka font-bold text-2xl text-charcoal"
                             animate={{ scale: hoveredItem === item.id ? 1.05 : 1 }}
                           >
                             {formatters.currency(item.product.price * item.quantity)}
                           </motion.p>
-                          <motion.button 
+                          <motion.button
                             onClick={() => handleRemoveItem(item.id)}
                             className="text-coral-red hover:text-coral-red/80 mt-2 transition-colors inline-flex items-center"
                             title="Remove item"
@@ -431,6 +531,7 @@ const Cart: React.FC = () => {
                           </motion.button>
                         </div>
                       </div>
+                      )}
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -438,12 +539,23 @@ const Cart: React.FC = () => {
             </div>
           </motion.div>
           
-          <motion.div 
+          <motion.div
             className="lg:col-span-1"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
+            {/* Shipping Tier Indicator */}
+            {cart.length > 0 && (
+              <div className="mb-6">
+                <ShippingTierIndicator
+                  currentWeight={parseFloat(shippingBreakdown?.weight ?? '0') || totalWeight}
+                  shippingCost={getShippingCost()}
+                  weightUnit={shippingBreakdown?.weight_unit ?? weightUnit}
+                />
+              </div>
+            )}
+
             <div className="bg-white rounded-3xl shadow-xl p-8 sticky top-6">
               <div className="flex items-center mb-8">
                 <div className="bg-lavender rounded-2xl p-3 mr-3">
@@ -490,7 +602,7 @@ const Cart: React.FC = () => {
                 )}
 
                 {/* Total Weight */}
-                {totalWeight > 0 && (
+                {shippingBreakdown?.weight && (
                   <motion.div
                     className="flex justify-between items-center p-3 rounded-xl bg-soft-gray/50"
                     initial={{ opacity: 0, y: -10 }}
@@ -501,7 +613,7 @@ const Cart: React.FC = () => {
                       Total Weight
                     </span>
                     <span className="font-fredoka font-bold text-primary-blue">
-                      {totalWeight.toFixed(2)} {weightUnit}
+                      {parseFloat(shippingBreakdown.weight).toFixed(2)} {shippingBreakdown.weight_unit ?? weightUnit}
                     </span>
                   </motion.div>
                 )}
@@ -519,7 +631,7 @@ const Cart: React.FC = () => {
                       </span>
                     )}
                   </span>
-                  <span className="font-fredoka font-bold">
+                  <span className="font-fredoka font-bold text-vibrant-orange">
                     {formatters.currency(getShippingCost())}
                   </span>
                 </motion.div>

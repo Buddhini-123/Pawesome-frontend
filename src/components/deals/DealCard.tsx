@@ -1,86 +1,161 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { DealCardProps } from '../../types/deals';
+import { ArrowRight, Tag } from 'lucide-react';
 
-const DealCard: React.FC<DealCardProps> = ({ deal, onClick, className = '' }) => {
-  const handleClick = () => {
-    onClick(deal);
-  };
+export interface DealCardNewProps {
+  deal: any;
+  onClick: () => void;
+  index: number;
+  className?: string;
+}
+
+const CARD_COLORS = [
+  { bg: '#FF8B61', text: '#7A2800' },
+  { bg: '#FC6884', text: '#7A0030' },
+  { bg: '#48FFF2', text: '#004D50' },
+  { bg: '#FFDB4D', text: '#7A5500' },
+  { bg: '#B791FF', text: '#2D0066' },
+  { bg: '#1BBBFF', text: '#003050' },
+];
+
+const ILLUSTRATIONS = [
+  'dog-illustrations.png',
+  'cat-illustrations.png',
+  'heart-illustrations.png',
+  'scribble-illustrations.png',
+  'hypnotize-illustrations.png',
+  'small-hear-illustrations.png',
+];
+
+const OFFER_LABELS: Record<string, string> = {
+  'buy-get-free':  'Buy 2 Get 1 Free',
+  'free-shipping': 'Free Shipping',
+  'referral':      'Refer & Save',
+  'upgrade':       'Upgrade Deal',
+  'discount':      'Special Discount',
+  'bundle':        'Bundle Deal',
+  'flash-sale':    'Flash Sale',
+  'bulk-discount': 'Bulk Discount',
+  'flash_sale':    'Flash Sale',
+  'clearance':     'Clearance',
+  'weekend_sale':  'Weekend Sale',
+  'brand_deal':    'Brand Deal',
+  'category_sale': 'Category Deal',
+  'bogo':          'Buy 1 Get 1 Free',
+  'new_customer':  'New Member Deal',
+  'bulk_buy':      'Bulk Buy',
+  'product_deal':  'Product Deal',
+};
+
+const DealCard: React.FC<DealCardNewProps> = ({ deal, onClick, index, className = '' }) => {
+  const col    = CARD_COLORS[index % CARD_COLORS.length];
+  const illust = ILLUSTRATIONS[index % ILLUSTRATIONS.length];
+
+  const typeLabel =
+    OFFER_LABELS[deal.offerType as string] ||
+    OFFER_LABELS[deal.deal_type as string] ||
+    'Special Offer';
+
+  const discountRaw   = deal.discount_value ?? deal.discount;
+  const discountNum   = discountRaw ? Number(discountRaw) : null;
+  const isPercentage  = (deal.discount_type ?? deal.discountType) === 'percentage';
+  const discountLabel = discountNum
+    ? `${discountNum}${isPercentage ? '%' : ' Rs'} OFF`
+    : typeLabel;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ scale: 1.02 }}
-      className={`relative bg-sunny-yellow rounded-2xl overflow-hidden h-64 cursor-pointer group ${className}`}
-      onClick={handleClick}
+      initial={{ opacity: 0, y: 40, scale: 0.93 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: '-30px' }}
+      transition={{ duration: 0.45, delay: (index % 4) * 0.08, ease: 'easeOut' }}
+      whileHover={{ y: -10, scale: 1.02 }}
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer group ${className}`}
+      style={{ backgroundColor: col.bg, minHeight: 220 }}
     >
-      {/* Dog Image - Keep original positioning */}
-      <div className="absolute right-0 top-0 h-full w-1/2 z-20">
-        <img
-          src={deal.image || '/api/placeholder/200/300'}
-          alt={deal.title}
-          className="h-full w-full object-cover object-center"
-        />
+      {/* Decorative large discount number */}
+      {discountNum && isPercentage && (
+        <span
+          className="absolute -bottom-3 -right-2 font-fredoka font-bold leading-none select-none pointer-events-none"
+          style={{ fontSize: 96, color: col.text, opacity: 0.09, lineHeight: 1 }}
+        >
+          {discountNum}%
+        </span>
+      )}
+
+      {/* Background illustration */}
+      <img
+        src={`/icons/illustrations/${illust}`}
+        alt="" aria-hidden
+        className="absolute bottom-0 right-0 w-28 h-28 object-contain pointer-events-none select-none transition-opacity duration-300"
+        style={{ opacity: 0.15, transform: 'rotate(8deg)' }}
+      />
+
+      {/* Background pattern dots */}
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+        {[...Array(4)].map((_, i) => (
+          <span
+            key={i}
+            className="absolute font-bold"
+            style={{
+              fontSize: 28,
+              color: col.text,
+              opacity: 0.06,
+              top:  `${[15, 55, 25, 70][i]}%`,
+              left: `${[60, 75, 85, 65][i]}%`,
+            }}
+          >🐾</span>
+        ))}
       </div>
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-sunny-yellow via-sunny-yellow to-sunny-yellow/60"></div>
-
-      {/* Content - Left Side Only */}
-      <div className="relative z-20 h-full w-1/2 p-4 flex flex-col">
-        {/* Top Row - Offer Badge */}
-        <div className="mb-3">
-          {deal.offerType && (
-            <div className="bg-black/10 backdrop-blur-sm text-black text-xs px-3 py-1 rounded-full font-fredoka font-medium inline-block">
-              {deal.offerType === 'buy-get-free' && 'Buy 2, Get 1 Free'}
-              {deal.offerType === 'free-shipping' && 'Free Shipping'}
-              {deal.offerType === 'referral' && 'Refer & Save'}
-              {deal.offerType === 'upgrade' && 'Upgrade Deal'}
-              {deal.offerType === 'discount' && `${deal.discount}% Off`}
-              {deal.offerType === 'bundle' && 'Bundle Deal'}
-              {deal.offerType === 'flash-sale' && 'Flash Sale'}
-              {deal.offerType === 'bulk-discount' && 'Bulk Discount'}
-            </div>
-          )}
+      {/* Content */}
+      <div className="relative z-10 flex flex-col h-full p-5 pt-6">
+        {/* Deal type badge */}
+        <div
+          className="inline-flex items-center gap-1.5 self-start bg-white/30 backdrop-blur-sm px-3 py-1 rounded-full mb-4"
+          style={{ color: col.text }}
+        >
+          <Tag className="w-3 h-3 flex-shrink-0" />
+          <span className="font-fredoka font-semibold text-xs">{typeLabel}</span>
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col justify-center">
-          {/* Deal Title */}
-          <h3 className="text-black font-fredoka font-bold text-lg leading-tight mb-2">
-            {deal.title}
-          </h3>
-          
-          {/* Deal Subtitle */}
-          <p className="text-black text-sm opacity-90 font-fredoka mb-3 leading-relaxed">
-            {deal.subtitle}
-          </p>
+        {/* Title */}
+        <h3
+          className="font-fredoka font-bold text-xl leading-tight mb-2"
+          style={{ color: col.text }}
+        >
+          {deal.title}
+        </h3>
 
-          {/* Rating */}
-          <div className="flex items-center mb-3">
-            <div className="flex text-black text-xs mr-2">
-              {[...Array(5)].map((_, i) => (
-                <svg key={i} className="w-3 h-3 fill-current mr-0.5" viewBox="0 0 20 20">
-                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                </svg>
-              ))}
-            </div>
-            <span className="text-black text-xs font-fredoka opacity-80">(5.0)</span>
+        {/* Subtitle */}
+        <p
+          className="font-nunito text-sm leading-relaxed mb-auto line-clamp-2"
+          style={{ color: col.text, opacity: 0.72 }}
+        >
+          {deal.subtitle || deal.display_description || deal.description?.slice(0, 70)}
+        </p>
+
+        {/* Bottom row */}
+        <div
+          className="flex items-center justify-between mt-4 pt-3"
+          style={{ borderTop: `1.5px solid ${col.text}22` }}
+        >
+          <span
+            className="font-fredoka font-bold text-base bg-white/35 rounded-xl px-3 py-1"
+            style={{ color: col.text }}
+          >
+            {discountLabel}
+          </span>
+
+          <div
+            className="w-9 h-9 bg-white/30 rounded-xl flex items-center justify-center group-hover:bg-white/50 transition-colors duration-300 flex-shrink-0"
+            style={{ color: col.text }}
+          >
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300" />
           </div>
         </div>
-
-        {/* Bottom Row - Action Button */}
-        <div>
-          <button className="bg-primary-blue text-white px-4 py-2 rounded-full text-sm font-fredoka font-medium hover:bg-primary-blue/90 transition-colors group-hover:scale-105 transform duration-200">
-            See More
-          </button>
-        </div>
       </div>
-
-      {/* Hover Effect Overlay */}
-      <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-40"></div>
     </motion.div>
   );
 };

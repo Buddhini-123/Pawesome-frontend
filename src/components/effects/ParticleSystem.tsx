@@ -32,7 +32,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
     // Enhanced color palette with more vibrant options
     const colors = [
       '#F59E0B', '#FBBF24', '#FCD34D', // Warm yellows/ambers
-      '#6CA6CD', '#87CEEB', '#0EA5E9', // Sky blues
+      '#1BBBFF', '#87CEEB', '#0EA5E9', // Sky blues
       '#EC4899', '#F472B6', '#FB7185', // Playful pinks
       '#10B981', '#34D399', '#6EE7B7', // Fresh greens
       '#8B5CF6', '#A78BFA', '#C4B5FD', // Magic purples

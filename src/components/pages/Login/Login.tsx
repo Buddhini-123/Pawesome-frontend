@@ -112,7 +112,7 @@ const Login: React.FC = () => {
           </div>
         </form>
 
-        <div className="mt-6 p-4 bg-amber-50 rounded-lg">
+        {/* <div className="mt-6 p-4 bg-amber-50 rounded-lg">
           <p className="text-sm text-medium-gray font-fredoka font-medium mb-2">
             Demo Credentials:
           </p>
@@ -128,7 +128,7 @@ const Login: React.FC = () => {
               <p className="text-xs text-medium-gray">Password: admin123</p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="text-center mt-7 space-y-4">
           <p className="text-xs text-primary-blue">

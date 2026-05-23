@@ -193,158 +193,116 @@ const Orders: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-soft-gray via-white to-soft-gray flex items-center justify-center">
+      <div className="min-h-screen bg-warm-white flex items-center justify-center">
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-vibrant-orange border-t-transparent rounded-full mx-auto mb-4"
+            className="w-16 h-16 border-4 border-t-transparent rounded-full mx-auto mb-4"
+            style={{ borderColor: '#FF6B35', borderTopColor: 'transparent' }}
           />
-          <p className="text-medium-gray font-fredoka">Loading your orders...</p>
+          <p className="font-fredoka text-medium-gray">Loading your orders...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-soft-gray via-white to-soft-gray">
+    <div className="min-h-screen bg-warm-white">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-vibrant-orange to-sunny-yellow rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: '#FF6B35' }}>
               <ShoppingBag className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-fredoka font-bold text-charcoal">
-                My Orders
-              </h1>
-              <p className="text-medium-gray">
-                Track and manage all your purchases
-              </p>
+              <h1 className="text-3xl md:text-4xl font-fredoka font-bold" style={{ color: '#004D6B' }}>My Orders</h1>
+              <p className="font-nunito text-medium-gray text-sm">Track and manage all your purchases</p>
             </div>
           </div>
         </motion.div>
 
         {/* Order Type Filter Tabs */}
         {orders.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-6"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
             <div className="flex gap-3 bg-white rounded-2xl p-2 shadow-md border border-light-gray">
-              <button
-                onClick={() => setOrderTypeFilter('all')}
-                className={`flex-1 px-6 py-3 rounded-xl font-fredoka font-bold transition-all ${
-                  orderTypeFilter === 'all'
-                    ? 'bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white shadow-lg'
-                    : 'text-medium-gray hover:bg-soft-gray'
-                }`}
-              >
-                📦 All Orders ({orderTypeCounts.all})
-              </button>
-              <button
-                onClick={() => setOrderTypeFilter('regular')}
-                className={`flex-1 px-6 py-3 rounded-xl font-fredoka font-bold transition-all ${
-                  orderTypeFilter === 'regular'
-                    ? 'bg-primary-blue text-white shadow-lg'
-                    : 'text-medium-gray hover:bg-soft-gray'
-                }`}
-              >
-                🛍️ Regular ({orderTypeCounts.regular})
-              </button>
-              <button
-                onClick={() => setOrderTypeFilter('subscription')}
-                className={`flex-1 px-6 py-3 rounded-xl font-fredoka font-bold transition-all ${
-                  orderTypeFilter === 'subscription'
-                    ? 'bg-mint-green text-white shadow-lg'
-                    : 'text-medium-gray hover:bg-soft-gray'
-                }`}
-              >
-                🔄 Subscriptions ({orderTypeCounts.subscription})
-              </button>
+              {([
+                { key: 'all',          label: `📦 All Orders (${orderTypeCounts.all})` },
+                { key: 'regular',      label: `🛍️ Regular (${orderTypeCounts.regular})` },
+                { key: 'subscription', label: `🔄 Subscriptions (${orderTypeCounts.subscription})` },
+              ] as const).map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setOrderTypeFilter(tab.key)}
+                  className="flex-1 px-6 py-3 rounded-xl font-fredoka font-bold transition-all text-sm"
+                  style={orderTypeFilter === tab.key
+                    ? { background: '#FF6B35', color: 'white', boxShadow: '0 4px 14px rgba(255,107,53,0.35)' }
+                    : { color: '#6B7280' }}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </motion.div>
         )}
 
-        {/* Stats Overview */}
+        {/* Stats */}
         {orders.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
           >
-            <div className="bg-white rounded-2xl p-4 shadow-md border border-light-gray">
-              <p className="text-sm text-medium-gray mb-1">Total Orders</p>
-              <p className="text-2xl font-fredoka font-bold text-charcoal">{orders.length}</p>
-            </div>
-            <div className="bg-white rounded-2xl p-4 shadow-md border border-light-gray">
-              <p className="text-sm text-medium-gray mb-1">Total Spent</p>
-              <p className="text-2xl font-fredoka font-bold text-vibrant-orange">
-                Rs. {orders.reduce((sum, o) => sum + parseFloat(o.total_amount || o.totalAmount || o.total || 0), 0).toFixed(0)}
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-4 shadow-md border border-light-gray">
-              <p className="text-sm text-medium-gray mb-1">Active Subscriptions</p>
-              <p className="text-2xl font-fredoka font-bold text-mint-green">
-                {orders.filter(o => o.is_subscription_order && o.subscription?.status === 'active').length}
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-4 shadow-md border border-light-gray">
-              <p className="text-sm text-medium-gray mb-1">Delivered</p>
-              <p className="text-2xl font-fredoka font-bold text-primary-blue">{statusCounts.delivered}</p>
-            </div>
+            {[
+              { label: 'Total Orders',         value: orders.length,                                                                                                                    color: '#004D6B' },
+              { label: 'Total Spent',          value: `Rs. ${orders.reduce((s,o)=>s+parseFloat(o.total_amount||o.totalAmount||o.total||0),0).toFixed(0)}`, color: '#FF6B35' },
+              { label: 'Active Subscriptions', value: orders.filter(o=>o.is_subscription_order&&o.subscription?.status==='active').length,                   color: '#7BE266' },
+              { label: 'Delivered',            value: statusCounts.delivered,                                                                                                           color: '#004D6B' },
+            ].map((s, i) => (
+              <div key={i} className="bg-white rounded-2xl p-4 shadow-md border border-light-gray">
+                <p className="text-sm font-nunito text-medium-gray mb-1">{s.label}</p>
+                <p className="text-2xl font-fredoka font-bold" style={{ color: s.color }}>{s.value}</p>
+              </div>
+            ))}
           </motion.div>
         )}
 
-        {/* Filters Section */}
+        {/* Filters */}
         {orders.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="bg-white rounded-2xl shadow-md p-6 mb-6 border border-light-gray"
           >
             <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                  <input
-                    type="text"
-                    placeholder="Search by order number..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border-2 border-light-gray rounded-2xl focus:border-vibrant-orange focus:outline-none transition-colors"
-                  />
-                </div>
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-medium-gray" />
+                <input
+                  type="text"
+                  placeholder="Search by order number..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-light-gray rounded-2xl focus:outline-none transition-colors font-nunito text-sm"
+                  style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
+                  onFocus={e => (e.target.style.borderColor = '#FF6B35')}
+                  onBlur={e => (e.target.style.borderColor = '')}
+                />
               </div>
-
-              {/* Status Filter */}
-              <div className="md:w-64">
-                <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border-2 border-light-gray rounded-2xl focus:border-vibrant-orange focus:outline-none appearance-none bg-white transition-colors"
-                  >
-                    <option value="all">All Orders ({statusCounts.all})</option>
-                    {statusCounts.pending > 0 && <option value="pending">Pending ({statusCounts.pending})</option>}
-                    {statusCounts.confirmed > 0 && <option value="confirmed">Confirmed ({statusCounts.confirmed})</option>}
-                    {statusCounts.processing > 0 && <option value="processing">Processing ({statusCounts.processing})</option>}
-                    {statusCounts.shipped > 0 && <option value="shipped">Shipped ({statusCounts.shipped})</option>}
-                    {statusCounts.delivered > 0 && <option value="delivered">Delivered ({statusCounts.delivered})</option>}
-                    {statusCounts.cancelled > 0 && <option value="cancelled">Cancelled ({statusCounts.cancelled})</option>}
-                  </select>
-                </div>
+              <div className="md:w-64 relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-medium-gray" />
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-light-gray rounded-2xl focus:outline-none appearance-none bg-white transition-colors font-nunito text-sm"
+                  onFocus={e => (e.target.style.borderColor = '#FF6B35')}
+                  onBlur={e => (e.target.style.borderColor = '')}
+                >
+                  <option value="all">All Orders ({statusCounts.all})</option>
+                  {statusCounts.pending > 0    && <option value="pending">Pending ({statusCounts.pending})</option>}
+                  {statusCounts.confirmed > 0  && <option value="confirmed">Confirmed ({statusCounts.confirmed})</option>}
+                  {statusCounts.processing > 0 && <option value="processing">Processing ({statusCounts.processing})</option>}
+                  {statusCounts.shipped > 0    && <option value="shipped">Shipped ({statusCounts.shipped})</option>}
+                  {statusCounts.delivered > 0  && <option value="delivered">Delivered ({statusCounts.delivered})</option>}
+                  {statusCounts.cancelled > 0  && <option value="cancelled">Cancelled ({statusCounts.cancelled})</option>}
+                </select>
               </div>
             </div>
           </motion.div>
@@ -353,29 +311,24 @@ const Orders: React.FC = () => {
         {/* Orders List */}
         <AnimatePresence mode="wait">
           {filteredOrders.length === 0 ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-2xl shadow-lg p-12 text-center border border-light-gray"
+            <motion.div key="empty" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-3xl shadow-lg p-12 text-center border border-light-gray"
             >
-              <div className="w-24 h-24 bg-gradient-to-br from-soft-gray to-light-gray rounded-full flex items-center justify-center mx-auto mb-6">
-                <Package className="h-12 w-12 text-medium-gray" />
+              <div className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-6" style={{ background: 'rgba(164,247,255,0.3)' }}>
+                <Package className="h-12 w-12" style={{ color: '#004D6B' }} />
               </div>
-              <h2 className="text-2xl font-fredoka font-bold text-charcoal mb-3">
+              <h2 className="text-2xl font-fredoka font-bold mb-3" style={{ color: '#004D6B' }}>
                 {searchQuery || statusFilter !== 'all' ? 'No Orders Found' : 'No Orders Yet'}
               </h2>
-              <p className="text-medium-gray mb-8 max-w-md mx-auto">
+              <p className="font-nunito text-medium-gray mb-8 max-w-md mx-auto">
                 {searchQuery || statusFilter !== 'all'
                   ? 'Try adjusting your filters or search query'
-                  : "You haven't placed any orders yet. Start shopping to see your orders here!"
-                }
+                  : "You haven't placed any orders yet. Start shopping to see your orders here!"}
               </p>
               {!searchQuery && statusFilter === 'all' && (
-                <Link
-                  to="/"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white rounded-2xl hover:shadow-xl transition-all font-fredoka font-bold text-lg"
+                <Link to="/"
+                  className="inline-flex items-center gap-2 px-8 py-4 text-white rounded-2xl hover:brightness-110 transition-all font-fredoka font-bold text-lg shadow-lg"
+                  style={{ background: '#FF6B35' }}
                 >
                   <ShoppingBag className="h-5 w-5" />
                   Start Shopping
@@ -387,7 +340,6 @@ const Orders: React.FC = () => {
               {filteredOrders.map((order, index) => {
                 const statusConfig = getStatusConfig(order.orderStatus || order.status);
                 const StatusIcon = statusConfig.icon;
-
                 return (
                   <motion.div
                     key={order.id}
@@ -395,9 +347,9 @@ const Orders: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ delay: 0.05 * index }}
-                    className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border border-light-gray overflow-hidden group"
+                    className="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border border-light-gray overflow-hidden group"
                   >
-                    {/* Order Header with Status Band */}
+                    {/* Status band header */}
                     <div className={`${statusConfig.bgColor} border-b px-6 py-4`}>
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div className="flex items-center gap-4">
@@ -408,7 +360,7 @@ const Orders: React.FC = () => {
                             <h3 className="font-fredoka font-bold text-lg text-charcoal flex items-center gap-2">
                               Order #{order.order_number || order.id}
                               {order.is_subscription_order && (
-                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-fredoka font-bold bg-mint-green text-white">
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-fredoka font-bold text-white" style={{ background: '#FF6B35' }}>
                                   <RotateCcw className="h-3 w-3" />
                                   Subscription
                                 </span>
@@ -419,213 +371,160 @@ const Orders: React.FC = () => {
                                 <StatusIcon className="h-3 w-3" />
                                 {statusConfig.label}
                               </span>
-                              <span className="text-sm text-medium-gray flex items-center gap-1">
+                              <span className="text-sm text-medium-gray flex items-center gap-1 font-nunito">
                                 <Calendar className="h-4 w-4" />
-                                {new Date(order.createdAt || order.created_at).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
+                                {new Date(order.createdAt || order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                               </span>
                             </div>
                           </div>
                         </div>
-
                         <Link
                           to={`/orders/${order.id}`}
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-primary-blue text-white rounded-2xl hover:shadow-lg transition-all font-fredoka font-bold group-hover:gap-3"
+                          className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-2xl hover:brightness-110 transition-all font-fredoka font-bold group-hover:gap-3 shadow-md"
+                          style={{ background: '#FF6B35' }}
                         >
+                          <Eye className="h-4 w-4" />
                           <span>View Details</span>
                           <ChevronRight className="h-4 w-4" />
                         </Link>
                       </div>
                     </div>
 
-                    {/* Order Content */}
+                    {/* Card body */}
                     <div className="p-6">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Items Preview */}
+                        {/* Items */}
                         <div className="md:col-span-2">
-                          <p className="text-sm font-fredoka font-semibold text-medium-gray mb-3">
+                          <p className="text-sm font-fredoka font-semibold text-medium-gray mb-3 uppercase tracking-wide">
                             Order Items ({order.items?.length || 0})
                           </p>
                           <div className="space-y-2">
-                            {order.items && order.items.slice(0, 3).map((item: any, idx: number) => (
+                            {order.items?.slice(0, 3).map((item: any, idx: number) => (
                               <div key={idx} className="flex items-center gap-3 text-sm">
                                 <div className="w-12 h-12 bg-soft-gray rounded-2xl flex items-center justify-center flex-shrink-0">
                                   {item.product?.primary_image?.url ? (
-                                    <img
-                                      src={item.product.primary_image.url}
-                                      alt={item.productName || item.product?.name}
-                                      className="w-full h-full object-cover rounded-2xl"
-                                    />
+                                    <img src={item.product.primary_image.url}
+                                      alt={item.product_name_snapshot || item.productName || item.product?.name}
+                                      className="w-full h-full object-cover rounded-2xl" />
                                   ) : (
                                     <Package className="h-6 w-6 text-medium-gray" />
                                   )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-charcoal truncate">
-                                    {item.productName || item.product?.name}
+                                  <p className="font-medium text-charcoal truncate font-nunito">
+                                    {item.product_name_snapshot || item.productName || item.product?.name}
                                   </p>
-                                  <p className="text-xs text-medium-gray">Qty: {item.quantity}</p>
+                                  <p className="text-xs text-medium-gray font-nunito">Qty: {item.quantity}</p>
                                 </div>
                                 <p className="font-fredoka font-semibold text-charcoal whitespace-nowrap">
                                   Rs. {(parseFloat(item.price || 0) * item.quantity).toFixed(2)}
                                 </p>
                               </div>
                             ))}
-                            {order.items && order.items.length > 3 && (
-                              <p className="text-sm text-medium-gray italic pl-15">
-                                +{order.items.length - 3} more items
-                              </p>
+                            {order.items?.length > 3 && (
+                              <p className="text-sm text-medium-gray italic font-nunito">+{order.items.length - 3} more items</p>
                             )}
                           </div>
                         </div>
 
                         {/* Order Summary */}
-                        <div className="bg-gradient-to-br from-soft-gray to-white rounded-2xl p-4 border border-light-gray">
-                          <p className="text-sm font-fredoka font-semibold text-medium-gray mb-3">
+                        <div className="rounded-2xl p-4 border border-light-gray" style={{ background: 'rgba(164,247,255,0.12)' }}>
+                          <p className="text-sm font-fredoka font-semibold mb-3 uppercase tracking-wide" style={{ color: '#004D6B' }}>
                             Order Summary
                           </p>
-                          <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-sm">
+                          <div className="space-y-2 mb-4 font-nunito text-sm">
+                            <div className="flex justify-between">
                               <span className="text-medium-gray">Items Total</span>
-                              <span className="font-medium">
+                              <span className="font-medium text-charcoal">
                                 Rs. {parseFloat(order.subtotal || order.sub_total || order.totalAmount || order.total_amount || order.total || 0).toFixed(2)}
                               </span>
                             </div>
-                            {(order.shipping_cost || order.shippingCost) && parseFloat(order.shipping_cost || order.shippingCost || 0) > 0 && (
-                              <div className="flex justify-between text-sm">
+                            {parseFloat(order.shipping_cost || order.shippingCost || 0) > 0 && (
+                              <div className="flex justify-between">
                                 <span className="text-medium-gray">Shipping</span>
-                                <span className="font-medium">Rs. {parseFloat(order.shipping_cost || order.shippingCost || 0).toFixed(2)}</span>
+                                <span className="font-medium text-charcoal">Rs. {parseFloat(order.shipping_cost || order.shippingCost || 0).toFixed(2)}</span>
                               </div>
                             )}
                           </div>
-                          <div className="pt-3 border-t-2 border-light-gray">
-                            <div className="flex justify-between items-center">
-                              <span className="font-fredoka font-semibold text-charcoal">Total</span>
-                              <span className="text-2xl font-fredoka font-bold text-vibrant-orange">
-                                Rs. {parseFloat(order.total_amount || order.totalAmount || order.total || 0).toFixed(2)}
-                              </span>
-                            </div>
+                          <div className="pt-3 border-t-2 border-light-gray flex justify-between items-center">
+                            <span className="font-fredoka font-semibold text-charcoal">Total</span>
+                            <span className="text-2xl font-fredoka font-bold" style={{ color: '#FF6B35' }}>
+                              Rs. {parseFloat(order.total_amount || order.totalAmount || order.total || 0).toFixed(2)}
+                            </span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Tracking Number */}
+                      {/* Tracking */}
                       {order.trackingNumber && (
                         <div className="mt-4 pt-4 border-t border-light-gray">
-                          <div className="flex items-center gap-2 text-sm bg-primary-blue/10 px-4 py-2 rounded-2xl border border-primary-blue">
-                            <Truck className="h-4 w-4 text-primary-blue" />
+                          <div className="flex items-center gap-2 text-sm px-4 py-2 rounded-2xl border font-nunito"
+                            style={{ background: 'rgba(164,247,255,0.2)', borderColor: 'rgba(164,247,255,0.8)' }}>
+                            <Truck className="h-4 w-4" style={{ color: '#004D6B' }} />
                             <span className="text-medium-gray">Tracking:</span>
-                            <span className="font-mono font-bold text-primary-blue">
-                              {order.trackingNumber}
-                            </span>
+                            <span className="font-mono font-bold" style={{ color: '#004D6B' }}>{order.trackingNumber}</span>
                           </div>
                         </div>
                       )}
 
-                      {/* Subscription Information */}
+                      {/* Subscription block */}
                       {order.is_subscription_order && order.subscription && (
                         <div className="mt-4 pt-4 border-t border-light-gray">
-                          <div className="bg-gradient-to-br from-mint-green/10 to-primary-blue/10 rounded-2xl p-6 border-2 border-mint-green/30">
+                          <div className="rounded-2xl p-6 border-2" style={{ background: 'rgba(164,247,255,0.15)', borderColor: 'rgba(164,247,255,0.6)' }}>
                             <div className="flex items-center gap-2 mb-4">
-                              <RotateCcw className="h-5 w-5 text-mint-green" />
-                              <h4 className="font-fredoka font-bold text-lg text-charcoal">
-                                Subscription Details
-                              </h4>
-                              <span className={`ml-auto px-3 py-1 rounded-full text-xs font-fredoka font-bold ${
-                                order.subscription.status === 'active' ? 'bg-mint-green text-white' :
-                                order.subscription.status === 'paused' ? 'bg-vibrant-orange text-white' :
-                                'bg-crimson text-white'
-                              }`}>
+                              <RotateCcw className="h-5 w-5" style={{ color: '#FF6B35' }} />
+                              <h4 className="font-fredoka font-bold text-lg" style={{ color: '#004D6B' }}>Subscription Details</h4>
+                              <span className={`ml-auto px-3 py-1 rounded-full text-xs font-fredoka font-bold text-white`}
+                                style={{ background: order.subscription.status === 'active' ? '#7BE266' : order.subscription.status === 'paused' ? '#FF6B35' : '#ef4444' }}>
                                 {order.subscription.status?.toUpperCase()}
                               </span>
                             </div>
 
-                            {/* Delivery Schedule */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                               <div className="bg-white rounded-xl p-3 border border-light-gray">
-                                <p className="text-xs text-medium-gray mb-1">Delivery Frequency</p>
+                                <p className="text-xs text-medium-gray mb-1 font-nunito">Delivery Frequency</p>
                                 <p className="font-fredoka font-semibold text-charcoal">
                                   Every {order.subscription.interval_value} {order.subscription.interval_type}
                                 </p>
                               </div>
                               {order.subscription.next_delivery_date && (
                                 <div className="bg-white rounded-xl p-3 border border-light-gray">
-                                  <p className="text-xs text-medium-gray mb-1">Next Delivery</p>
-                                  <p className="font-fredoka font-semibold text-mint-green">
-                                    {new Date(order.subscription.next_delivery_date).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      year: 'numeric'
-                                    })}
+                                  <p className="text-xs text-medium-gray mb-1 font-nunito">Next Delivery</p>
+                                  <p className="font-fredoka font-semibold" style={{ color: '#FF6B35' }}>
+                                    {new Date(order.subscription.next_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                   </p>
                                 </div>
                               )}
                             </div>
 
-                            {/* Delivery Progress */}
                             {order.subscription.total_deliveries > 0 && (
                               <div className="mb-4">
                                 <div className="flex justify-between items-center mb-2">
-                                  <p className="text-sm font-fredoka font-semibold text-charcoal">
-                                    Delivery Progress
-                                  </p>
-                                  <p className="text-sm font-fredoka font-bold text-mint-green">
+                                  <p className="text-sm font-fredoka font-semibold" style={{ color: '#004D6B' }}>Delivery Progress</p>
+                                  <p className="text-sm font-fredoka font-bold" style={{ color: '#FF6B35' }}>
                                     {order.subscription.completed_deliveries} / {order.subscription.total_deliveries}
                                     {order.subscription.remaining_deliveries > 0 && (
-                                      <span className="text-medium-gray ml-2">
-                                        ({order.subscription.remaining_deliveries} remaining)
-                                      </span>
+                                      <span className="text-medium-gray ml-2 font-nunito">({order.subscription.remaining_deliveries} remaining)</span>
                                     )}
                                   </p>
                                 </div>
-                                {/* Progress Bar */}
                                 <div className="w-full h-3 bg-soft-gray rounded-full overflow-hidden">
                                   <motion.div
                                     initial={{ width: 0 }}
-                                    animate={{
-                                      width: `${(order.subscription.completed_deliveries / order.subscription.total_deliveries) * 100}%`
-                                    }}
-                                    transition={{ duration: 1, ease: "easeOut" }}
-                                    className="h-full bg-gradient-to-r from-mint-green to-primary-blue rounded-full"
+                                    animate={{ width: `${(order.subscription.completed_deliveries / order.subscription.total_deliveries) * 100}%` }}
+                                    transition={{ duration: 1, ease: 'easeOut' }}
+                                    className="h-full rounded-full"
+                                    style={{ background: 'linear-gradient(90deg, #FF6B35, #FFDB4D)' }}
                                   />
                                 </div>
-                              </div>
-                            )}
-
-                            {/* Subscription Actions */}
-                            {order.subscription.status === 'active' && (
-                              <div className="flex flex-wrap gap-2">
-                                <button
-                                  onClick={() => handlePauseSubscription(order.subscription.id)}
-                                  className="flex items-center gap-2 px-4 py-2 bg-vibrant-orange text-white rounded-xl hover:shadow-lg transition-all font-fredoka font-medium text-sm"
-                                >
-                                  <Pause className="h-4 w-4" />
-                                  Pause
-                                </button>
-                                <button
-                                  onClick={() => handleSkipDelivery(order.subscription.id)}
-                                  className="flex items-center gap-2 px-4 py-2 bg-sunny-yellow text-charcoal rounded-xl hover:shadow-lg transition-all font-fredoka font-medium text-sm"
-                                >
-                                  <SkipForward className="h-4 w-4" />
-                                  Skip Next
-                                </button>
-                                <button
-                                  onClick={() => handleCancelSubscription(order.subscription.id)}
-                                  className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-crimson text-crimson rounded-xl hover:bg-crimson hover:text-white transition-all font-fredoka font-medium text-sm"
-                                >
-                                  <Ban className="h-4 w-4" />
-                                  Cancel
-                                </button>
                               </div>
                             )}
 
                             {order.subscription.status === 'paused' && (
                               <button
                                 onClick={() => handleResumeSubscription(order.subscription.id)}
-                                className="flex items-center gap-2 px-6 py-3 bg-mint-green text-white rounded-xl hover:shadow-lg transition-all font-fredoka font-bold"
+                                className="flex items-center gap-2 px-6 py-3 text-white rounded-xl hover:brightness-110 transition-all font-fredoka font-bold shadow-md"
+                                style={{ background: '#FF6B35' }}
                               >
                                 <Play className="h-4 w-4" />
                                 Resume Subscription

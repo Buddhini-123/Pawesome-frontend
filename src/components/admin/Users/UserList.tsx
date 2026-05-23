@@ -22,11 +22,11 @@ import {
 } from 'lucide-react';
 import { AdminCustomer, User } from '../../../types';
 import { adminUserService, UserFilters, UserStats } from '../../../services/adminUser.service';
+import { api } from '../../../services/api';
 import { formatters } from '../../../utils/formatters';
 import { Badge } from '../ui/Badge';
 import DataTable from '../ui/DataTable';
 import UserDetail from './UserDetail';
-import axios from 'axios';
 
 const UserList: React.FC = () => {
   const [users, setUsers] = useState<AdminCustomer[]>([]);
@@ -60,17 +60,33 @@ const UserList: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch customers with loyalty data from backend API
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3001/api/admin/customers?include=loyalty', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Fetch users from backend API
+      const params: Record<string, any> = { per_page: pageSize, page: currentPage };
+      if (filters.search) params.search = filters.search;
+      if (filters.role && filters.role !== 'all') params.role = filters.role;
 
-      let customersData: AdminCustomer[] = response.data;
+      const response = await api.get<any>('/admin/users', params);
 
-      // Apply sorting if needed
+      if (!response.data?.success) throw new Error('API error');
+
+      const { users: rawUsers, meta } = response.data.data;
+
+      // Map UserResource fields to AdminCustomer shape
+      let customersData: AdminCustomer[] = rawUsers.map((u: any) => ({
+        id: String(u.id),
+        name: u.name || `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim(),
+        email: u.email,
+        phone: u.phone,
+        role: u.role,
+        created_at: u.created_at,
+        loyalty_balance: u.loyalty_points !== undefined ? {
+          balance: u.loyalty_points,
+          card_number: null,
+          tier: (u.loyalty_tier?.toUpperCase() ?? 'BRONZE') as 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM',
+        } : undefined,
+      }));
+
+      // Apply client-side sorting by points if requested
       if (sortBy === 'points') {
         customersData = [...customersData].sort((a, b) => {
           const aPoints = a.loyalty_balance?.balance || 0;
@@ -80,7 +96,7 @@ const UserList: React.FC = () => {
       }
 
       setUsers(customersData);
-      setTotalPages(Math.ceil(customersData.length / pageSize));
+      setTotalPages(meta.last_page ?? 1);
     } catch (error) {
       console.error('Error loading customers:', error);
       setError('Failed to load customers. Please try again.');

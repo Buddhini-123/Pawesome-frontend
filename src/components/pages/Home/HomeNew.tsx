@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Calendar, Gift, Percent, Trophy, ArrowRight, Star, Heart, TruckIcon } from 'lucide-react';
@@ -10,22 +10,23 @@ interface ServiceCardProps {
   description: string;
   icon: React.ReactNode;
   color: string;
+  textColor: string;
   link: string;
   delay: number;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, color, link, delay }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, color, textColor, link, delay }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
+      initial={{ opacity: 0, y: 70, scale: 0.94 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.55, delay, ease: 'easeOut' }}
       whileHover={{ y: -10, scale: 1.02 }}
       className="group"
     >
       <Link to={link}>
-        <div className={`relative overflow-hidden rounded-3xl ${color} p-8 h-full shadow-xl hover:shadow-2xl transition-all duration-300 pet-card`}>
+        <div className="relative overflow-hidden rounded-3xl p-8 h-full shadow-xl hover:shadow-2xl transition-all duration-300 pet-card flex flex-col items-center text-center" style={{ backgroundColor: color }}>
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             {[...Array(6)].map((_, i) => (
@@ -44,28 +45,101 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, col
 
           {/* Icon */}
           <div className="relative mb-6">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300" style={{ color: textColor }}>
               {icon}
             </div>
           </div>
 
           {/* Content */}
-          <h3 className="text-2xl font-fredoka font-bold text-white mb-3">{title}</h3>
-          <p className="text-white/90 font-nunito mb-6">{description}</p>
+          <h3 className="text-2xl font-fredoka font-bold mb-3" style={{ color: textColor }}>{title}</h3>
+          <p className="font-nunito mb-6" style={{ color: textColor, opacity: 0.85 }}>{description}</p>
 
           {/* CTA */}
-          <div className="flex items-center text-white font-semibold group-hover:gap-3 gap-2 transition-all duration-300">
+          <div className="flex items-center justify-center font-semibold group-hover:gap-3 gap-2 transition-all duration-300" style={{ color: textColor }}>
             <span>Learn More</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
           </div>
-
-          {/* Pet Badge */}
-          {/* <div className="absolute -top-2 -right-2 bg-sunny-yellow text-charcoal px-4 py-2 rounded-full font-fredoka font-semibold text-sm transform rotate-12 shadow-lg">
-            NEW!
-          </div> */}
         </div>
       </Link>
     </motion.div>
+  );
+};
+
+interface LeafConfig {
+  top: string; left: string; size: number; rotate: number;
+  dur: number; delay: number; hx: number; hy: number;
+}
+
+type LeafState = 'floating' | 'pushed' | 'returning';
+
+const LEAVES: LeafConfig[] = [
+  { top:  '2%', left:  '-2%', size: 260, rotate:   15, dur: 7,  delay: 0,   hx:  -80, hy:  -80 },
+  { top:  '5%', left:  '78%', size: 280, rotate:  -55, dur: 9,  delay: 1.2, hx:   80, hy:  -80 },
+  { top: '18%', left:  '90%', size: 250, rotate:   80, dur: 6,  delay: 0.5, hx:  100, hy:  -60 },
+  { top: '30%', left:   '3%', size: 270, rotate:  170, dur: 8,  delay: 1.8, hx:  -90, hy:   40 },
+  { top: '42%', left:  '52%', size: 240, rotate:   45, dur: 10, delay: 0.3, hx:   60, hy:  -90 },
+  { top: '55%', left:  '88%', size: 260, rotate: -110, dur: 7,  delay: 2.1, hx:  100, hy:   60 },
+  { top: '62%', left:   '8%', size: 280, rotate:  300, dur: 9,  delay: 0.8, hx:  -90, hy:   70 },
+  { top: '74%', left:  '65%', size: 250, rotate:  130, dur: 6,  delay: 1.5, hx:   70, hy:   80 },
+  { top: '82%', left:  '-1%', size: 270, rotate:  -20, dur: 8,  delay: 0.4, hx:  -80, hy:   90 },
+  { top: '91%', left:  '42%', size: 260, rotate:  250, dur: 7,  delay: 1.0, hx:   40, hy:  100 },
+];
+
+const LeafItem: React.FC<{ l: LeafConfig }> = ({ l }) => {
+  const [leafState, setLeafState] = useState<LeafState>('floating');
+
+  const animateProps = (() => {
+    if (leafState === 'pushed') {
+      return { x: l.hx, y: l.hy, opacity: 0.08, scale: 1.12, rotate: l.rotate + 25 };
+    }
+    if (leafState === 'returning') {
+      return { x: 0, y: 0, opacity: 0.29, scale: 1, rotate: l.rotate };
+    }
+    return {
+      y: [0, -20, 10, -15, 0],
+      x: [0, 10, -8, 5, 0],
+      rotate: [l.rotate, l.rotate + 12, l.rotate - 8, l.rotate + 5, l.rotate],
+      opacity: 0.29,
+      scale: 1,
+    };
+  })();
+
+  const transitionProps = (() => {
+    if (leafState === 'pushed') {
+      return { duration: 0.3, ease: 'easeOut' as const };
+    }
+    if (leafState === 'returning') {
+      return { type: 'spring' as const, stiffness: 35, damping: 10 };
+    }
+    return { duration: l.dur, repeat: Infinity, delay: l.delay, ease: 'easeInOut' as const };
+  })();
+
+  return (
+    <motion.img
+      src="/icons/leaf-layer.png"
+      alt=""
+      aria-hidden="true"
+      className="absolute select-none"
+      style={{
+        top: l.top,
+        left: l.left,
+        width: l.size,
+        height: l.size,
+        mixBlendMode: 'multiply',
+        cursor: 'default',
+      }}
+      animate={animateProps}
+      transition={transitionProps}
+      onHoverStart={() => {
+        if (leafState !== 'pushed') setLeafState('pushed');
+      }}
+      onHoverEnd={() => {
+        setLeafState('returning');
+      }}
+      onAnimationComplete={() => {
+        if (leafState === 'returning') setLeafState('floating');
+      }}
+    />
   );
 };
 
@@ -74,29 +148,33 @@ const Home: React.FC = () => {
     {
       title: 'Daily Deals',
       description: 'Exclusive discounts on top-rated products every single day.',
-      icon: <Percent className="w-10 h-10 text-white" />,
-      color: 'bg-mint-green',
+      icon: <Percent className="w-10 h-10" />,
+      color: '#FF8B61',
+      textColor: '#7A2800',
       link: '/deals',
     },
     {
       title: 'Gift Boxes',
       description: 'Monthly surprise boxes filled with toys, treats, and accessories.',
-      icon: <Gift className="w-10 h-10 text-white" />,
-      color: 'bg-primary-blue',
+      icon: <Gift className="w-10 h-10" />,
+      color: '#FC6884',
+      textColor: '#7A0030',
       link: '/gifts',
     },
     {
       title: 'Paw Rewards',
       description: 'Earn points, unlock benefits, and get VIP access to new products.',
-      icon: <Trophy className="w-10 h-10 text-white" />,
-      color: 'bg-lavender',
+      icon: <Trophy className="w-10 h-10" />,
+      color: '#48FFF2',
+      textColor: '#004D50',
       link: '/loyalty-cards',
     },
     {
       title: 'Subscriptions',
       description: 'Never run out of essentials with automated deliveries tailored to your pet.',
-      icon: <Calendar className="w-10 h-10 text-white" />,
-      color: 'bg-vibrant-orange',
+      icon: <Calendar className="w-10 h-10" />,
+      color: '#B791FF',
+      textColor: '#2D0066',
       link: '/subscriptions',
     },
 
@@ -121,52 +199,131 @@ const Home: React.FC = () => {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Features Bar */}
-      <section className="py-12 bg-white border-b border-light-gray">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      {/* Features + Services — merged section */}
+      <section className="relative overflow-hidden bg-sky-light py-20">
+
+        {/* Leaf decorations */}
+        {LEAVES.map((l, i) => (
+          <LeafItem key={i} l={l} />
+        ))}
+
+        <div className="relative z-10 container mx-auto px-4">
+
+          {/* Section heading */}
+          <motion.div
+            initial={{ opacity: 0, y: 60 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="text-center mb-14"
+          >
+            <motion.h2
+              className="text-4xl md:text-5xl font-fredoka font-bold mb-3"
+              style={{ color: '#004D6B' }}
+              initial={{ opacity: 0, scale: 0.92 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+            >
+              What Makes Us <span style={{ color: '#003050' }}>Special</span> 🌟
+            </motion.h2>
+            <motion.p
+              className="text-lg font-nunito max-w-2xl mx-auto"
+              style={{ color: '#004D6B', opacity: 0.85 }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              Discover our unique services designed to make pet parenting easier and more fun!
+            </motion.p>
+          </motion.div>
+
+          {/* Service cards */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            {services.map((service, index) => (
+              <ServiceCard key={index} {...service} delay={index * 0.15} />
+            ))}
+          </div>
+
+          {/* Features bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="rounded-3xl bg-sunny-yellow px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ delay: 0.15 + index * 0.12, duration: 0.5, ease: 'easeOut' }}
                 className="text-center"
               >
-                <div className="w-16 h-16 bg-primary-blue/10 rounded-full flex items-center justify-center mx-auto mb-3 text-primary-blue">
+                <motion.div
+                  className="w-16 h-16 bg-white/50 rounded-full flex items-center justify-center mx-auto mb-3 text-charcoal"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ delay: 0.2 + index * 0.12, type: 'spring', stiffness: 200, damping: 14 }}
+                >
                   {feature.icon}
-                </div>
-                <h3 className="font-fredoka font-semibold text-charcoal mb-1">{feature.title}</h3>
-                <p className="text-medium-gray text-sm font-fredoka">{feature.description}</p>
+                </motion.div>
+                <h3 className="font-fredoka font-semibold mb-1 text-charcoal">{feature.title}</h3>
+                <p className="text-sm font-nunito text-charcoal/70">{feature.description}</p>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
+          </motion.div>
 
-      {/* Services Section */}
-      <section className="py-20 bg-soft-gray">
-        <div className="container mx-auto px-4">
+          {/* Divider */}
+          <div className="border-t border-white/40 mt-14 mb-14" />
+
+          {/* Newsletter */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            transition={{ duration: 0.6 }}
+            className="relative z-10 max-w-2xl mx-auto text-center"
           >
-            <h2 className="text-4xl md:text-5xl font-fredoka font-bold text-charcoal mb-4">
-              What Makes Us <span className="text-primary-blue">Special</span> 🌟
+            <span className="text-4xl mb-4 block">🐾</span>
+            <h2 className="text-4xl md:text-5xl font-fredoka font-bold mb-3" style={{ color: '#004D6B' }}>
+              Join the Pawsome Family
             </h2>
-            <p className="text-xl text-medium-gray font-fredoka font-nunito max-w-2xl mx-auto">
-              Discover our unique services designed to make pet parenting easier and more fun!
+            <p className="font-nunito mb-8 text-lg" style={{ color: '#004D6B', opacity: 0.8 }}>
+              Get exclusive deals, pet care tips, and new product alerts delivered straight to your inbox. No spam — just tail wags. 🐶
+            </p>
+
+            <form
+              className="flex flex-col sm:flex-row gap-3 justify-center"
+              onSubmit={e => e.preventDefault()}
+            >
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="flex-1 px-5 py-3 rounded-2xl font-nunito text-charcoal bg-white/80 backdrop-blur-sm border-2 border-white/60 focus:outline-none focus:border-white placeholder:text-charcoal/40 shadow-md"
+              />
+              <motion.button
+                type="submit"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-7 py-3 rounded-2xl font-fredoka font-bold text-white shadow-lg transition-all duration-300"
+                style={{ backgroundColor: '#004D6B' }}
+              >
+                Subscribe
+              </motion.button>
+            </form>
+
+            <p className="mt-4 text-sm font-nunito" style={{ color: '#004D6B', opacity: 0.6 }}>
+              Join 50,000+ pet parents. Unsubscribe anytime.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((service, index) => (
-              <ServiceCard key={index} {...service} delay={index * 0.1} />
-            ))}
-          </div>
+          <div className="pb-6" />
+
         </div>
       </section>
 

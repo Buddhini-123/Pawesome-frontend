@@ -25,8 +25,6 @@ import {
   Building,
   Navigation,
   Hash,
-  Calendar,
-  Lock,
   Info,
   Tag,
   Clock,
@@ -105,6 +103,7 @@ const Checkout: React.FC = () => {
 
   const [addressOption, setAddressOption] = useState<'select' | 'custom'>('select');
   const [addresses, setAddresses] = useState<any[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Pricing API integration states
   const [pricing, setPricing] = useState<PricingCalculation | null>(null);
@@ -195,6 +194,18 @@ const Checkout: React.FC = () => {
   if (isSubscription) {
     console.log(`[Checkout] Subscription total: Rs. ${subscriptionSubtotal} (${selectedProducts.length} products × ${deliveryCount} deliveries)`);
   }
+
+  // Calculate per-delivery shipping cost for subscriptions based on product weights.
+  // Uses the same tier logic as the backend ShippingTier table.
+  const subscriptionShippingCost = (() => {
+    if (!isSubscription) return 0;
+    const totalWeight = selectedProducts.reduce((sum: number, p: any) => {
+      return sum + (Number(p.weight) || 0) * (p.quantity || 1);
+    }, 0);
+    if (totalWeight < 1)  return 350;
+    if (totalWeight <= 5) return 500;
+    return 700;
+  })();
 
   // Helper function to get currency display
   const getCurrencyDisplay = (currencyObj: any): string => {
@@ -328,7 +339,8 @@ const Checkout: React.FC = () => {
   }
 
   // Calculate pricing - use backend API shipping cost (weight-based)
-  const baseShippingCost = shippingCost || 0; // From backend (weight-based calculation)
+  // For subscriptions, use the weight-calculated shipping; for regular cart, use cart context value.
+  const baseShippingCost = isSubscription ? subscriptionShippingCost : (shippingCost || 0);
   const deliveryCharge = formData.deliveryOption === 'express' ? 100 : 0;
   const codCharge = formData.paymentMethod === 'cod' ? 50 : 0;
   const totalShippingCost = baseShippingCost + deliveryCharge;
@@ -351,6 +363,9 @@ const Checkout: React.FC = () => {
         [field]: value
       }
     }));
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const handlePaymentMethodChange = (method: 'card' | 'cod') => {
@@ -384,84 +399,78 @@ const Checkout: React.FC = () => {
   };
 
   const validateShipping = () => {
-    // user can choose: select-address OR custom-address
-    if (addressOption === "select") {
+    const errors: Record<string, string> = {};
+
+    // Validate top-level fields (always visible)
+    const { fullName, phone, address, city, state, pincode } = formData.shippingAddress;
+
+    if (!fullName.trim()) {
+      errors.fullName = 'Full name is required';
+    } else if (fullName.trim().length < 2) {
+      errors.fullName = 'Name must be at least 2 characters';
+    } else if (!/^[a-zA-Z\s.'-]+$/.test(fullName.trim())) {
+      errors.fullName = 'Name can only contain letters, spaces, and . \' -';
+    }
+
+    const rawPhone = phone.replace(/\s/g, '');
+    if (!rawPhone) {
+      errors.phone = 'Phone number is required';
+    } else if (!/^(0?7[0-9]{8})$/.test(rawPhone)) {
+      errors.phone = 'Enter a valid Sri Lankan mobile number (e.g. 0712345678)';
+    }
+
+    if (addressOption === 'select') {
       if (!selectedAddressId) {
-        setError("Please select an address");
-        return false;
+        errors.selectedAddress = 'Please select a delivery address';
       }
-      return true; // address is valid
+    } else {
+      // Custom address fields
+      if (!address.trim()) {
+        errors.address = 'Address is required';
+      } else if (address.trim().length < 5) {
+        errors.address = 'Please enter a complete address';
+      }
+
+      if (!city.trim()) {
+        errors.city = 'City is required';
+      } else if (!/^[a-zA-Z\s\u00C0-\u024F]+$/.test(city.trim())) {
+        errors.city = 'City name can only contain letters';
+      }
+
+      if (!state.trim()) {
+        errors.state = 'Province / State is required';
+      } else if (!/^[a-zA-Z\s\u00C0-\u024F]+$/.test(state.trim())) {
+        errors.state = 'Province name can only contain letters';
+      }
+
+      if (!pincode.trim()) {
+        errors.pincode = 'Postal code is required';
+      } else if (!/^\d{5}$/.test(pincode.trim())) {
+        errors.pincode = 'Enter a valid 5-digit Sri Lankan postal code';
+      }
     }
 
-    // CUSTOM ADDRESS VALIDATION
-    const {
-      fullName,
-      phone,
-      address,
-      city,
-      state,
-      pincode,
-      addressType
-    } = formData.shippingAddress;
+    setFieldErrors(errors);
 
-    // Required fields
-    if (!fullName || !phone || !address || !city || !state || !pincode) {
-      setError("Please fill all required shipping details");
+    if (Object.keys(errors).length > 0) {
+      setError('Please fix the errors highlighted below');
       return false;
     }
 
-    // Phone number must be 10 digits
-    if (!/^\d{10}$/.test(phone.replace(/\s/g, ""))) {
-      setError("Please enter a valid 10-digit phone number");
-      return false;
-    }
-
-    // Pincode 5 digits
-    if (!/^\d{5}$/.test(pincode)) {
-      setError("Please enter a valid 5-digit pincode");
-      return false;
-    }
-
-    // Address type required
-    if (!addressType) {
-      setError("Please select address type (Home / Work / Other)");
-      return false;
-    }
-
+    setError('');
     return true;
   };
 
 
   const validatePayment = () => {
-    if (formData.paymentMethod === 'card') {
-      if (!formData.cardDetails) {
-        setFormData(prev => ({
-          ...prev,
-          cardDetails: { number: '', name: '', expiry: '', cvv: '' }
-        }));
-        setError('Please fill card details');
-        return false;
-      }
-      const { number, name, expiry, cvv } = formData.cardDetails;
-      if (!number || !name || !expiry || !cvv) {
-        setError('Please fill all card details');
-        return false;
-      }
-      if (!/^\d{16}$/.test(number.replace(/\s/g, ''))) {
-        setError('Please enter a valid 16-digit card number');
-        return false;
-      }
-      if (!/^\d{3,4}$/.test(cvv)) {
-        setError('Please enter a valid CVV');
-        return false;
-      }
-    }
+    // Card payment validation is handled on the PayHere gateway page
     return true;
   };
 
   const handleNextStep = () => {
     setError('');
     if (step === 1 && validateShipping()) {
+      setFieldErrors({});
       setStep(2);
     } else if (step === 2 && validatePayment()) {
       setStep(3);
@@ -469,10 +478,11 @@ const Checkout: React.FC = () => {
   };
 
   const handlePreviousStep = () => {
-      setError('');
-      if (step === 3) setStep(2);
-      else if (step === 2) setStep(1);
-    };
+    setError('');
+    setFieldErrors({});
+    if (step === 3) setStep(2);
+    else if (step === 2) setStep(1);
+  };
 
   const getDeliveryAddressId = async () => {
     if (addressOption === 'select') {
@@ -533,22 +543,21 @@ const Checkout: React.FC = () => {
     try {
 
       if (isSubscription) {
-        
+
         const deliveryAddressId = await getDeliveryAddressId();
         console.log(deliveryAddressId, 'deliveryAddressId');
-        
 
-        const payload = {
+        const subPayload = {
           products: selectedProducts.map((product: any) => ({
             product_id: product.id,
-            quantity: product.quantity || 1, // Quantity per delivery
+            quantity: product.quantity || 1,
             preferences: product.preferences || {},
           })),
           subscription_data: {
-            interval_type: scheduleData.intervalType, // weekly, monthly, or custom
-            interval_value: scheduleData.intervalValue, // 1, 2, 3, 4, etc.
+            interval_type: scheduleData.intervalType,
+            interval_value: scheduleData.intervalValue,
             start_date: scheduleData.startDate,
-            end_date: scheduleData.endDate || null, // Optional end date
+            end_date: scheduleData.endDate || null,
             delivery_address_id: deliveryAddressId,
             payment_method_id: 2,
             preferences: {
@@ -556,46 +565,88 @@ const Checkout: React.FC = () => {
               delivery_time: "morning",
             },
             subtotal: subscriptionSubtotal,
-            total_deliveries: deliveryCount // Add total delivery count for reference
+            total_deliveries: deliveryCount,
           },
         };
 
-        const response = await api.post("/subscriptions/direct-create", payload);
-        if (response.success == false) {
-          const errorMsg = response.error || response.message || "Subscription creation failed";
-
+        const subscriptionRes = await api.post("/subscriptions/direct-create", subPayload);
+        if (subscriptionRes.success == false) {
+          const errorMsg = subscriptionRes.error || "Subscription creation failed";
           toast.error(errorMsg);
           throw new Error(errorMsg);
         }
-        toast.success("Subscription created successfully!");
 
-        navigate("/subscriptions");
-        
+        // COD: done — navigate to subscriptions
+        if (formData.paymentMethod === 'cod') {
+          toast.success("Subscription created successfully!");
+          navigate("/subscriptions");
+          return;
+        }
+
+        // Card payment: create an order for PayHere to process the subscription payment
+        const subOrderData = {
+          items: selectedProducts.map((product: any) => ({
+            productId: product.id,
+            quantity: product.quantity || 1,
+            price: product.subscription_price || product.price || 0,
+          })),
+          shippingAddress: buildShippingAddress(),
+          paymentMethod: 'card' as const,
+          subtotal: subscriptionSubtotal,
+          shippingCost: totalShippingCost,
+          totalAmount: finalTotal,
+          loyaltyPointsUsed: loyaltyRedemption.points,
+          loyaltyDiscount: loyaltyRedemption.value,
+          couponCode: appliedCoupon,
+          couponDiscount,
+          deliveryOption: formData.deliveryOption,
+          isGift: formData.isGift,
+          giftMessage: formData.giftMessage,
+        };
+
+        const subOrderResponse = await orderService.createOrder(subOrderData);
+        const subOrder = (subOrderResponse as any)?.data ?? subOrderResponse;
+        const subOrderId = subOrder?.id;
+
+        if (!subOrderId) {
+          throw new Error('Failed to create payment record for subscription. Please try again.');
+        }
+
+        const payhereRes = await api.post('/payment/initiate', { order_id: subOrderId });
+        if (!payhereRes.success || !payhereRes.data) {
+          throw new Error(payhereRes.error || 'Failed to initiate payment. Please try again.');
+        }
+
+        const rawParams = payhereRes.data as any;
+        const params = (rawParams?.data ?? rawParams) as Record<string, string>;
+
+        if (!params?.checkout_url) {
+          throw new Error('Invalid payment configuration. Please contact support.');
+        }
+
+        console.log('[PayHere] Subscription payment redirecting to:', params.checkout_url);
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = params.checkout_url;
+        ['merchant_id', 'return_url', 'cancel_url', 'notify_url', 'order_id', 'items',
+          'currency', 'amount', 'first_name', 'last_name', 'email', 'phone',
+          'address', 'city', 'country', 'hash'].forEach(key => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = params[key] ?? '';
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
         return;
       }
       
 
       // 🌟 ELSE → Normal one-time order flow
 
-      // 1. Redeem loyalty points FIRST (if any)
-      let redemptionSuccess = false;
-      if (loyaltyRedemption.points > 0) {
-        try {
-          const redemptionResult = await loyaltyService.redeemPoints(
-            loyaltyRedemption.points,
-            'ORDER_PENDING', // Will be updated with real order ID later
-            'Checkout discount'
-          );
-          redemptionSuccess = true;
-          console.log('Points redeemed:', redemptionResult);
-        } catch (redemptionError: any) {
-          setError(redemptionError.message);
-          setIsProcessing(false);
-          return; // Stop checkout if redemption fails
-        }
-      }
-
-      // 2. Create order with discounted total
+      // Create order with loyalty points redemption (backend handles point deduction)
       const orderData = {
         items: cart
         .filter(item => !String(item.product.id).startsWith('theme-'))
@@ -618,29 +669,66 @@ const Checkout: React.FC = () => {
         giftMessage: formData.giftMessage
       };
 
-      const order = await orderService.createOrder(orderData);
-      toast.success("Order placed successfully!");
+      const orderResponse = await orderService.createOrder(orderData);
+      // The service returns the backend response body; actual order is nested under .data
+      const order = (orderResponse as any)?.data ?? orderResponse;
+      const orderId = order?.id;
 
-      // Award loyalty points for the order
-      try {
-        const { loyaltyService } = await import('../../../services/loyalty.service');
-        const pointsResult = await loyaltyService.earnPointsForOrder(
-          order.id,
-          finalTotal
-        );
-        console.log('[Checkout] Loyalty points earned:', pointsResult.points_earned);
-        toast.success(`🎉 You earned ${pointsResult.points_earned} loyalty points!`, {
-          autoClose: 5000
-        });
-      } catch (loyaltyError: any) {
-        console.warn('[Checkout] Failed to earn loyalty points:', loyaltyError.message);
-        // Don't fail the checkout if loyalty points fail
-        // The order is already created successfully
+      if (!orderId) {
+        throw new Error('Order was not created properly. Please try again.');
       }
 
-      clearCart();
+      if (formData.paymentMethod === 'card') {
+        // PayHere online payment: generate hash and redirect to PayHere gateway
+        const payhereRes = await api.post('/payment/initiate', { order_id: orderId });
 
-      navigate(`/order-confirmation/${order.id}`);
+        if (!payhereRes.success || !payhereRes.data) {
+          throw new Error(payhereRes.error || 'Failed to initiate payment. Please try again.');
+        }
+
+        // Unwrap nested backend response: { success: true, data: { checkout_url, ... } }
+        const rawParams = (payhereRes.data as any);
+        const params = (rawParams?.data ?? rawParams) as Record<string, string>;
+
+        if (!params?.checkout_url) {
+          throw new Error('Invalid payment configuration. Please contact support.');
+        }
+
+        console.log('[PayHere] Redirecting to:', params.checkout_url, 'with order_id:', params.order_id);
+
+        // Build a hidden form and submit to PayHere
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = params.checkout_url;
+
+        const fields = [
+          'merchant_id', 'return_url', 'cancel_url', 'notify_url',
+          'order_id', 'items', 'currency', 'amount',
+          'first_name', 'last_name', 'email', 'phone',
+          'address', 'city', 'country', 'hash',
+        ];
+        fields.forEach(key => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = params[key] ?? '';
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        return; // Redirect takes over; don't navigate or clear cart here
+      }
+
+      // COD: show success, clear cart, navigate
+      const pointsMessage = loyaltyRedemption.points > 0
+        ? `Order placed! ${loyaltyRedemption.points} points redeemed.`
+        : "Order placed successfully!";
+      toast.success(pointsMessage);
+
+      await clearCart();
+
+      navigate(`/order-confirmation/${orderId}`);
 
     } catch (err: any) {
       
@@ -784,9 +872,18 @@ const Checkout: React.FC = () => {
                       type="text"
                       value={formData.shippingAddress.fullName}
                       onChange={(e) => handleShippingChange('fullName', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      required
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                        fieldErrors.fullName
+                          ? 'border-red-400 focus:ring-red-300'
+                          : 'border-light-gray focus:ring-primary-blue'
+                      }`}
+                      placeholder="Your full name"
                     />
+                    {fieldErrors.fullName && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.fullName}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
@@ -797,10 +894,18 @@ const Checkout: React.FC = () => {
                       type="tel"
                       value={formData.shippingAddress.phone}
                       onChange={(e) => handleShippingChange('phone', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                      placeholder="10-digit mobile number"
-                      required
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                        fieldErrors.phone
+                          ? 'border-red-400 focus:ring-red-300'
+                          : 'border-light-gray focus:ring-primary-blue'
+                      }`}
+                      placeholder="0712345678"
                     />
+                    {fieldErrors.phone && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.phone}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -821,15 +926,28 @@ const Checkout: React.FC = () => {
                     <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Choose Address</label>
                     <select
                       value={selectedAddressId || ''}
-                      onChange={(e) => setSelectedAddressId(e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all mb-2"
+                      onChange={(e) => {
+                        setSelectedAddressId(e.target.value);
+                        if (fieldErrors.selectedAddress) setFieldErrors(prev => ({ ...prev, selectedAddress: '' }));
+                      }}
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all mb-1 ${
+                        fieldErrors.selectedAddress
+                          ? 'border-red-400 focus:ring-red-300'
+                          : 'border-light-gray focus:ring-primary-blue'
+                      }`}
                     >
+                      <option value="">— Select an address —</option>
                       {addresses.map(addr => (
                         <option key={addr.id} value={addr.id}>
                           {addr.display_name} - {addr.formatted_address}
                         </option>
                       ))}
                     </select>
+                    {fieldErrors.selectedAddress && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{fieldErrors.selectedAddress}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -842,15 +960,22 @@ const Checkout: React.FC = () => {
                       </label>
                       <textarea
                         value={formData.shippingAddress.address}
-                        onChange={e => setFormData({
-                        ...formData,
-                        shippingAddress: {...formData.shippingAddress, address: e.target.value}
-                      })}
-                        className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
+                        onChange={e => {
+                          handleShippingChange('address', e.target.value);
+                        }}
+                        className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                          fieldErrors.address
+                            ? 'border-red-400 focus:ring-red-300'
+                            : 'border-light-gray focus:ring-primary-blue'
+                        }`}
                         rows={3}
                         placeholder="House no., Building, Street, Area"
-                        required
                       />
+                      {fieldErrors.address && (
+                        <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />{fieldErrors.address}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -875,13 +1000,19 @@ const Checkout: React.FC = () => {
                         <input
                           type="text"
                           value={formData.shippingAddress.city}
-                          onChange={e => setFormData({
-                              ...formData,
-                              shippingAddress: {...formData.shippingAddress, city: e.target.value}
-                            })}
-                                className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                          required
+                          onChange={e => handleShippingChange('city', e.target.value)}
+                          className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                            fieldErrors.city
+                              ? 'border-red-400 focus:ring-red-300'
+                              : 'border-light-gray focus:ring-primary-blue'
+                          }`}
+                          placeholder="e.g. Colombo"
                         />
+                        {fieldErrors.city && (
+                          <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />{fieldErrors.city}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -889,36 +1020,47 @@ const Checkout: React.FC = () => {
                       <div>
                         <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                           <MapPin className="inline h-4 w-4 mr-2" />
-                          State *
+                          Province / State *
                         </label>
                         <input
                           type="text"
                           value={formData.shippingAddress.state}
-                          onChange={e => setFormData({
-                            ...formData,
-                            shippingAddress: {...formData.shippingAddress, state: e.target.value}
-                          })}
-                          className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                          required
+                          onChange={e => handleShippingChange('state', e.target.value)}
+                          className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                            fieldErrors.state
+                              ? 'border-red-400 focus:ring-red-300'
+                              : 'border-light-gray focus:ring-primary-blue'
+                          }`}
+                          placeholder="e.g. Western Province"
                         />
+                        {fieldErrors.state && (
+                          <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />{fieldErrors.state}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                           <Hash className="inline h-4 w-4 mr-2" />
-                          Pincode *
+                          Postal Code *
                         </label>
                         <input
                           type="text"
                           value={formData.shippingAddress.pincode}
-                          onChange={e => setFormData({
-                            ...formData,
-                            shippingAddress: {...formData.shippingAddress, pincode: e.target.value}
-                          })}
-                          className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all"
-                          placeholder="5-digit pincode"
+                          onChange={e => handleShippingChange('pincode', e.target.value)}
+                          className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
+                            fieldErrors.pincode
+                              ? 'border-red-400 focus:ring-red-300'
+                              : 'border-light-gray focus:ring-primary-blue'
+                          }`}
+                          placeholder="e.g. 10100"
                           maxLength={5}
-                          required
                         />
+                        {fieldErrors.pincode && (
+                          <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />{fieldErrors.pincode}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -980,63 +1122,121 @@ const Checkout: React.FC = () => {
 
             {/* Delivery Options */}
             <div className="mt-8 pt-8 border-t-2 border-light-gray">
-              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-4">
-                Delivery Options
+              <h3 className="text-lg font-fredoka font-semibold text-charcoal mb-6">
+                Choose Delivery Speed
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label 
-                  className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                    formData.deliveryOption === 'standard' 
-                      ? 'border-primary-blue bg-primary-blue/5' 
-                      : 'border-light-gray hover:border-primary-blue/50'
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Standard Delivery Button */}
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setFormData(prev => ({ ...prev, deliveryOption: 'standard' }))}
+                  className={`relative p-6 border-3 rounded-2xl cursor-pointer transition-all text-left ${
+                    formData.deliveryOption === 'standard'
+                      ? 'border-primary-blue bg-gradient-to-br from-primary-blue/10 to-primary-blue/5 shadow-lg'
+                      : 'border-light-gray bg-white hover:border-primary-blue/50 hover:shadow-md'
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="delivery"
-                    value="standard"
-                    checked={formData.deliveryOption === 'standard'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryOption: 'standard' }))}
-                    className="mr-3"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <Truck className="h-5 w-5 mr-2 text-primary-blue" />
-                      <span className="font-fredoka font-medium">Standard Delivery</span>
+                  {/* Selection Indicator */}
+                  <div className="absolute top-4 right-4">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                      formData.deliveryOption === 'standard'
+                        ? 'border-primary-blue bg-primary-blue'
+                        : 'border-medium-gray bg-white'
+                    }`}>
+                      {formData.deliveryOption === 'standard' && (
+                        <CheckCircle className="h-4 w-4 text-white" />
+                      )}
                     </div>
-                    <p className="text-sm text-medium-gray mt-1">5-7 business days</p>
-                    <p className="text-sm font-fredoka font-semibold text-mint-green">
-                      {baseShippingCost === 0 ? 'FREE' : `Rs. ${baseShippingCost}`}
-                    </p>
                   </div>
-                </label>
 
-                <label 
-                  className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                    formData.deliveryOption === 'express' 
-                      ? 'border-primary-blue bg-primary-blue/5' 
-                      : 'border-light-gray hover:border-primary-blue/50'
+                  {/* Content */}
+                  <div className="pr-8">
+                    <div className="flex items-center mb-3">
+                      <div className={`p-2 rounded-xl mr-3 ${
+                        formData.deliveryOption === 'standard'
+                          ? 'bg-primary-blue text-white'
+                          : 'bg-primary-blue/10 text-primary-blue'
+                      }`}>
+                        <Truck className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-fredoka font-bold text-lg text-charcoal">
+                          Standard Delivery
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 ml-14">
+                      <div className="flex items-center text-sm text-medium-gray">
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>5-7 business days</span>
+                      </div>
+                      <div className={`inline-block px-3 py-1 rounded-lg font-fredoka font-bold text-sm ${
+                        baseShippingCost === 0
+                          ? 'bg-mint-green/20 text-mint-green'
+                          : 'bg-primary-blue/20 text-primary-blue'
+                      }`}>
+                        {baseShippingCost === 0 ? '✓ FREE Shipping' : `Rs. ${baseShippingCost}`}
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
+
+                {/* Express Delivery Button */}
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setFormData(prev => ({ ...prev, deliveryOption: 'express' }))}
+                  className={`relative p-6 border-3 rounded-2xl cursor-pointer transition-all text-left ${
+                    formData.deliveryOption === 'express'
+                      ? 'border-vibrant-orange bg-gradient-to-br from-vibrant-orange/10 to-sunny-yellow/5 shadow-lg'
+                      : 'border-light-gray bg-white hover:border-vibrant-orange/50 hover:shadow-md'
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="delivery"
-                    value="express"
-                    checked={formData.deliveryOption === 'express'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryOption: 'express' }))}
-                    className="mr-3"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <Clock className="h-5 w-5 mr-2 text-vibrant-orange" />
-                      <span className="font-fredoka font-medium">Express Delivery</span>
+                  {/* Selection Indicator */}
+                  <div className="absolute top-4 right-4">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                      formData.deliveryOption === 'express'
+                        ? 'border-vibrant-orange bg-vibrant-orange'
+                        : 'border-medium-gray bg-white'
+                    }`}>
+                      {formData.deliveryOption === 'express' && (
+                        <CheckCircle className="h-4 w-4 text-white" />
+                      )}
                     </div>
-                    <p className="text-sm text-medium-gray mt-1">2-3 business days</p>
-                    <p className="text-sm font-fredoka font-semibold text-vibrant-orange">
-                      +Rs. 100
-                    </p>
                   </div>
-                </label>
+
+                  {/* Content */}
+                  <div className="pr-8">
+                    <div className="flex items-center mb-3">
+                      <div className={`p-2 rounded-xl mr-3 ${
+                        formData.deliveryOption === 'express'
+                          ? 'bg-vibrant-orange text-white'
+                          : 'bg-vibrant-orange/10 text-vibrant-orange'
+                      }`}>
+                        <Clock className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-fredoka font-bold text-lg text-charcoal">
+                          Express Delivery
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 ml-14">
+                      <div className="flex items-center text-sm text-medium-gray">
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>2-3 business days</span>
+                      </div>
+                      <div className="inline-block px-3 py-1 rounded-lg bg-vibrant-orange/20 text-vibrant-orange font-fredoka font-bold text-sm">
+                        +Rs. 100 Extra
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
               </div>
             </div>
 
@@ -1104,9 +1304,9 @@ const Checkout: React.FC = () => {
                     <div>
                       <div className="flex items-center mb-2">
                         <CreditCard className="h-6 w-6 mr-2 text-vibrant-orange" />
-                        <span className="font-fredoka font-semibold text-lg">Credit/Debit Card</span>
+                        <span className="font-fredoka font-semibold text-lg">Pay Online (PayHere)</span>
                       </div>
-                      <p className="text-sm text-medium-gray">Pay securely with your card</p>
+                      <p className="text-sm text-medium-gray">Pay securely via PayHere gateway</p>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 ${
                       formData.paymentMethod === 'card' 
@@ -1169,116 +1369,17 @@ const Checkout: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="space-y-6 p-6 bg-gradient-to-br from-vibrant-orange/5 to-vibrant-orange/10 rounded-xl"
+                  className="p-6 bg-gradient-to-br from-vibrant-orange/5 to-vibrant-orange/10 rounded-xl"
                 >
-                  <div className="bg-amber-50 p-4 rounded-xl flex items-start">
-                    <Info className="h-5 w-5 text-vibrant-orange mr-2 mt-0.5" />
+                  <div className="flex items-start">
+                    <Shield className="h-5 w-5 text-vibrant-orange mr-3 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-fredoka font-semibold text-vibrant-orange">
-                        Demo Mode
+                      <p className="text-sm font-fredoka font-semibold text-vibrant-orange mb-1">
+                        Secure Payment via PayHere
                       </p>
                       <p className="text-sm text-medium-gray">
-                        Use test card: 4111 1111 1111 1111, Any future expiry, Any CVV
+                        You will be redirected to PayHere's secure payment page to enter your card details. Supports Visa, Mastercard, Amex and more.
                       </p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      Card Number
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        value={formData.cardDetails?.number || ''}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\s/g, '');
-                          const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-                          setFormData(prev => ({
-                            ...prev,
-                            cardDetails: {
-                              ...prev.cardDetails!,
-                              number: formatted
-                            }
-                          }));
-                        }}
-                        className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
-                        maxLength={19}
-                      />
-                      <CreditCard className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      Cardholder Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      value={formData.cardDetails?.name || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        cardDetails: {
-                          ...prev.cardDetails!,
-                          name: e.target.value
-                        }
-                      }))}
-                      className="w-full px-4 py-3 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Expiry Date
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="MM/YY"
-                          value={formData.cardDetails?.expiry || ''}
-                          onChange={(e) => {
-                            let value = e.target.value.replace(/\D/g, '');
-                            if (value.length >= 2) {
-                              value = value.slice(0, 2) + '/' + value.slice(2, 4);
-                            }
-                            setFormData(prev => ({
-                              ...prev,
-                              cardDetails: {
-                                ...prev.cardDetails!,
-                                expiry: value
-                              }
-                            }));
-                          }}
-                          className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
-                          maxLength={5}
-                        />
-                        <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        CVV
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="123"
-                          value={formData.cardDetails?.cvv || ''}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            cardDetails: {
-                              ...prev.cardDetails!,
-                              cvv: e.target.value.replace(/\D/g, '')
-                            }
-                          }))}
-                          className="w-full px-4 py-3 pl-12 border-2 border-light-gray rounded-xl focus:ring-2 focus:ring-vibrant-orange focus:border-transparent transition-all"
-                          maxLength={4}
-                        />
-                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-medium-gray" />
-                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -1386,12 +1487,12 @@ const Checkout: React.FC = () => {
               </h3>
               <div className="p-4 bg-soft-gray rounded-xl">
                 <p className="font-fredoka font-semibold">
-                  {formData.paymentMethod === 'card' && 'Credit/Debit Card'}
+                  {formData.paymentMethod === 'card' && 'Pay Online (PayHere)'}
                   {formData.paymentMethod === 'cod' && 'Cash on Delivery'}
                 </p>
-                {formData.paymentMethod === 'card' && formData.cardDetails && (
+                {formData.paymentMethod === 'card' && (
                   <p className="text-sm text-medium-gray">
-                    •••• •••• •••• {String(formData.cardDetails.number.slice(-4))}
+                    You will be redirected to PayHere to complete payment
                   </p>
                 )}
               </div>
@@ -1429,26 +1530,53 @@ const Checkout: React.FC = () => {
               </h3>
               <div className="space-y-3">
                 {isSubscription ? (
-                  selectedProducts?.map((product: any) => (
-                    <div key={product.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={product.primary_image?.url ? `${host}${product.primary_image.url}` : '/placeholder.png'}
-                          alt={product.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                        <div>
-                          <p className="font-fredoka font-semibold text-charcoal">{String(product?.name || 'Product')}</p>
-                          <p className="text-sm text-medium-gray">
-                            Qty: {product.quantity || 1} × {deliveryCount} deliveries
-                          </p>
+                  selectedProducts?.map((product: any) => {
+                    const qty = product.quantity || 1;
+                    const originalPrice = product.price || 0;
+                    const subPrice = product.subscription_price || originalPrice;
+                    const hasDiscount = subPrice < originalPrice;
+                    const lineTotal = subPrice * qty * deliveryCount;
+                    const originalLineTotal = originalPrice * qty * deliveryCount;
+
+                    return (
+                      <div key={product.id} className="flex items-center justify-between p-4 bg-soft-gray rounded-xl">
+                        <div className="flex items-center space-x-4">
+                          <img
+                            src={product.primary_image?.url ? `${host}${product.primary_image.url}` : '/placeholder.png'}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                          <div>
+                            <p className="font-fredoka font-semibold text-charcoal">{String(product?.name || 'Product')}</p>
+                            <p className="text-sm text-medium-gray">
+                              Qty: {qty} × {deliveryCount} deliveries
+                            </p>
+                            {hasDiscount && (
+                              <p className="text-xs text-mint-green font-fredoka font-bold">
+                                Save {formatters.currency(originalLineTotal - lineTotal)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {hasDiscount ? (
+                            <>
+                              <p className="font-fredoka font-semibold text-charcoal">
+                                {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice(lineTotal)}
+                              </p>
+                              <p className="text-sm line-through text-gray-400">
+                                {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice(originalLineTotal)}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="font-fredoka font-semibold text-charcoal">
+                              {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice(lineTotal)}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <p className="font-fredoka font-semibold text-charcoal">
-                        {getCurrencyDisplay(product?.currency || 'LKR')} {safeDisplayPrice((product?.subscription_price || 0) * (product.quantity || 1) * deliveryCount)}
-                      </p>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                 normalizedCart.map((item) => {
                   const originalPrice = (item.product as any).originalPrice || item.product.price;
@@ -1639,7 +1767,7 @@ const Checkout: React.FC = () => {
                 <button
                   onClick={handlePlaceOrder}
                   disabled={isProcessing}
-                  className="flex items-center px-8 py-3 bg-mint-green text-white rounded-xl hover:bg-mint-green/90 transition-all font-fredoka font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center px-8 py-3 text-white rounded-xl transition-all font-fredoka font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110" style={{ background: '#FF6B35' }}
                 >
                   {isProcessing ? (
                     <>
@@ -1672,9 +1800,12 @@ const Checkout: React.FC = () => {
                   {isSubscription
                     ? selectedProducts?.map((product: any) => {
                         const currencyDisplay = getCurrencyDisplay(product.currency);
-                        const unitPrice = safeDisplayPrice(product.subscription_price);
                         const quantity = product.quantity || 1;
-                        const totalForProduct = (product.subscription_price || 0) * quantity * deliveryCount;
+                        const originalPrice = product.price || 0;
+                        const subPrice = product.subscription_price || originalPrice;
+                        const hasDiscount = subPrice < originalPrice;
+                        const lineTotal = subPrice * quantity * deliveryCount;
+                        const originalLineTotal = originalPrice * quantity * deliveryCount;
 
                         return (
                           <div key={product.id} className="flex justify-between items-start text-sm">
@@ -1684,12 +1815,29 @@ const Checkout: React.FC = () => {
                                 {quantity} unit{quantity > 1 ? 's' : ''} × {deliveryCount} delivery{deliveryCount > 1 ? 'ies' : 'y'}
                               </p>
                               <p className="text-medium-gray text-xs">
-                                {String(currencyDisplay)} {unitPrice} per unit
+                                {String(currencyDisplay)} {safeDisplayPrice(subPrice)} per unit
+                                {hasDiscount && (
+                                  <span className="line-through text-gray-400 ml-1">
+                                    {safeDisplayPrice(originalPrice)}
+                                  </span>
+                                )}
                               </p>
+                              {hasDiscount && (
+                                <p className="text-xs text-mint-green font-fredoka font-bold">
+                                  Save {formatters.currency(originalLineTotal - lineTotal)}
+                                </p>
+                              )}
                             </div>
-                            <p className="font-fredoka font-semibold text-charcoal ml-2">
-                              {String(currencyDisplay)} {safeDisplayPrice(totalForProduct)}
-                            </p>
+                            <div className="text-right ml-2">
+                              <p className="font-fredoka font-semibold text-charcoal">
+                                {String(currencyDisplay)} {safeDisplayPrice(lineTotal)}
+                              </p>
+                              {hasDiscount && (
+                                <p className="text-xs line-through text-gray-400">
+                                  {String(currencyDisplay)} {safeDisplayPrice(originalLineTotal)}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         );
                       })

@@ -149,12 +149,13 @@ class ProductsService {
 
         return {
           id: item.id.toString(),
+          slug: item.slug,
           name: item.name,
           brand: item.brand?.name || 'Unknown',
           price: parseFloat(item.price) || 0,
           originalPrice: item.original_price ? parseFloat(item.original_price) : undefined,
-          image: item.images?.[0] || placeholderImage,
-          images: item.images || [],
+          image: item.primary_image?.url || placeholderImage,
+          images: [],
           rating: parseFloat(item.rating_avg) || 0,
           reviews: item.review_count || 0,
           category: item.category?.name || 'Unknown',

@@ -19,17 +19,17 @@ const FooterExtras: React.FC = () => {
             <div className="container mx-auto flex flex-wrap items-center justify-between mb-8 px-4">
                 {/* Social icons */}
                 <div className="flex space-x-6">
-                    <a href="#" aria-label="Facebook" className="group">
+                    {/* <a href="#" aria-label="Facebook" className="group">
                         <div className="w-12 h-12 bg-primary-blue/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-primary-blue group-hover:scale-110">
                             <Facebook className="w-5 h-5 text-primary-blue group-hover:text-white" />
                         </div>
-                    </a>
+                    </a> */}
                     <a href="#" aria-label="Instagram" className="group">
                         <div className="w-12 h-12 bg-vibrant-orange/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-vibrant-orange group-hover:scale-110">
                             <Instagram className="w-5 h-5 text-vibrant-orange group-hover:text-white" />
                         </div>
                     </a>
-                    <a href="#" aria-label="X (Twitter)" className="group">
+                    {/* <a href="#" aria-label="X (Twitter)" className="group">
                         <div className="w-12 h-12 bg-primary-blue/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-primary-blue group-hover:scale-110">
                             <Twitter className="w-5 h-5 text-primary-blue group-hover:text-white" />
                         </div>
@@ -38,7 +38,7 @@ const FooterExtras: React.FC = () => {
                         <div className="w-12 h-12 bg-crimson/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-crimson group-hover:scale-110">
                             <Youtube className="w-5 h-5 text-crimson group-hover:text-white" />
                         </div>
-                    </a>
+                    </a> */}
                 </div>
 
                 {/* App store badges */}
@@ -82,15 +82,15 @@ const FooterExtras: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Copyright */}
                 <div className="mt-6 md:mt-0 text-center md:text-right">
                     <p className="text-medium-gray flex items-center justify-center md:justify-end">
-                        Made with <span className="text-crimson mx-1 animate-pulse">❤️</span> for pets 
+                        Made with <span className="text-crimson mx-1 animate-pulse">❤️</span> for pets
                         <span className="text-primary-blue ml-2">🐾</span>
                     </p>
                     <p className="text-sm text-medium-gray mt-2">
-                        © 2025 Pawsome. All rights reserved.
+                        © 2026 Pawsome. All rights reserved.
                     </p>
                 </div>
             </div>
