@@ -1767,7 +1767,7 @@ const Checkout: React.FC = () => {
                 <button
                   onClick={handlePlaceOrder}
                   disabled={isProcessing}
-                  className="flex items-center px-8 py-3 bg-mint-green text-white rounded-xl hover:bg-mint-green/90 transition-all font-fredoka font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center px-8 py-3 text-white rounded-xl transition-all font-fredoka font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110" style={{ background: '#FF6B35' }}
                 >
                   {isProcessing ? (
                     <>

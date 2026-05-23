@@ -9,7 +9,6 @@ import {
   TrendingUp,
   Trophy,
   Plus,
-  ShoppingBag,
   Clock,
   DollarSign,
 } from 'lucide-react';
@@ -321,13 +320,6 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
                     <p className="text-medium-gray mb-6 max-w-sm">
                       Start saving with our subscription service and never run out of your pet's essentials!
                     </p>
-                    <button
-                      onClick={onClose}
-                      className="bg-primary-blue hover:bg-vibrant-orange text-white font-fredoka font-medium px-6 py-3 rounded-full transition-colors flex items-center"
-                    >
-                      <ShoppingBag className="h-5 w-5 mr-2" />
-                      Start Shopping
-                    </button>
                   </div>
                 )}
               </div>

@@ -1867,80 +1867,137 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                   </div>
 
                   {/* Dates */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-fredoka font-semibold text-charcoal mb-1.5 block uppercase tracking-wide">
-                        Start Date <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        className="w-full border-2 border-light-gray rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent" style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
-                        value={startDate}
-                        min={new Date().toISOString().split("T")[0]}
-                        onChange={e => setStartDate(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-fredoka font-semibold text-charcoal mb-1.5 block uppercase tracking-wide">
-                        End Date <span className="text-medium-gray font-normal">(optional)</span>
-                      </label>
-                      <input
-                        type="date"
-                        className="w-full border-2 border-light-gray rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent" style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
-                        min={startDate || new Date().toISOString().split("T")[0]}
-                        value={endDate}
-                        onChange={e => setEndDate(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                  {(() => {
+                    // Minimum interval in days based on selected frequency
+                    const intervalDays =
+                      intervalType === 'weekly' ? intervalValue * 7 :
+                      intervalType === 'monthly' ? intervalValue * 30 :
+                      intervalValue;
 
-                  {/* Summary pill */}
-                  {startDate && (
-                    <div className="rounded-2xl px-4 py-3 flex items-center gap-3" style={{ background: 'rgba(164,247,255,0.25)', border: '1px solid rgba(164,247,255,0.8)' }}>
-                      <Repeat className="h-4 w-4 flex-shrink-0" style={{ color: '#FF6B35' }} />
-                      <p className="text-sm font-fredoka" style={{ color: '#004D6B' }}>
-                        Delivering{' '}
-                        <span className="font-bold" style={{ color: '#FF6B35' }}>
-                          {intervalType === 'weekly' ? `every ${intervalValue === 1 ? 'week' : `${intervalValue} weeks`}` :
-                           intervalType === 'monthly' ? `every ${intervalValue === 1 ? 'month' : `${intervalValue} months`}` :
-                           `every ${intervalValue} days`}
-                        </span>
-                        {' '}starting <span className="font-bold" style={{ color: '#FF6B35' }}>{new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                        {endDate ? ` until ${new Date(endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ' (ongoing)'}
-                      </p>
-                    </div>
-                  )}
+                    // Minimum end date = start date + one full interval
+                    const minEndDate = (() => {
+                      if (!startDate) return new Date().toISOString().split('T')[0];
+                      const d = new Date(startDate + 'T00:00:00');
+                      d.setDate(d.getDate() + intervalDays);
+                      return d.toISOString().split('T')[0];
+                    })();
 
-                  {/* Footer */}
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      onClick={() => setIsScheduleModalOpen(false)}
-                      className="flex-1 bg-soft-gray hover:bg-light-gray text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors"
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsScheduleModalOpen(false);
-                        handleConfirmSelection({
-                          intervalType,
-                          intervalValue,
-                          startDate,
-                          endDate,
-                          deliveryPeriod: intervalType
-                        });
-                      }}
-                      disabled={!startDate}
-                      className={`flex-1 font-fredoka font-bold py-3 rounded-xl transition-all ${
-                        startDate
-                          ? 'text-white shadow-md hover:shadow-lg'
-                          : 'bg-light-gray text-medium-gray cursor-not-allowed'
-                      }`}
-                      style={startDate ? { background: '#FF6B35' } : {}}
-                    >
-                      Confirm & Continue
-                    </button>
-                  </div>
+                    // Number of deliveries within the selected window
+                    const deliveryCount = (() => {
+                      if (!startDate || !endDate) return 0;
+                      const diffDays = Math.floor(
+                        (new Date(endDate + 'T00:00:00').getTime() - new Date(startDate + 'T00:00:00').getTime())
+                        / 86400000
+                      );
+                      return diffDays < intervalDays ? 0 : Math.floor(diffDays / intervalDays) + 1;
+                    })();
+
+                    const endDateTooEarly = !!endDate && endDate < minEndDate;
+                    const canConfirm = !!startDate && !!endDate && !endDateTooEarly;
+
+                    return (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-fredoka font-semibold text-charcoal mb-1.5 block uppercase tracking-wide">
+                              Start Date <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                              type="date"
+                              className="w-full border-2 border-light-gray rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                              style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
+                              value={startDate}
+                              min={new Date().toISOString().split('T')[0]}
+                              onChange={e => { setStartDate(e.target.value); setEndDate(''); }}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-fredoka font-semibold text-charcoal mb-1.5 block uppercase tracking-wide">
+                              End Date <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                              type="date"
+                              className={`w-full border-2 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent ${endDateTooEarly ? 'border-red-400' : 'border-light-gray'}`}
+                              style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
+                              min={minEndDate}
+                              value={endDate}
+                              disabled={!startDate}
+                              onChange={e => setEndDate(e.target.value)}
+                            />
+                            {endDateTooEarly && (
+                              <p className="text-xs text-red-400 mt-1 font-nunito">
+                                Must be at least {intervalDays} days after start date to cover one delivery.
+                              </p>
+                            )}
+                            {!startDate && (
+                              <p className="text-xs text-medium-gray mt-1 font-nunito">Select a start date first.</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Summary pill */}
+                        {startDate && endDate && !endDateTooEarly && (
+                          <div className="rounded-2xl px-4 py-3 space-y-1" style={{ background: 'rgba(164,247,255,0.25)', border: '1px solid rgba(164,247,255,0.8)' }}>
+                            <div className="flex items-center gap-3">
+                              <Repeat className="h-4 w-4 flex-shrink-0" style={{ color: '#FF6B35' }} />
+                              <p className="text-sm font-fredoka" style={{ color: '#004D6B' }}>
+                                Delivering{' '}
+                                <span className="font-bold" style={{ color: '#FF6B35' }}>
+                                  {intervalType === 'weekly'
+                                    ? `every ${intervalValue === 1 ? 'week' : `${intervalValue} weeks`}`
+                                    : intervalType === 'monthly'
+                                    ? `every ${intervalValue === 1 ? 'month' : `${intervalValue} months`}`
+                                    : `every ${intervalValue} days`}
+                                </span>
+                                {' '}from{' '}
+                                <span className="font-bold" style={{ color: '#FF6B35' }}>
+                                  {new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                                {' '}to{' '}
+                                <span className="font-bold" style={{ color: '#FF6B35' }}>
+                                  {new Date(endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                              </p>
+                            </div>
+                            <p className="text-xs font-fredoka pl-7" style={{ color: '#004D6B', opacity: 0.75 }}>
+                              {deliveryCount} {deliveryCount === 1 ? 'delivery' : 'deliveries'} scheduled
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="flex gap-3 pt-2">
+                          <button
+                            onClick={() => setIsScheduleModalOpen(false)}
+                            className="flex-1 bg-soft-gray hover:bg-light-gray text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors"
+                          >
+                            Back
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsScheduleModalOpen(false);
+                              handleConfirmSelection({
+                                intervalType,
+                                intervalValue,
+                                startDate,
+                                endDate,
+                                deliveryPeriod: intervalType
+                              });
+                            }}
+                            disabled={!canConfirm}
+                            className={`flex-1 font-fredoka font-bold py-3 rounded-xl transition-all ${
+                              canConfirm
+                                ? 'text-white shadow-md hover:shadow-lg'
+                                : 'bg-light-gray text-medium-gray cursor-not-allowed'
+                            }`}
+                            style={canConfirm ? { background: '#FF6B35' } : {}}
+                          >
+                            Confirm & Continue
+                          </button>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </motion.div>
