@@ -86,9 +86,9 @@ const OrderDetails: React.FC = () => {
   const getStatusConfig = (status: string) => {
     const configs: Record<string, { color: string; bgColor: string; icon: any; label: string }> = {
       pending: { color: 'text-charcoal', bgColor: 'bg-sunny-yellow/20 border-sunny-yellow', icon: Clock, label: 'Pending' },
-      confirmed: { color: 'text-primary-blue', bgColor: 'bg-primary-blue/10 border-primary-blue', icon: CheckCircle, label: 'Confirmed' },
-      processing: { color: 'text-lavender', bgColor: 'bg-lavender/20 border-lavender', icon: Package, label: 'Processing' },
-      shipped: { color: 'text-calm-blue', bgColor: 'bg-calm-blue/20 border-calm-blue', icon: Truck, label: 'Shipped' },
+      confirmed: { color: 'text-charcoal', bgColor: 'bg-sky-100 border-sky-300', icon: CheckCircle, label: 'Confirmed' },
+      processing: { color: 'text-charcoal', bgColor: 'bg-orange-50 border-orange-300', icon: Package, label: 'Processing' },
+      shipped: { color: 'text-charcoal', bgColor: 'bg-sky-100 border-sky-300', icon: Truck, label: 'Shipped' },
       delivered: { color: 'text-mint-green', bgColor: 'bg-mint-green/20 border-mint-green', icon: CheckCircle, label: 'Delivered' },
       cancelled: { color: 'text-crimson', bgColor: 'bg-crimson/10 border-crimson', icon: X, label: 'Cancelled' },
       failed: { color: 'text-crimson', bgColor: 'bg-crimson/10 border-crimson', icon: AlertCircle, label: 'Failed' },
@@ -98,12 +98,13 @@ const OrderDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-soft-gray via-white to-soft-gray flex items-center justify-center">
+      <div className="min-h-screen bg-warm-white flex items-center justify-center">
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-vibrant-orange border-t-transparent rounded-full mx-auto mb-4"
+            className="w-16 h-16 border-4 border-t-transparent rounded-full mx-auto mb-4"
+            style={{ borderColor: '#FF6B35', borderTopColor: 'transparent' }}
           />
           <p className="text-medium-gray font-fredoka">Loading order details...</p>
         </div>
@@ -119,7 +120,7 @@ const OrderDetails: React.FC = () => {
   const StatusIcon = statusConfig.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-soft-gray via-white to-soft-gray">
+    <div className="min-h-screen bg-warm-white">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Back Button */}
@@ -130,7 +131,10 @@ const OrderDetails: React.FC = () => {
           >
             <Link
               to="/orders"
-              className="inline-flex items-center gap-2 text-medium-gray hover:text-vibrant-orange transition-colors font-fredoka"
+              className="inline-flex items-center gap-2 text-medium-gray transition-colors font-fredoka hover:opacity-80"
+              style={{ color: undefined }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#FF6B35')}
+              onMouseLeave={e => (e.currentTarget.style.color = '')}
             >
               <ChevronLeft className="h-5 w-5" />
               Back to Orders
@@ -200,7 +204,7 @@ const OrderDetails: React.FC = () => {
             className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 border border-light-gray"
           >
             <h2 className="text-xl font-fredoka font-bold text-charcoal mb-6 flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-vibrant-orange to-sunny-yellow rounded-2xl flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: '#FF6B35' }}>
                 <Package className="h-5 w-5 text-white" />
               </div>
               Order Items ({order.items?.length || 0})
@@ -213,13 +217,14 @@ const OrderDetails: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 * index }}
-                  className="flex gap-4 p-4 bg-gradient-to-r from-soft-gray to-white rounded-2xl border border-light-gray hover:shadow-md transition-shadow"
+                  className="flex gap-4 p-4 rounded-2xl border border-light-gray hover:shadow-md transition-shadow"
+                  style={{ background: 'rgba(164,247,255,0.08)' }}
                 >
                   <div className="flex-shrink-0 w-24 h-24 bg-white rounded-2xl overflow-hidden border-2 border-light-gray shadow-sm">
                     {item.product?.primary_image?.url ? (
                       <img
                         src={item.product.primary_image.url}
-                        alt={item.product?.name || 'Product'}
+                        alt={item.product_name_snapshot || item.product?.name || 'Product'}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -231,16 +236,16 @@ const OrderDetails: React.FC = () => {
 
                   <div className="flex-1 min-w-0">
                     <h3 className="font-fredoka font-bold text-lg text-charcoal mb-2">
-                      {item.product?.name || item.product_name || 'Product'}
+                      {item.product_name_snapshot || item.product?.name || item.product_name || 'Product'}
                     </h3>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {item.product?.brand?.name && (
-                        <span className="px-3 py-1 bg-primary-blue/10 text-primary-blue rounded-full text-xs font-fredoka font-semibold border border-primary-blue">
+                        <span className="px-3 py-1 rounded-full text-xs font-fredoka font-semibold border" style={{ background: 'rgba(0,77,107,0.08)', color: '#004D6B', borderColor: 'rgba(0,77,107,0.25)' }}>
                           {item.product.brand.name}
                         </span>
                       )}
                       {item.product?.category?.name && (
-                        <span className="px-3 py-1 bg-lavender/20 text-lavender rounded-full text-xs font-fredoka font-semibold border border-lavender">
+                        <span className="px-3 py-1 rounded-full text-xs font-fredoka font-semibold border" style={{ background: 'rgba(255,107,53,0.1)', color: '#FF6B35', borderColor: 'rgba(255,107,53,0.3)' }}>
                           {item.product.category.name}
                         </span>
                       )}
@@ -255,7 +260,7 @@ const OrderDetails: React.FC = () => {
                   </div>
 
                   <div className="flex-shrink-0 text-right">
-                    <p className="font-fredoka font-bold text-2xl text-vibrant-orange">
+                    <p className="font-fredoka font-bold text-2xl" style={{ color: '#FF6B35' }}>
                       {order.currency || 'Rs.'} {(parseFloat(item.price || 0) * item.quantity).toFixed(2)}
                     </p>
                   </div>
@@ -273,14 +278,14 @@ const OrderDetails: React.FC = () => {
               className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-light-gray"
             >
               <h2 className="text-xl font-fredoka font-bold text-charcoal mb-6 flex items-center gap-3">
-                <div className="w-10 h-10 bg-mint-green rounded-2xl flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: '#7BE266' }}>
                   <MapPin className="h-5 w-5 text-white" />
                 </div>
                 Delivery Address
               </h2>
               {order.shipping_address ? (
                 <div className="space-y-3">
-                  <div className="p-4 bg-gradient-to-r from-soft-gray to-white rounded-2xl border border-light-gray">
+                  <div className="p-4 rounded-2xl border border-light-gray" style={{ background: 'rgba(164,247,255,0.1)' }}>
                     <p className="font-fredoka font-bold text-lg text-charcoal mb-2">
                       {order.shipping_address.full_name || order.shipping_address.name}
                     </p>
@@ -293,8 +298,8 @@ const OrderDetails: React.FC = () => {
                     </p>
                   </div>
                   {order.shipping_address.phone && (
-                    <div className="flex items-center gap-2 text-sm text-medium-gray bg-primary-blue/10 px-4 py-3 rounded-2xl border border-primary-blue">
-                      <Phone className="h-4 w-4 text-primary-blue" />
+                    <div className="flex items-center gap-2 text-sm px-4 py-3 rounded-2xl border" style={{ background: 'rgba(0,77,107,0.06)', borderColor: 'rgba(0,77,107,0.2)', color: '#004D6B' }}>
+                      <Phone className="h-4 w-4" style={{ color: '#004D6B' }} />
                       <span className="font-medium text-charcoal">{order.shipping_address.phone}</span>
                     </div>
                   )}
@@ -312,7 +317,7 @@ const OrderDetails: React.FC = () => {
               className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-light-gray"
             >
               <h2 className="text-xl font-fredoka font-bold text-charcoal mb-6 flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary-blue rounded-2xl flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: '#004D6B' }}>
                   <CreditCard className="h-5 w-5 text-white" />
                 </div>
                 Payment Details
@@ -369,7 +374,7 @@ const OrderDetails: React.FC = () => {
                 )}
 
                 <div className="pt-4 border-t-2 border-light-gray">
-                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-vibrant-orange to-sunny-yellow rounded-2xl text-white">
+                  <div className="flex justify-between items-center p-4 rounded-2xl text-white" style={{ background: '#FF6B35' }}>
                     <span className="text-lg font-fredoka font-bold">Total Amount</span>
                     <span className="text-3xl font-fredoka font-bold">
                       {order.currency || 'Rs.'} {parseFloat(order.total_amount || 0).toFixed(2)}
@@ -416,19 +421,20 @@ const OrderDetails: React.FC = () => {
               className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 border border-light-gray"
             >
               <h2 className="text-xl font-fredoka font-bold text-charcoal mb-4 flex items-center gap-3">
-                <div className="w-10 h-10 bg-lavender rounded-2xl flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: '#004D6B' }}>
                   <Truck className="h-5 w-5 text-white" />
                 </div>
                 Tracking Information
               </h2>
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-4 p-4 bg-lavender/20 rounded-2xl border-2 border-lavender">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4 p-4 rounded-2xl border-2" style={{ background: 'rgba(164,247,255,0.15)', borderColor: 'rgba(164,247,255,0.6)' }}>
                 <div className="flex-1">
                   <p className="text-sm text-medium-gray mb-1">Tracking Number</p>
                   <p className="font-mono font-bold text-charcoal text-xl">{order.tracking_number}</p>
                 </div>
                 <button
                   onClick={() => copyToClipboard(order.tracking_number, 'Tracking number')}
-                  className="px-6 py-3 bg-lavender text-white rounded-2xl hover:shadow-lg transition-all font-fredoka font-bold flex items-center gap-2"
+                  className="px-6 py-3 text-white rounded-2xl hover:shadow-lg transition-all font-fredoka font-bold flex items-center gap-2"
+                  style={{ background: '#004D6B' }}
                 >
                   <Copy className="h-4 w-4" />
                   Copy
@@ -444,7 +450,7 @@ const OrderDetails: React.FC = () => {
             transition={{ delay: 0.6 }}
             className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center"
           >
-            {order.can_cancel && (
+            {/* {order.can_cancel && (
               <button
                 onClick={handleCancelOrder}
                 disabled={cancelling}
@@ -462,13 +468,14 @@ const OrderDetails: React.FC = () => {
                   </>
                 )}
               </button>
-            )}
+            )} */}
 
             {order.can_reorder && (
               <button
                 onClick={handleReorder}
                 disabled={reordering}
-                className="px-8 py-4 bg-mint-green text-white rounded-2xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-fredoka font-bold"
+                className="px-8 py-4 text-white rounded-2xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-fredoka font-bold"
+                style={{ background: '#FF6B35' }}
               >
                 {reordering ? (
                   <>
@@ -486,7 +493,8 @@ const OrderDetails: React.FC = () => {
 
             <Link
               to="/orders"
-              className="px-8 py-4 bg-gradient-to-r from-vibrant-orange to-sunny-yellow text-white rounded-2xl hover:shadow-lg transition-all text-center font-fredoka font-bold"
+              className="px-8 py-4 text-white rounded-2xl hover:shadow-lg transition-all text-center font-fredoka font-bold"
+              style={{ background: '#004D6B' }}
             >
               View All Orders
             </Link>

@@ -120,7 +120,7 @@ const RedemptionSlider: React.FC<RedemptionSliderProps> = ({
                 ({formatters.currency(maxRedeemableValue)}) for this order
               </p>
               <p className="text-xs text-medium-gray mt-1">
-                {LOYALTY_CONSTANTS.REDEMPTION_RATE * 10} points = {formatters.currency(1)}
+                1 point = {formatters.currency(LOYALTY_CONSTANTS.REDEMPTION_RATE)}
               </p>
             </div>
           </div>

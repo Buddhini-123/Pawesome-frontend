@@ -416,7 +416,7 @@ const Header: React.FC = () => {
               <form onSubmit={handleSearch} className="relative group">
                 <input
                   type="text"
-                  placeholder="🔍 Search treats, toys, food and more..."
+                  placeholder="Search treats, toys, food and more..."
                   className="w-full pl-6 pr-12 py-3 rounded-full bg-soft-gray border-2 border-transparent focus:outline-none focus:border-primary-blue focus:bg-white transition-all duration-300 font-nunito shadow-sm"
                   value={searchQuery}
                   onChange={handleSearchChange}

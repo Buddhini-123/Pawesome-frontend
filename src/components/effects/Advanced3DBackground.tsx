@@ -201,7 +201,7 @@ const SimpleToy: React.FC<SimpleToyProps> = ({ position, toyType, index }) => {
       case 'ring':
         return (
           <Torus args={[0.25, 0.08]}>
-            <meshStandardMaterial color="#4ECDC4" />
+            <meshStandardMaterial color="#48FFF2" />
           </Torus>
         );
       default:
@@ -226,7 +226,7 @@ const SimpleToy: React.FC<SimpleToyProps> = ({ position, toyType, index }) => {
 const Advanced3DBackground = () => {
   // Simplified pets array
   const pets = useMemo(() => [
-    { id: 1, position: [-6, 2, -4] as [number, number, number], petType: 'dog', color: '#6CA6CD', size: 1.0 },
+    { id: 1, position: [-6, 2, -4] as [number, number, number], petType: 'dog', color: '#1BBBFF', size: 1.0 },
     { id: 2, position: [6, 1, -3] as [number, number, number], petType: 'cat', color: '#F59E0B', size: 0.9 },
     { id: 3, position: [-4, -2, -2] as [number, number, number], petType: 'bird', color: '#0EA5E9', size: 0.7 },
     { id: 4, position: [4, -3, -1] as [number, number, number], petType: 'fish', color: '#FBBF24', size: 1.0 },

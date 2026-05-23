@@ -33,7 +33,7 @@
 }
 
 .custom-input::placeholder {
-  color: #6CA6CD; /* Tailwind's blue-500 */
+  color: #1BBBFF; /* primary-blue */
 }
 
 /* Background Pattern for Cards */

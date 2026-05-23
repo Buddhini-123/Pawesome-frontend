@@ -1,14 +1,17 @@
+import React from "react";
 import { Calendar } from "lucide-react";
-import StarRating from "../StarRating/StarRating";
+import { toast } from "react-toastify";
 import { QuantitySelector } from "../../pages/Products/QuantitySelector";
 import { useCart } from "../../../hooks/useCart";
 
-
 interface Product {
   id: string;
+  slug: string;
   name: string;
   brand: string;
   price: number;
+  originalPrice?: number;
+  discount?: number;
   image: string;
   gallery: string[];
   rating: number;
@@ -18,10 +21,9 @@ interface Product {
   inStock: boolean;
   description: string;
   currency: string;
-  rating_avg?: number;
+  subscription_enabled: boolean;
 }
 
-// Define props for the ProductDetails component
 interface ProductDetailsProps {
   product: Product;
   quantity: number;
@@ -38,69 +40,80 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   if (!product) return null;
 
   const handleAddToCart = () => {
-    addItem(product, quantity);
-    alert(`Added ${quantity} ${product.name} to cart!`);
+    if (!product.inStock) return;
+    addItem(product as any, quantity);
+    toast.success(`${product.name} added to cart!`);
   };
 
   return (
     <div className="bg-white rounded-2xl p-6 space-y-4 shadow-sm">
+      {/* Brand */}
+      {product.brand && (
+        <p className="text-sm font-fredoka font-semibold text-primary-blue">
+          {product.brand}
+        </p>
+      )}
+
       {/* Product Title */}
-      <h1 className="text-2xl font-fredoka font-bold text-gray-900 mb-1">
+      <h1 className="text-2xl font-fredoka font-bold text-gray-900">
         {product.name}
       </h1>
 
-      {/* Rating */}
-      <div className="flex items-center justify-between">
-        <p className="text-gray-500 text-sm">1 Pcs</p>
-        <div className="flex items-center space-x-2">
-          <StarRating rating={product.rating_avg || 0} size="sm" />
-          <span className="text-vibrant-orange font-fredoka text-sm">
-            {product.rating_avg || 0}
+      {/* Price */}
+      <div className="flex items-end gap-3">
+        <span className="text-2xl font-fredoka font-bold text-vibrant-orange">
+          {product.currency} {product.price.toFixed(2)}
+        </span>
+        {product.originalPrice && (
+          <span className="text-sm text-gray-400 line-through font-fredoka mb-1">
+            {product.currency} {product.originalPrice.toFixed(2)}
           </span>
-        </div>
+        )}
+        {product.discount && (
+          <span className="text-sm font-fredoka font-bold text-white bg-crimson px-2 py-0.5 rounded-full mb-1">
+            -{product.discount}% OFF
+          </span>
+        )}
       </div>
 
-      {/* Delivery Period */}
-      <div className="space-y-3">
-        <h3 className="font-fredoka font-medium text-gray-900 flex items-center text-sm">
-          <Calendar className="w-4 h-4 mr-2" />
-          Delivery Period
-        </h3>
-        <select className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-vibrant-orange">
-          <option>Every Week</option>
-          <option>Every 2 Weeks</option>
-          <option>Every Month</option>
-        </select>
-      </div>
-
-      {/* Date Range */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs font-fredoka font-medium text-gray-900 mb-1 block">
-            From
-          </label>
-          <input
-            type="date"
-            className="w-full p-2 border border-gray-200 rounded-lg text-sm"
-          />
+      {/* Subscription / Delivery Period — only shown for subscription-enabled products */}
+      {product.subscription_enabled && (
+        <div className="space-y-3 border border-mint-green/30 bg-teal-50 rounded-xl p-4">
+          <h3 className="font-fredoka font-medium text-gray-900 flex items-center text-sm">
+            <Calendar className="w-4 h-4 mr-2 text-mint-green" />
+            Subscribe & Save
+          </h3>
+          <select className="w-full p-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-mint-green">
+            <option>Every Week</option>
+            <option>Every 2 Weeks</option>
+            <option>Every Month</option>
+          </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-fredoka font-medium text-gray-700 mb-1 block">
+                From
+              </label>
+              <input
+                type="date"
+                className="w-full p-2 border border-gray-200 rounded-xl text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-fredoka font-medium text-gray-700 mb-1 block">
+                To
+              </label>
+              <input
+                type="date"
+                className="w-full p-2 border border-gray-200 rounded-xl text-sm"
+              />
+            </div>
+          </div>
         </div>
-        <div>
-          <label className="text-xs font-fredoka font-medium text-gray-900 mb-1 block">
-            To
-          </label>
-          <input
-            type="date"
-            className="w-full p-2 border border-gray-200 rounded-lg text-sm"
-          />
-        </div>
-      </div>
+      )}
 
-      {/* Price and Add to Cart */}
+      {/* Quantity + Add to Cart */}
       <div className="pt-4 border-t">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-2xl font-fredoka font-bold text-vibrant-orange">
-            {product.currency} {product.price}
-          </span>
           <QuantitySelector
             quantity={quantity}
             onQuantityChange={onQuantityChange}
@@ -109,9 +122,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
         <button
           onClick={handleAddToCart}
-          className="w-full bg-vibrant-orange hover:bg-sunny-yellow hover:text-charcoal text-white font-fredoka font-medium py-3 rounded-xl transition-colors"
+          disabled={!product.inStock}
+          className={`w-full font-fredoka font-medium py-3 rounded-xl transition-colors ${
+            product.inStock
+              ? "bg-vibrant-orange hover:bg-sunny-yellow hover:text-charcoal text-white"
+              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+          }`}
         >
-          Add to Cart
+          {product.inStock ? "Add to Cart" : "Out of Stock"}
         </button>
       </div>
     </div>

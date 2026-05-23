@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  Package, 
-  Truck, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Search,
+  Filter,
+  Download,
+  Package,
+  Truck,
+  CheckCircle,
+  XCircle,
   Clock,
   DollarSign,
   Calendar,
   ChevronLeft,
   ChevronRight,
   Eye,
-  Edit
+  Edit,
+  Mail,
+  Loader2
 } from 'lucide-react';
 import { Order, OrderStatus } from '../../../types';
 import { adminOrderService, OrderFilters, OrderStats } from '../../../services/adminOrder.service';
@@ -29,6 +31,8 @@ const OrderList: React.FC = () => {
   const [stats, setStats] = useState<OrderStats | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
+  const [sendingInvoice, setSendingInvoice] = useState<string | null>(null);
+  const [invoiceSent, setInvoiceSent] = useState<string | null>(null);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,6 +80,19 @@ const OrderList: React.FC = () => {
       loadStats();
     } catch (error) {
       console.error('Error updating order status:', error);
+    }
+  };
+
+  const handleSendInvoice = async (order: Order) => {
+    setSendingInvoice(order.id);
+    try {
+      await adminOrderService.sendInvoice(order.id);
+      setInvoiceSent(order.id);
+      setTimeout(() => setInvoiceSent(null), 3000);
+    } catch (error) {
+      console.error('Error sending invoice:', error);
+    } finally {
+      setSendingInvoice(null);
     }
   };
 
@@ -210,6 +227,24 @@ const OrderList: React.FC = () => {
         title="Edit Status"
       >
         <Edit className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => handleSendInvoice(order)}
+        disabled={sendingInvoice === order.id}
+        title="Send Invoice"
+        className={`p-1 transition-colors ${
+          invoiceSent === order.id
+            ? 'text-mint-green'
+            : 'text-vibrant-orange hover:text-orange-600'
+        } disabled:opacity-50 disabled:cursor-not-allowed`}
+      >
+        {sendingInvoice === order.id ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : invoiceSent === order.id ? (
+          <CheckCircle className="w-4 h-4" />
+        ) : (
+          <Mail className="w-4 h-4" />
+        )}
       </button>
     </div>
   );

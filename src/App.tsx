@@ -11,6 +11,7 @@ import Footer from './components/common/Footer/Footer';
 import AdminProtectedRoute from './components/common/AdminProtectedRoute';
 import AdminLayout from './components/admin/AdminLayout';
 import ScrollToTop from './components/common/ScrollToTop';
+import EmailVerificationBanner from './components/common/EmailVerificationBanner';
 
 // Pages
 import Home from './components/pages/Home/HomeNew';
@@ -23,6 +24,8 @@ import Offers from './components/pages/Shop/Offers';
 import Brands from './components/pages/Shop/Brands';
 import Cart from './components/pages/Shop/Cart';
 import Checkout from './components/pages/Shop/Checkout';
+import PaymentReturn from './components/pages/Shop/PaymentReturn';
+import PaymentCancelled from './components/pages/Shop/PaymentCancelled';
 import OrderConfirmation from './components/pages/Shop/OrderConfirmation';
 import OrderDetails from './components/pages/Shop/OrderDetails';
 import Orders from './components/pages/Shop/Orders';
@@ -35,11 +38,15 @@ import NotFound from './components/pages/NotFound';
 import Subscriptions from './components/pages/Features/Subscriptions';
 import Gifts from './components/pages/Features/Gifts';
 import GiftCustomizer from './components/pages/Features/GiftCustomizer';
+import GiftConfirmation from './components/pages/Features/GiftConfirmation';
+import GiftCartConfirmation from './components/pages/Features/GiftCartConfirmation';
+import PresetGiftBoxDetail from './components/pages/Features/PresetGiftBoxDetail';
 import Deals from './components/pages/Features/Deals';
 import DealDetail from './components/deals/DealDetail';
 import LoyaltyCards from './components/pages/Features/LoyaltyCards';
 import Login from './components/pages/Login/Login';
 import Register from './components/pages/Login/Register';
+import VerifyEmail from './components/pages/VerifyEmail';
 import ProductPage from './components/pages/Products/ProductPage';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
@@ -52,6 +59,8 @@ import UserList from './components/admin/Users/UserList';
 import SubscriptionList from './components/admin/Subscriptions/SubscriptionList';
 import DealsList from './components/admin/Deals/DealsList';
 import ForgotPassword from './components/pages/Login/ForgotPassword';
+import ResetPassword from './components/pages/Login/ResetPassword';
+import LegalPage from './components/pages/Legal/LegalPage';
 import CategoryDetail from './components/pages/Categories/CategoryDetail';
 
 const App: React.FC = () => {
@@ -63,6 +72,7 @@ const App: React.FC = () => {
     <div className="App">
       <ScrollToTop />
       {!hideLayout && <Header />}
+      {!hideLayout && <EmailVerificationBanner />}
       <main className="relative">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -86,6 +96,16 @@ const App: React.FC = () => {
               <OrderConfirmation />
             </ProtectedRoute>
           } />
+          <Route path="/payment-return" element={
+            <ProtectedRoute>
+              <PaymentReturn />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment-cancelled" element={
+            <ProtectedRoute>
+              <PaymentCancelled />
+            </ProtectedRoute>
+          } />
           <Route path="/orders" element={
             <ProtectedRoute>
               <Orders />
@@ -102,14 +122,21 @@ const App: React.FC = () => {
             </ProtectedRoute>
           } />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/terms" element={<LegalPage slug="terms" />} />
+          <Route path="/privacy" element={<LegalPage slug="privacy" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/join" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           {/* New Feature Routes */}
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/gifts" element={<Gifts />} />
+          <Route path="/gifts/preset-boxes/:slug" element={<PresetGiftBoxDetail />} />
           <Route path="/gifts/customize" element={<GiftCustomizer />} />
+          <Route path="/gifts/confirmation" element={<GiftConfirmation />} />
+          <Route path="/gifts/cart-confirmation" element={<GiftCartConfirmation />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/deals/:slug" element={<DealDetail />} />
           <Route path="/loyalty-cards" element={<LoyaltyCards />} />

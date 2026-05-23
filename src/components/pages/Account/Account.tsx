@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Package, 
-  Heart, 
-  Settings, 
-  LogOut, 
+import {
+  User,
+  Settings,
+  LogOut,
   Camera,
   Mail,
   Phone,
   MapPin,
+  Home,
+  Building,
+  Navigation,
   Calendar,
   Shield,
   Bell,
@@ -18,48 +19,33 @@ import {
   Edit3,
   Check,
   X,
-  Truck,
-  Clock,
   Star,
-  Gift,
-  Award,
   PawPrint,
   Plus,
   Trash2,
   Save,
   Upload,
   Weight,
-  Ruler,
-  Stethoscope,
-  AlertTriangle,
-  Pill,
   Activity,
-  FileText,
-  Filter,
-  Search,
   ArrowLeft,
   Eye,
-  Syringe,
-  Scissors,
-  GraduationCap,
-  Brain,
-  Heart as HeartIcon,
-  Utensils,
-  AlertCircle,
-  TrendingUp,
-  Paperclip
+  EyeOff,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useLoyalty } from '../../../hooks/useLoyalty';
 import { useNavigate } from 'react-router-dom';
-import { Pet, PetForm, PetTimelineEntry, TimelineEntryType, TimelineCategory } from '../../../types';
-import { v4 as uuidv4 } from 'uuid';
+import { Pet, PetForm } from '../../../types';
 import {api} from "../../../services/api"
+import AddressManagement from './AddressManagement';
+import { petService, BackendPet } from '../../../services/pet.service';
+import { toast } from 'react-toastify';
 
 const Account: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
-  const [profileImage, setProfileImage] = useState('/api/placeholder/150/150');
+  const [profileImage, setProfileImage] = useState<string>('/api/placeholder/150/150');
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const { user, logout } = useAuth();
   const { loyaltyCard } = useLoyalty();
   const navigate = useNavigate();
@@ -69,17 +55,32 @@ const Account: React.FC = () => {
     lastName: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
+    birthday: ""
   });
-  const [loading, setLoading] = useState(false);
+
+  // Default Address State
+  const [defaultAddress, setDefaultAddress] = useState<any>(null);
+  const [loadingAddress, setLoadingAddress] = useState(false);
+
+  // Change Password State
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: '', newPass: '', confirm: '' });
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
   // Pet Management State
   const [pets, setPets] = useState<Pet[]>(user?.pets || []);
+  const [loadingPets, setLoadingPets] = useState(false);
+  const [savingPet, setSavingPet] = useState(false);
   const [showAddPet, setShowAddPet] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [showPetProfile, setShowPetProfile] = useState(false);
-  const [showAddTimelineEntry, setShowAddTimelineEntry] = useState(false);
-  const [timelineFilter, setTimelineFilter] = useState<TimelineCategory | 'all'>('all');
+  const [petImage, setPetImage] = useState<File | null>(null);
+  const [petImagePreview, setPetImagePreview] = useState<string>('');
   const [petFormData, setPetFormData] = useState<PetForm>({
     name: '',
     type: 'dog',
@@ -97,68 +98,17 @@ const Account: React.FC = () => {
     allergies: '',
     medications: ''
   });
-  const [timelineFormData, setTimelineFormData] = useState({
-    type: 'general' as TimelineEntryType,
-    title: '',
-    description: '',
-    date: new Date().toISOString().split('T')[0],
-    importance: 'medium' as 'low' | 'medium' | 'high' | 'critical',
-    // Vet Visit Fields
-    vetName: '',
-    clinic: '',
-    reason: '',
-    diagnosis: '',
-    treatment: '',
-    cost: '',
-    // Medication Fields
-    medicationName: '',
-    dosage: '',
-    frequency: '',
-    prescribedBy: '',
-    // Weight Fields
-    weight: '',
-    bodyCondition: 'ideal' as 'underweight' | 'ideal' | 'overweight' | 'obese',
-    // Vaccination Fields
-    vaccine: '',
-    veterinarian: '',
-    nextDue: '',
-    // Training Fields
-    trainer: '',
-    skill: '',
-    progress: 'started' as 'started' | 'in_progress' | 'mastered',
-    duration: '',
-    // Behavior Fields
-    behavior: '',
-    severity: 'mild' as 'mild' | 'moderate' | 'severe',
-    triggers: '',
-    interventions: '',
-    // Grooming Fields
-    service: '',
-    groomer: '',
-    groomingCost: '',
-    nextAppointment: '',
-    // Nutrition Fields
-    food: '',
-    brand: '',
-    amount: '',
-    calories: '',
-    nutritionReason: '',
-    supplements: ''
-  });
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User, color: 'text-primary-blue' },
+    { id: 'addresses', name: 'Addresses', icon: MapPin, color: 'text-mint-green' },
     { id: 'pets', name: 'My Pets', icon: PawPrint, color: 'text-sunny-yellow' },
-    { id: 'orders', name: 'My Orders', icon: Package, color: 'text-vibrant-orange' },
-    { id: 'wishlist', name: 'Wishlist', icon: Heart, color: 'text-coral-red' },
-    { id: 'loyalty', name: 'Loyalty', icon: Award, color: 'text-lavender' },
     { id: 'settings', name: 'Settings', icon: Settings, color: 'text-mint-green' },
   ];
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        setLoading(true);
         const response = await api.get("/users/profile") as {
           data: {
             success: boolean;
@@ -174,46 +124,78 @@ const Account: React.FC = () => {
             email: user.email || "",
             phone: user.phone || "",
             address: user.address || "",
+            birthday: user.birthday || "",
           });
+          if (user.avatar_url) {
+            setProfileImage(user.avatar_url);
+          }
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchProfile();
   }, []);
 
+  // Fetch default address
+  const fetchDefaultAddress = async () => {
+    try {
+      setLoadingAddress(true);
+      const response = await api.get('/users/addresses');
+      if (response.success && response.data) {
+        const addresses = (response.data as any).data || [];
+        const defaultAddr = addresses.find((addr: any) => addr.is_default);
+        setDefaultAddress(defaultAddr || addresses[0] || null);
+      }
+    } catch (error) {
+      console.error('[Account] Failed to fetch default address:', error);
+    } finally {
+      setLoadingAddress(false);
+    }
+  };
+
+  // Fetch default address when on profile tab
+  useEffect(() => {
+    if (activeTab === 'profile') {
+      fetchDefaultAddress();
+    }
+  }, [activeTab]);
+
   const handleSaveProfile = async () => {
     try {
-      setLoading(true);
-
-      const payload = {
+      // Save text fields
+      const response = await api.put("/users/profile", {
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
-      };
-      
-      const response = await api.put("/users/profile", payload) as {
-          data: {
-            success: boolean;
-            data: { user: any };
-          };
-        };
+        birthday: formData.birthday || null,
+      }) as { data: { success: boolean; data: { user: any } } };
 
-      if (response.data.success) {
-        alert("✅ Profile updated successfully!");
-        setIsEditing(false);
+      if (!response.data.success) {
+        toast.error("Failed to update profile");
+        return;
       }
+
+      // Upload avatar separately if a new image was selected
+      if (profileImageFile) {
+        const fd = new FormData();
+        fd.append('avatar', profileImageFile);
+        const avatarResponse = await api.uploadForm<{ success: boolean; data: { user: any } }>('/users/avatar', fd);
+
+        if (avatarResponse.success && avatarResponse.data?.data?.user?.avatar_url) {
+          setProfileImage(avatarResponse.data.data.user.avatar_url);
+        }
+        setProfileImageFile(null);
+      }
+
+      toast.success("Profile updated successfully!");
+      setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("❌ Failed to update profile");
-    } finally {
-      setLoading(false);
+      toast.error("Failed to update profile");
     }
   };
 
@@ -221,6 +203,7 @@ const Account: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setProfileImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
@@ -234,9 +217,37 @@ const Account: React.FC = () => {
     navigate('/');
   };
 
+  // Fetch pets from API
+  const fetchPets = async () => {
+    try {
+      setLoadingPets(true);
+      console.log('[Account] Fetching pets from API...');
+      const backendPets = await petService.getPets();
+      console.log('[Account] Fetched pets:', backendPets);
+
+      // Convert backend pets to frontend format
+      const frontendPets = backendPets.map(bp => petService.convertToFrontendPet(bp));
+      setPets(frontendPets);
+    } catch (error: any) {
+      console.error('[Account] Failed to fetch pets:', error);
+      toast.error('Failed to load pets');
+    } finally {
+      setLoadingPets(false);
+    }
+  };
+
+  // Fetch pets when pets tab is active
+  useEffect(() => {
+    if (activeTab === 'pets') {
+      fetchPets();
+    }
+  }, [activeTab]);
+
   // Pet Management Functions
   const handleAddPet = () => {
     setEditingPet(null);
+    setPetImage(null);
+    setPetImagePreview('');
     setPetFormData({
       name: '',
       type: 'dog',
@@ -259,6 +270,8 @@ const Account: React.FC = () => {
 
   const handleEditPet = (pet: Pet) => {
     setEditingPet(pet);
+    setPetImage(null);
+    setPetImagePreview(pet.image || '');
     setPetFormData({
       name: pet.name,
       type: pet.type,
@@ -279,40 +292,93 @@ const Account: React.FC = () => {
     setShowAddPet(true);
   };
 
-  const handleSavePet = () => {
-    const petData: Pet = {
-      id: editingPet?.id || uuidv4(),
-      name: petFormData.name,
-      type: petFormData.type,
-      breed: petFormData.breed || undefined,
-      age: petFormData.age ? parseInt(petFormData.age) : undefined,
-      ageUnit: petFormData.ageUnit,
-      weight: petFormData.weight ? parseFloat(petFormData.weight) : undefined,
-      weightUnit: petFormData.weightUnit,
-      gender: petFormData.gender,
-      color: petFormData.color || undefined,
-      dateOfBirth: petFormData.dateOfBirth ? new Date(petFormData.dateOfBirth) : undefined,
-      isNeutered: petFormData.isNeutered,
-      microchipId: petFormData.microchipId || undefined,
-      medicalNotes: petFormData.medicalNotes || undefined,
-      allergies: petFormData.allergies ? petFormData.allergies.split(',').map(a => a.trim()).filter(a => a) : undefined,
-      medications: petFormData.medications ? petFormData.medications.split(',').map(m => m.trim()).filter(m => m) : undefined,
-      createdAt: editingPet?.createdAt || new Date(),
-      updatedAt: new Date()
-    };
-
-    if (editingPet) {
-      setPets(pets.map(pet => pet.id === editingPet.id ? petData : pet));
-    } else {
-      setPets([...pets, petData]);
+  const handlePetImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPetImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPetImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-    
-    setShowAddPet(false);
-    setEditingPet(null);
   };
 
-  const handleDeletePet = (petId: string) => {
-    setPets(pets.filter(pet => pet.id !== petId));
+  const handleSavePet = async () => {
+    try {
+      setSavingPet(true);
+
+      // Validate required fields
+      if (!petFormData.name || !petFormData.type) {
+        toast.error('Please fill in required fields (Name and Species)');
+        return;
+      }
+
+      // Prepare backend data
+      const backendData = {
+        name: petFormData.name,
+        species: petFormData.type,
+        breed: petFormData.breed || undefined,
+        date_of_birth: petFormData.dateOfBirth || undefined,
+        gender: petFormData.gender || undefined,
+        weight: petFormData.weight ? parseFloat(petFormData.weight) : undefined,
+        weight_unit: petFormData.weightUnit || undefined,
+        color: petFormData.color || undefined,
+        is_neutered: petFormData.isNeutered,
+        microchip_id: petFormData.microchipId || undefined,
+        medical_notes: petFormData.medicalNotes || undefined,
+        allergies: petFormData.allergies ? petFormData.allergies.split(',').map(a => a.trim()).filter(a => a) : undefined,
+        medications: petFormData.medications ? petFormData.medications.split(',').map(m => m.trim()).filter(m => m) : undefined,
+        image: petImage || undefined,
+      };
+
+      console.log('[Account] Saving pet:', backendData);
+
+      let savedPet: BackendPet;
+
+      if (editingPet) {
+        // Update existing pet
+        savedPet = await petService.updatePet(editingPet.id, backendData);
+        toast.success('Pet updated successfully!');
+      } else {
+        // Add new pet
+        savedPet = await petService.addPet(backendData);
+        toast.success('Pet added successfully!');
+      }
+
+      console.log('[Account] Pet saved:', savedPet);
+
+      // Refresh pets list
+      await fetchPets();
+
+      setShowAddPet(false);
+      setEditingPet(null);
+      setPetImage(null);
+      setPetImagePreview('');
+    } catch (error: any) {
+      console.error('[Account] Failed to save pet:', error);
+      toast.error(error.message || 'Failed to save pet');
+    } finally {
+      setSavingPet(false);
+    }
+  };
+
+  const handleDeletePet = async (petId: string) => {
+    if (!window.confirm('Are you sure you want to delete this pet?')) {
+      return;
+    }
+
+    try {
+      console.log('[Account] Deleting pet:', petId);
+      await petService.deletePet(petId);
+      toast.success('Pet deleted successfully');
+
+      // Refresh pets list
+      await fetchPets();
+    } catch (error: any) {
+      console.error('[Account] Failed to delete pet:', error);
+      toast.error(error.message || 'Failed to delete pet');
+    }
   };
 
   const handlePetFormChange = (field: keyof PetForm, value: any) => {
@@ -332,6 +398,19 @@ const Account: React.FC = () => {
     return emojis[type];
   };
 
+  // Brand color per species
+  const petTypeAccent = (type: Pet['type']) => {
+    switch (type) {
+      case 'dog':     return { bar: 'bg-primary-blue',    icon: 'bg-primary-blue/10 text-primary-blue',       header: 'from-primary-blue to-blue-600',    badge: 'bg-primary-blue/10 text-primary-blue' };
+      case 'cat':     return { bar: 'bg-lavender',        icon: 'bg-lavender/10 text-lavender',               header: 'from-lavender to-purple-500',       badge: 'bg-lavender/10 text-lavender' };
+      case 'bird':    return { bar: 'bg-mint-green',      icon: 'bg-mint-green/10 text-mint-green',           header: 'from-mint-green to-teal-600',       badge: 'bg-mint-green/10 text-mint-green' };
+      case 'fish':    return { bar: 'bg-primary-blue',    icon: 'bg-primary-blue/10 text-primary-blue',       header: 'from-primary-blue to-cyan-600',     badge: 'bg-primary-blue/10 text-primary-blue' };
+      case 'rabbit':  return { bar: 'bg-lavender',        icon: 'bg-lavender/10 text-lavender',               header: 'from-lavender to-pink-400',         badge: 'bg-lavender/10 text-lavender' };
+      case 'hamster': return { bar: 'bg-vibrant-orange',  icon: 'bg-vibrant-orange/10 text-vibrant-orange',   header: 'from-vibrant-orange to-orange-600', badge: 'bg-vibrant-orange/10 text-vibrant-orange' };
+      default:        return { bar: 'bg-sunny-yellow',    icon: 'bg-sunny-yellow/20 text-charcoal',           header: 'from-sunny-yellow to-amber-500',    badge: 'bg-sunny-yellow/20 text-charcoal' };
+    }
+  };
+
   const getPetAge = (pet: Pet) => {
     if (pet.dateOfBirth) {
       const today = new Date();
@@ -349,185 +428,37 @@ const Account: React.FC = () => {
     return 'Age unknown';
   };
 
-  // Timeline Management Functions
+  // Pet Profile Functions
   const handleViewPetProfile = (pet: Pet) => {
     setSelectedPet(pet);
     setShowPetProfile(true);
   };
 
-  const handleAddTimelineEntry = () => {
-    setTimelineFormData({
-      type: 'general',
-      title: '',
-      description: '',
-      date: new Date().toISOString().split('T')[0],
-      importance: 'medium',
-      vetName: '', clinic: '', reason: '', diagnosis: '', treatment: '', cost: '',
-      medicationName: '', dosage: '', frequency: '', prescribedBy: '',
-      weight: '', bodyCondition: 'ideal',
-      vaccine: '', veterinarian: '', nextDue: '',
-      trainer: '', skill: '', progress: 'started', duration: '',
-      behavior: '', severity: 'mild', triggers: '', interventions: '',
-      service: '', groomer: '', groomingCost: '', nextAppointment: '',
-      food: '', brand: '', amount: '', calories: '', nutritionReason: '', supplements: ''
-    });
-    setShowAddTimelineEntry(true);
-  };
-
-  const handleSaveTimelineEntry = () => {
-    if (!selectedPet) return;
-
-    const newEntry: PetTimelineEntry = {
-      id: uuidv4(),
-      petId: selectedPet.id,
-      date: new Date(timelineFormData.date),
-      type: timelineFormData.type,
-      title: timelineFormData.title,
-      description: timelineFormData.description || undefined,
-      category: getCategoryFromType(timelineFormData.type),
-      importance: timelineFormData.importance,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      ...(timelineFormData.type === 'vet_visit' && {
-        vetVisit: {
-          vetName: timelineFormData.vetName,
-          clinic: timelineFormData.clinic,
-          reason: timelineFormData.reason,
-          diagnosis: timelineFormData.diagnosis || undefined,
-          treatment: timelineFormData.treatment || undefined,
-          cost: timelineFormData.cost ? parseFloat(timelineFormData.cost) : undefined,
-        }
-      }),
-      ...(timelineFormData.type === 'medication' && {
-        medication: {
-          name: timelineFormData.medicationName,
-          dosage: timelineFormData.dosage,
-          frequency: timelineFormData.frequency,
-          startDate: new Date(timelineFormData.date),
-          prescribedBy: timelineFormData.prescribedBy || undefined,
-        }
-      }),
-      ...(timelineFormData.type === 'weight_check' && {
-        weight: {
-          weight: parseFloat(timelineFormData.weight),
-          unit: 'kg',
-          bodyCondition: timelineFormData.bodyCondition,
-        }
-      }),
-      ...(timelineFormData.type === 'vaccination' && {
-        vaccination: {
-          vaccine: timelineFormData.vaccine,
-          veterinarian: timelineFormData.veterinarian,
-          clinic: timelineFormData.clinic,
-          nextDue: timelineFormData.nextDue ? new Date(timelineFormData.nextDue) : undefined,
-        }
-      }),
-      ...(timelineFormData.type === 'training' && {
-        training: {
-          skill: timelineFormData.skill,
-          progress: timelineFormData.progress,
-          trainer: timelineFormData.trainer || undefined,
-          duration: timelineFormData.duration ? parseInt(timelineFormData.duration) : undefined,
-        }
-      }),
-      ...(timelineFormData.type === 'behavior' && {
-        behavior: {
-          behavior: timelineFormData.behavior,
-          severity: timelineFormData.severity,
-          triggers: timelineFormData.triggers ? timelineFormData.triggers.split(',').map(t => t.trim()) : undefined,
-          interventions: timelineFormData.interventions ? timelineFormData.interventions.split(',').map(i => i.trim()) : undefined,
-        }
-      }),
-      ...(timelineFormData.type === 'grooming' && {
-        grooming: {
-          service: timelineFormData.service,
-          groomer: timelineFormData.groomer || undefined,
-          cost: timelineFormData.groomingCost ? parseFloat(timelineFormData.groomingCost) : undefined,
-          nextAppointment: timelineFormData.nextAppointment ? new Date(timelineFormData.nextAppointment) : undefined,
-        }
-      }),
-      ...(timelineFormData.type === 'nutrition' && {
-        nutrition: {
-          food: timelineFormData.food,
-          brand: timelineFormData.brand || undefined,
-          amount: timelineFormData.amount,
-          calories: timelineFormData.calories ? parseInt(timelineFormData.calories) : undefined,
-          reason: timelineFormData.nutritionReason || undefined,
-          supplements: timelineFormData.supplements ? timelineFormData.supplements.split(',').map(s => s.trim()) : undefined,
-        }
-      })
-    };
-
-    const updatedPets = pets.map(pet => 
-      pet.id === selectedPet.id 
-        ? { ...pet, timeline: [...(pet.timeline || []), newEntry] }
-        : pet
-    );
-
-    setPets(updatedPets);
-    setSelectedPet(prev => prev ? { ...prev, timeline: [...(prev.timeline || []), newEntry] } : null);
-    setShowAddTimelineEntry(false);
-  };
-
-  const getCategoryFromType = (type: TimelineEntryType): TimelineCategory => {
-    const categoryMap: Record<TimelineEntryType, TimelineCategory> = {
-      'vet_visit': 'medical',
-      'vaccination': 'health',
-      'medication': 'medical',
-      'weight_check': 'wellness',
-      'grooming': 'grooming',
-      'training': 'training',
-      'behavior': 'behavior',
-      'nutrition': 'nutrition',
-      'milestone': 'milestone',
-      'emergency': 'emergency',
-      'general': 'lifestyle',
-      'surgery': 'medical',
-      'dental': 'health',
-      'boarding': 'lifestyle',
-      'travel': 'lifestyle'
-    };
-    return categoryMap[type];
-  };
-
-  const getTimelineIcon = (type: TimelineEntryType) => {
-    const iconMap: Record<TimelineEntryType, any> = {
-      'vet_visit': Stethoscope,
-      'vaccination': Syringe,
-      'medication': Pill,
-      'weight_check': Weight,
-      'grooming': Scissors,
-      'training': GraduationCap,
-      'behavior': Brain,
-      'nutrition': Utensils,
-      'milestone': Award,
-      'emergency': AlertCircle,
-      'general': FileText,
-      'surgery': Stethoscope,
-      'dental': HeartIcon,
-      'boarding': MapPin,
-      'travel': MapPin
-    };
-    return iconMap[type] || FileText;
-  };
-
-  const getImportanceColor = (importance: string) => {
-    const colorMap = {
-      'low': 'text-mint-green bg-mint-green/10',
-      'medium': 'text-primary-blue bg-primary-blue/10',
-      'high': 'text-vibrant-orange bg-vibrant-orange/10',
-      'critical': 'text-coral-red bg-coral-red/10'
-    };
-    return colorMap[importance as keyof typeof colorMap] || colorMap.medium;
-  };
-
-  const handleTimelineFormChange = (field: string, value: any) => {
-    setTimelineFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const getFilteredTimeline = (timeline: PetTimelineEntry[]) => {
-    if (timelineFilter === 'all') return timeline;
-    return timeline.filter(entry => entry.category === timelineFilter);
+  const handleChangePassword = async () => {
+    const { current, newPass, confirm } = passwordForm;
+    if (!current || !newPass || !confirm) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+    if (newPass !== confirm) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (newPass.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await api.post('/auth/change-password', { current_password: current, new_password: newPass });
+      toast.success('Password changed successfully');
+      setPasswordForm({ current: '', newPass: '', confirm: '' });
+      setShowPasswordForm(false);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to change password');
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const renderContent = () => {
@@ -671,20 +602,138 @@ const Account: React.FC = () => {
                   className={`w-full border ${isEditing ? 'border-primary-blue' : 'border-light-gray'} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-blue transition-all`}
                 />
               </div>
+              <div>
+                <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
+                  <Calendar className="inline h-4 w-4 mr-2" />
+                  Birthday <span className="text-medium-gray font-normal">(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  disabled={!isEditing}
+                  value={formData.birthday}
+                  max={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setFormData({...formData, birthday: e.target.value})}
+                  className={`w-full border ${isEditing ? 'border-primary-blue' : 'border-light-gray'} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-blue transition-all`}
+                />
+              </div>
             </div>
-            <div className="mt-6">
-              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                <MapPin className="inline h-4 w-4 mr-2" />
-                Address
-              </label>
-              <textarea
-                disabled={!isEditing}
-                value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
-                className={`w-full border ${isEditing ? 'border-primary-blue' : 'border-light-gray'} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-blue transition-all`}
-                rows={3}
-              />
+
+            {/* Default Delivery Address */}
+            <div className="mt-8 pt-6 border-t border-light-gray">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-fredoka font-bold text-charcoal tracking-wide">
+                  Default Delivery Address
+                </h3>
+                <button
+                  onClick={() => setActiveTab('addresses')}
+                  className="flex items-center gap-1 text-sm font-fredoka font-medium text-primary-blue hover:text-primary-blue/80 transition-colors"
+                >
+                  <Edit3 className="h-3.5 w-3.5" />
+                  Manage
+                </button>
+              </div>
+
+              {loadingAddress ? (
+                <div className="rounded-lg border border-light-gray overflow-hidden animate-pulse">
+                  <div className="h-0.5 bg-light-gray" />
+                  <div className="px-3 py-2.5 space-y-1.5">
+                    <div className="h-3 w-20 bg-soft-gray rounded" />
+                    <div className="h-2.5 w-40 bg-soft-gray rounded" />
+                    <div className="h-2.5 w-32 bg-soft-gray rounded" />
+                  </div>
+                </div>
+              ) : defaultAddress ? (
+                <div className="rounded-lg border border-light-gray overflow-hidden">
+                  <div className="h-0.5 bg-primary-blue" />
+                  <div className="px-3 py-2.5">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex items-center justify-center w-5 h-5 rounded bg-primary-blue/10">
+                          {defaultAddress.type === 'home' ? (
+                            <Home className="h-3 w-3 text-primary-blue" />
+                          ) : defaultAddress.type === 'work' ? (
+                            <Building className="h-3 w-3 text-primary-blue" />
+                          ) : (
+                            <Navigation className="h-3 w-3 text-primary-blue" />
+                          )}
+                        </div>
+                        <span className="font-fredoka font-bold text-charcoal text-sm capitalize">
+                          {defaultAddress.type} Address
+                        </span>
+                      </div>
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-mint-green/10 border border-mint-green/30 text-mint-green text-xs font-fredoka font-semibold">
+                        <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                        Default
+                      </span>
+                    </div>
+
+                    {/* Address details */}
+                    <div className="space-y-0.5 mb-2">
+                      <p className="font-fredoka font-semibold text-charcoal text-sm">
+                        {defaultAddress.full_name}
+                      </p>
+                      <p className="font-fredoka text-sm text-medium-gray leading-snug">
+                        {defaultAddress.address_line1}
+                        {defaultAddress.address_line2 && `, ${defaultAddress.address_line2}`}
+                      </p>
+                      <p className="font-fredoka text-sm text-medium-gray">
+                        {defaultAddress.city}, {defaultAddress.district} – {defaultAddress.postal_code}
+                      </p>
+                      {defaultAddress.landmark && (
+                        <p className="font-fredoka text-xs text-medium-gray/60">
+                          Near {defaultAddress.landmark}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-2 border-t border-light-gray">
+                      <div className="flex items-center gap-1 text-medium-gray">
+                        <Phone className="h-3 w-3" />
+                        <span className="font-fredoka text-sm">{defaultAddress.phone}</span>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('addresses')}
+                        className="flex items-center gap-0.5 text-sm font-fredoka font-semibold text-primary-blue hover:text-primary-blue/70 transition-colors"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-light-gray overflow-hidden">
+                  <div className="h-0.5 bg-light-gray" />
+                  <div className="flex items-center gap-3 px-3 py-3">
+                    <MapPin className="h-4 w-4 text-medium-gray flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-fredoka font-semibold text-charcoal text-sm">No delivery address saved</p>
+                      <p className="font-fredoka text-sm text-medium-gray">Add one to speed up checkout</p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('addresses')}
+                      className="flex-shrink-0 flex items-center gap-1 bg-primary-blue text-white text-sm font-fredoka font-semibold px-3 py-1.5 rounded-lg hover:bg-primary-blue/90 transition-colors"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Add
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+          </motion.div>
+        );
+
+      case 'addresses':
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl shadow-xl p-8"
+          >
+            <AddressManagement />
           </motion.div>
         );
 
@@ -700,128 +749,161 @@ const Account: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-2">My Pets</h2>
-                  <p className="text-medium-gray">Manage your furry family members</p>
+                  <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-1">My Pets</h2>
+                  <p className="text-medium-gray font-fredoka">Manage your furry family members</p>
                 </div>
                 <button
                   onClick={handleAddPet}
-                  className="flex items-center space-x-2 px-6 py-3 bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal rounded-xl transition-all font-fredoka font-medium"
+                  className="flex items-center gap-2 px-6 py-3 bg-vibrant-orange hover:bg-vibrant-orange/90 text-white rounded-2xl transition-all font-fredoka font-medium shadow-sm"
                 >
                   <Plus className="h-5 w-5" />
                   <span>Add Pet</span>
                 </button>
               </div>
 
+              {/* Loading State */}
+              {loadingPets && (
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-full border-4 border-light-gray border-t-vibrant-orange animate-spin" />
+                    <PawPrint className="absolute inset-0 m-auto h-5 w-5 text-vibrant-orange" />
+                  </div>
+                  <p className="text-medium-gray font-fredoka">Loading pets...</p>
+                </div>
+              )}
+
               {/* Pets Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pets.map((pet) => (
-                  <motion.div
-                    key={pet.id}
-                    whileHover={{ y: -5 }}
-                    className="bg-gradient-to-br from-soft-gray to-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-light-gray"
-                  >
-                    {/* Pet Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-sunny-yellow/20 rounded-full flex items-center justify-center text-2xl">
-                          {getPetTypeEmoji(pet.type)}
-                        </div>
-                        <div>
-                          <h3 className="font-fredoka font-bold text-lg text-charcoal">{pet.name}</h3>
-                          <p className="text-sm text-medium-gray capitalize">{pet.type} • {getPetAge(pet)}</p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => handleEditPet(pet)}
-                          className="p-2 hover:bg-primary-blue/10 rounded-lg transition-colors"
-                        >
-                          <Edit3 className="h-4 w-4 text-primary-blue" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeletePet(pet.id)}
-                          className="p-2 hover:bg-coral-red/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4 text-coral-red" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Pet Details */}
-                    <div className="space-y-3">
-                      {pet.breed && (
-                        <div className="flex items-center space-x-2">
-                          <Star className="h-4 w-4 text-sunny-yellow" />
-                          <span className="text-sm text-charcoal">Breed: {pet.breed}</span>
-                        </div>
-                      )}
-                      {pet.weight && (
-                        <div className="flex items-center space-x-2">
-                          <Weight className="h-4 w-4 text-mint-green" />
-                          <span className="text-sm text-charcoal">Weight: {pet.weight} {pet.weightUnit}</span>
-                        </div>
-                      )}
-                      {pet.gender && (
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-primary-blue" />
-                          <span className="text-sm text-charcoal capitalize">Gender: {pet.gender}</span>
-                        </div>
-                      )}
-                      {pet.microchipId && (
-                        <div className="flex items-center space-x-2">
-                          <Shield className="h-4 w-4 text-lavender" />
-                          <span className="text-sm text-charcoal">Chip: {pet.microchipId}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Health Indicators */}
-                    <div className="mt-4 pt-4 border-t border-light-gray">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {pet.isNeutered && (
-                          <span className="px-3 py-1 bg-mint-green/20 text-mint-green rounded-full text-xs font-fredoka font-medium">
-                            Neutered
-                          </span>
-                        )}
-                        {pet.allergies && pet.allergies.length > 0 && (
-                          <span className="px-3 py-1 bg-coral-red/20 text-coral-red rounded-full text-xs font-fredoka font-medium">
-                            Has Allergies
-                          </span>
-                        )}
-                        {pet.medications && pet.medications.length > 0 && (
-                          <span className="px-3 py-1 bg-primary-blue/20 text-primary-blue rounded-full text-xs font-fredoka font-medium">
-                            On Medication
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleViewPetProfile(pet)}
-                        className="w-full bg-sunny-yellow/20 hover:bg-sunny-yellow/30 text-sunny-yellow border border-sunny-yellow/30 rounded-xl py-2 px-4 font-fredoka font-medium transition-all flex items-center justify-center space-x-2"
+              {!loadingPets && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {pets.map((pet, index) => {
+                    const accent = petTypeAccent(pet.type);
+                    return (
+                      <motion.div
+                        key={pet.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        whileHover={{ y: -4 }}
+                        className="bg-white rounded-2xl overflow-hidden shadow-sm border border-light-gray hover:shadow-md transition-all duration-200"
                       >
-                        <Activity className="h-4 w-4" />
-                        <span>View Timeline</span>
+                        {/* Colored accent bar */}
+                        <div className={`h-1 w-full ${accent.bar}`} />
+
+                        <div className="p-5">
+                          {/* Pet Header */}
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl overflow-hidden ${accent.icon}`}>
+                                {pet.image ? (
+                                  <img src={pet.image} alt={pet.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span>{getPetTypeEmoji(pet.type)}</span>
+                                )}
+                              </div>
+                              <div>
+                                <h3 className="font-fredoka font-bold text-base text-charcoal leading-tight">{pet.name}</h3>
+                                <p className="text-xs text-medium-gray font-fredoka capitalize mt-0.5">{pet.type} · {getPetAge(pet)}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <button
+                                onClick={() => handleEditPet(pet)}
+                                className="p-2 hover:bg-soft-gray rounded-lg transition-colors text-medium-gray hover:text-charcoal"
+                                title="Edit"
+                              >
+                                <Edit3 className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeletePet(pet.id)}
+                                className="p-2 hover:bg-red-50 rounded-lg transition-colors text-medium-gray hover:text-coral-red"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Pet Details */}
+                          <div className="space-y-2 mb-4">
+                            {pet.breed && (
+                              <div className="flex items-center gap-2">
+                                <Star className="h-3.5 w-3.5 text-sunny-yellow fill-sunny-yellow shrink-0" />
+                                <span className="text-sm font-fredoka text-charcoal">{pet.breed}</span>
+                              </div>
+                            )}
+                            {pet.weight && (
+                              <div className="flex items-center gap-2">
+                                <Weight className="h-3.5 w-3.5 text-medium-gray shrink-0" />
+                                <span className="text-sm font-fredoka text-medium-gray">{pet.weight} {pet.weightUnit || 'kg'}</span>
+                              </div>
+                            )}
+                            {pet.gender && (
+                              <div className="flex items-center gap-2">
+                                <User className="h-3.5 w-3.5 text-medium-gray shrink-0" />
+                                <span className="text-sm font-fredoka text-medium-gray capitalize">{pet.gender}</span>
+                              </div>
+                            )}
+                            {pet.microchipId && (
+                              <div className="flex items-center gap-2">
+                                <Shield className="h-3.5 w-3.5 text-lavender shrink-0" />
+                                <span className="text-sm font-fredoka text-medium-gray truncate">{pet.microchipId}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Health Badges + CTA */}
+                          <div className="pt-4 border-t border-light-gray">
+                            {(pet.isNeutered || (pet.allergies && pet.allergies.length > 0) || (pet.medications && pet.medications.length > 0)) && (
+                              <div className="flex flex-wrap gap-1.5 mb-3">
+                                {pet.isNeutered && (
+                                  <span className="px-2.5 py-1 bg-mint-green/15 text-mint-green rounded-full text-xs font-fredoka font-medium">
+                                    Neutered
+                                  </span>
+                                )}
+                                {pet.allergies && pet.allergies.length > 0 && (
+                                  <span className="px-2.5 py-1 bg-coral-red/10 text-coral-red rounded-full text-xs font-fredoka font-medium">
+                                    Allergies
+                                  </span>
+                                )}
+                                {pet.medications && pet.medications.length > 0 && (
+                                  <span className="px-2.5 py-1 bg-primary-blue/10 text-primary-blue rounded-full text-xs font-fredoka font-medium">
+                                    Medication
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <button
+                              onClick={() => handleViewPetProfile(pet)}
+                              className={`w-full py-2.5 rounded-xl font-fredoka font-medium text-sm transition-all flex items-center justify-center gap-2 ${accent.icon} hover:opacity-80`}
+                            >
+                              <Eye className="h-4 w-4" />
+                              View Profile
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* Empty State */}
+                  {pets.length === 0 && (
+                    <div className="col-span-full text-center py-16">
+                      <div className="w-24 h-24 bg-vibrant-orange/10 rounded-full flex items-center justify-center mx-auto mb-5">
+                        <PawPrint className="h-12 w-12 text-vibrant-orange" />
+                      </div>
+                      <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">No pets added yet</h3>
+                      <p className="text-medium-gray font-fredoka mb-6">Add your first pet to get personalized recommendations</p>
+                      <button
+                        onClick={handleAddPet}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-vibrant-orange hover:bg-vibrant-orange/90 text-white rounded-2xl font-fredoka font-medium transition-all"
+                      >
+                        <Plus className="h-5 w-5" />
+                        Add Your First Pet
                       </button>
                     </div>
-                  </motion.div>
-                ))}
-
-                {/* Empty State */}
-                {pets.length === 0 && (
-                  <div className="col-span-full text-center py-12">
-                    <div className="w-24 h-24 bg-sunny-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <PawPrint className="h-12 w-12 text-sunny-yellow" />
-                    </div>
-                    <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">No pets added yet</h3>
-                    <p className="text-medium-gray mb-6">Add your first pet to get personalized recommendations</p>
-                    <button
-                      onClick={handleAddPet}
-                      className="px-6 py-3 bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal rounded-xl font-fredoka font-medium transition-all"
-                    >
-                      Add Your First Pet
-                    </button>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Add/Edit Pet Modal */}
@@ -835,711 +917,406 @@ const Account: React.FC = () => {
                   onClick={() => setShowAddPet(false)}
                 >
                   <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
+                    initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-2xl font-fredoka font-bold text-charcoal">
-                        {editingPet ? 'Edit Pet' : 'Add New Pet'}
-                      </h3>
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between px-8 py-5 border-b border-light-gray shrink-0">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-vibrant-orange/10 rounded-xl">
+                          <PawPrint className="h-5 w-5 text-vibrant-orange" />
+                        </div>
+                        <h3 className="text-xl font-fredoka font-bold text-charcoal">
+                          {editingPet ? 'Edit Pet' : 'Add New Pet'}
+                        </h3>
+                      </div>
                       <button
                         onClick={() => setShowAddPet(false)}
-                        className="p-2 hover:bg-soft-gray rounded-lg transition-colors"
+                        className="p-2 hover:bg-soft-gray rounded-xl transition-colors"
                       >
-                        <X className="h-6 w-6 text-medium-gray" />
+                        <X className="h-5 w-5 text-medium-gray" />
                       </button>
                     </div>
 
-                    {/* Pet Form */}
-                    <div className="space-y-6">
-                      {/* Basic Information */}
-                      <div>
-                        <h4 className="text-lg font-fredoka font-semibold text-charcoal mb-4">Basic Information</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Pet Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.name}
-                              onChange={(e) => handlePetFormChange('name', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., Buddy"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Pet Type *
-                            </label>
-                            <select
-                              value={petFormData.type}
-                              onChange={(e) => handlePetFormChange('type', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                            >
-                              <option value="dog">🐕 Dog</option>
-                              <option value="cat">🐈 Cat</option>
-                              <option value="bird">🦜 Bird</option>
-                              <option value="fish">🐠 Fish</option>
-                              <option value="rabbit">🐰 Rabbit</option>
-                              <option value="hamster">🐹 Hamster</option>
-                              <option value="other">🐾 Other</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Breed
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.breed}
-                              onChange={(e) => handlePetFormChange('breed', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., Golden Retriever"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Gender
-                            </label>
-                            <select
-                              value={petFormData.gender}
-                              onChange={(e) => handlePetFormChange('gender', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                            >
-                              <option value="male">Male</option>
-                              <option value="female">Female</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Physical Details */}
-                      <div>
-                        <h4 className="text-lg font-fredoka font-semibold text-charcoal mb-4">Physical Details</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Date of Birth
-                            </label>
-                            <input
-                              type="date"
-                              value={petFormData.dateOfBirth}
-                              onChange={(e) => handlePetFormChange('dateOfBirth', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Color
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.color}
-                              onChange={(e) => handlePetFormChange('color', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., Brown and White"
-                            />
-                          </div>
-                          <div className="flex space-x-2">
-                            <div className="flex-1">
-                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                                Weight
-                              </label>
+                    {/* Scrollable Form Body */}
+                    <div className="overflow-y-auto flex-1 px-8 py-6">
+                      <div className="space-y-6">
+                        {/* Basic Information */}
+                        <div>
+                          <h4 className="text-sm font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-3">Basic Information</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Pet Name *</label>
                               <input
-                                type="number"
-                                step="0.1"
-                                value={petFormData.weight}
-                                onChange={(e) => handlePetFormChange('weight', e.target.value)}
-                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                                placeholder="0"
+                                type="text"
+                                value={petFormData.name}
+                                onChange={(e) => handlePetFormChange('name', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                placeholder="e.g., Buddy"
+                                required
                               />
                             </div>
-                            <div className="w-24">
-                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                                Unit
-                              </label>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Species *</label>
                               <select
-                                value={petFormData.weightUnit}
-                                onChange={(e) => handlePetFormChange('weightUnit', e.target.value)}
-                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
+                                value={petFormData.type}
+                                onChange={(e) => handlePetFormChange('type', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
                               >
-                                <option value="kg">kg</option>
-                                <option value="lbs">lbs</option>
+                                <option value="dog">🐕 Dog</option>
+                                <option value="cat">🐈 Cat</option>
+                                <option value="bird">🦜 Bird</option>
+                                <option value="fish">🐠 Fish</option>
+                                <option value="rabbit">🐰 Rabbit</option>
+                                <option value="hamster">🐹 Hamster</option>
+                                <option value="other">🐾 Other</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Breed</label>
+                              <input
+                                type="text"
+                                value={petFormData.breed}
+                                onChange={(e) => handlePetFormChange('breed', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                placeholder="e.g., Golden Retriever"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Gender</label>
+                              <select
+                                value={petFormData.gender}
+                                onChange={(e) => handlePetFormChange('gender', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                              >
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
                               </select>
                             </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Microchip ID
+                        </div>
+
+                        {/* Pet Photo */}
+                        <div>
+                          <h4 className="text-sm font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-3">Pet Photo</h4>
+                          <div className="flex items-center gap-5">
+                            <div className="w-20 h-20 rounded-2xl overflow-hidden bg-soft-gray flex items-center justify-center text-3xl shrink-0 border-2 border-light-gray">
+                              {petImagePreview ? (
+                                <img src={petImagePreview} alt="Pet preview" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{getPetTypeEmoji(petFormData.type as Pet['type'])}</span>
+                              )}
+                            </div>
+                            <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-light-gray rounded-xl p-4 cursor-pointer hover:border-vibrant-orange hover:bg-vibrant-orange/5 transition-all">
+                              <Upload className="h-6 w-6 text-medium-gray mb-1" />
+                              <span className="text-sm font-fredoka text-medium-gray">
+                                {petImagePreview ? 'Change photo' : 'Upload pet photo'}
+                              </span>
+                              <input type="file" accept="image/*" onChange={handlePetImageUpload} className="hidden" />
                             </label>
-                            <input
-                              type="text"
-                              value={petFormData.microchipId}
-                              onChange={(e) => handlePetFormChange('microchipId', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., 123456789012345"
-                            />
+                          </div>
+                        </div>
+
+                        {/* Physical Details */}
+                        <div>
+                          <h4 className="text-sm font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-3">Physical Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Date of Birth</label>
+                              <input
+                                type="date"
+                                value={petFormData.dateOfBirth}
+                                onChange={(e) => handlePetFormChange('dateOfBirth', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Color</label>
+                              <input
+                                type="text"
+                                value={petFormData.color}
+                                onChange={(e) => handlePetFormChange('color', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                placeholder="e.g., Brown and White"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Weight</label>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={petFormData.weight}
+                                  onChange={(e) => handlePetFormChange('weight', e.target.value)}
+                                  className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                  placeholder="0"
+                                />
+                              </div>
+                              <div className="w-24">
+                                <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Unit</label>
+                                <select
+                                  value={petFormData.weightUnit}
+                                  onChange={(e) => handlePetFormChange('weightUnit', e.target.value)}
+                                  className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                >
+                                  <option value="kg">kg</option>
+                                  <option value="lbs">lbs</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Microchip ID</label>
+                              <input
+                                type="text"
+                                value={petFormData.microchipId}
+                                onChange={(e) => handlePetFormChange('microchipId', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all"
+                                placeholder="e.g., 123456789012345"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Health Information */}
+                        <div>
+                          <h4 className="text-sm font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-3">Health Information</h4>
+                          <div className="space-y-4">
+                            <label className="flex items-center gap-3 cursor-pointer select-none p-3 bg-mint-green/5 border border-mint-green/20 rounded-xl hover:bg-mint-green/10 transition-colors">
+                              <input
+                                type="checkbox"
+                                id="isNeutered"
+                                checked={petFormData.isNeutered}
+                                onChange={(e) => handlePetFormChange('isNeutered', e.target.checked)}
+                                className="w-4 h-4 text-mint-green border-2 border-light-gray rounded focus:ring-mint-green"
+                              />
+                              <span className="text-sm font-fredoka font-medium text-charcoal">Pet is spayed / neutered</span>
+                            </label>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Allergies <span className="text-medium-gray font-normal">(comma-separated)</span></label>
+                              <input
+                                type="text"
+                                value={petFormData.allergies}
+                                onChange={(e) => handlePetFormChange('allergies', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-coral-red transition-all"
+                                placeholder="e.g., chicken, beef, pollen"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Current Medications <span className="text-medium-gray font-normal">(comma-separated)</span></label>
+                              <input
+                                type="text"
+                                value={petFormData.medications}
+                                onChange={(e) => handlePetFormChange('medications', e.target.value)}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-primary-blue transition-all"
+                                placeholder="e.g., heartworm prevention, joint supplements"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Medical Notes</label>
+                              <textarea
+                                value={petFormData.medicalNotes}
+                                onChange={(e) => handlePetFormChange('medicalNotes', e.target.value)}
+                                rows={3}
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-3 font-fredoka focus:outline-none focus:border-vibrant-orange transition-all resize-none"
+                                placeholder="Any additional medical information..."
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Health Information */}
-                      <div>
-                        <h4 className="text-lg font-fredoka font-semibold text-charcoal mb-4">Health Information</h4>
-                        <div className="space-y-4">
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="checkbox"
-                              id="isNeutered"
-                              checked={petFormData.isNeutered}
-                              onChange={(e) => handlePetFormChange('isNeutered', e.target.checked)}
-                              className="w-5 h-5 text-mint-green border-2 border-light-gray rounded focus:ring-mint-green"
-                            />
-                            <label htmlFor="isNeutered" className="text-sm font-fredoka font-medium text-charcoal">
-                              Pet is spayed/neutered
-                            </label>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Allergies (comma-separated)
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.allergies}
-                              onChange={(e) => handlePetFormChange('allergies', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., chicken, beef, pollen"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Current Medications (comma-separated)
-                            </label>
-                            <input
-                              type="text"
-                              value={petFormData.medications}
-                              onChange={(e) => handlePetFormChange('medications', e.target.value)}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all"
-                              placeholder="e.g., heartworm prevention, joint supplements"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                              Medical Notes
-                            </label>
-                            <textarea
-                              value={petFormData.medicalNotes}
-                              onChange={(e) => handlePetFormChange('medicalNotes', e.target.value)}
-                              rows={3}
-                              className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-sunny-yellow transition-all resize-none"
-                              placeholder="Any additional medical information..."
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Form Actions */}
-                      <div className="flex space-x-4 pt-6 border-t border-light-gray">
-                        <button
-                          onClick={() => setShowAddPet(false)}
-                          className="flex-1 px-6 py-3 border-2 border-light-gray text-medium-gray rounded-xl font-fredoka font-medium hover:bg-soft-gray transition-all"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleSavePet}
-                          disabled={!petFormData.name.trim()}
-                          className="flex-1 px-6 py-3 bg-sunny-yellow hover:bg-sunny-yellow/90 disabled:bg-light-gray disabled:text-medium-gray text-charcoal rounded-xl font-fredoka font-medium transition-all flex items-center justify-center space-x-2"
-                        >
-                          <Save className="h-5 w-5" />
-                          <span>{editingPet ? 'Update Pet' : 'Add Pet'}</span>
-                        </button>
-                      </div>
+                    {/* Modal Footer */}
+                    <div className="flex gap-3 px-8 py-5 border-t border-light-gray shrink-0">
+                      <button
+                        onClick={() => setShowAddPet(false)}
+                        className="flex-1 px-6 py-3 border-2 border-light-gray text-charcoal rounded-2xl font-fredoka font-medium hover:bg-soft-gray transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSavePet}
+                        disabled={!petFormData.name.trim() || savingPet}
+                        className="flex-1 px-6 py-3 bg-vibrant-orange hover:bg-vibrant-orange/90 disabled:bg-light-gray disabled:text-medium-gray text-white rounded-2xl font-fredoka font-medium transition-all flex items-center justify-center gap-2"
+                      >
+                        {savingPet ? (
+                          <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /><span>Saving...</span></>
+                        ) : (
+                          <><Save className="h-4 w-4" /><span>{editingPet ? 'Update Pet' : 'Add Pet'}</span></>
+                        )}
+                      </button>
                     </div>
                   </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Pet Profile Modal with Timeline */}
+            {/* Pet Profile Modal */}
             <AnimatePresence>
-              {showPetProfile && selectedPet && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                  onClick={() => setShowPetProfile(false)}
-                >
+              {showPetProfile && selectedPet && (() => {
+                const accent = petTypeAccent(selectedPet.type);
+                return (
                   <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden mx-4"
-                    onClick={(e) => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={() => setShowPetProfile(false)}
                   >
-                    {/* Pet Profile Header */}
-                    <div className="bg-sunny-yellow p-4 sm:p-6 lg:p-8 text-charcoal">
-                      <div className="flex items-center justify-between mb-4">
-                        <button
-                          onClick={() => setShowPetProfile(false)}
-                          className="p-2 hover:bg-charcoal/10 rounded-lg transition-colors"
-                        >
-                          <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
-                        <div className="text-center flex-1 px-2">
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-charcoal/10 rounded-full flex items-center justify-center text-3xl sm:text-4xl mx-auto mb-2 sm:mb-4">
-                            {getPetTypeEmoji(selectedPet.type)}
-                          </div>
-                          <h2 className="text-2xl sm:text-3xl font-fredoka font-bold truncate">{selectedPet.name}</h2>
-                          <p className="text-sm sm:text-lg opacity-80 capitalize">{selectedPet.type} • {getPetAge(selectedPet)}</p>
-                        </div>
-                        <button
-                          onClick={handleAddTimelineEntry}
-                          className="p-2 hover:bg-charcoal/10 rounded-lg transition-colors"
-                        >
-                          <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
-                      </div>
-                      
-                      {/* Quick Stats */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-                        <div className="bg-charcoal/10 rounded-xl p-3 sm:p-4 text-center">
-                          <p className="text-lg sm:text-2xl font-fredoka font-bold">{selectedPet.timeline?.length || 0}</p>
-                          <p className="text-xs sm:text-sm opacity-80">Timeline Entries</p>
-                        </div>
-                        <div className="bg-charcoal/10 rounded-xl p-3 sm:p-4 text-center">
-                          <p className="text-lg sm:text-2xl font-fredoka font-bold">{selectedPet.weight || 'N/A'}</p>
-                          <p className="text-xs sm:text-sm opacity-80">Weight ({selectedPet.weightUnit || 'kg'})</p>
-                        </div>
-                        <div className="bg-charcoal/10 rounded-xl p-3 sm:p-4 text-center">
-                          <p className="text-lg sm:text-2xl font-fredoka font-bold">{selectedPet.timeline?.filter(e => e.type === 'vet_visit').length || 0}</p>
-                          <p className="text-xs sm:text-sm opacity-80">Vet Visits</p>
-                        </div>
-                        <div className="bg-charcoal/10 rounded-xl p-3 sm:p-4 text-center">
-                          <p className="text-lg sm:text-2xl font-fredoka font-bold">{selectedPet.timeline?.filter(e => e.type === 'vaccination').length || 0}</p>
-                          <p className="text-xs sm:text-sm opacity-80">Vaccinations</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Timeline Content */}
-                    <div className="p-4 sm:p-6 lg:p-8 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto">
-                      {/* Timeline Filters */}
-                      <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
-                        <button
-                          onClick={() => setTimelineFilter('all')}
-                          className={`px-3 py-2 sm:px-4 rounded-full text-xs sm:text-sm font-fredoka font-medium transition-all ${
-                            timelineFilter === 'all' 
-                              ? 'bg-sunny-yellow text-charcoal' 
-                              : 'bg-soft-gray text-medium-gray hover:bg-light-gray'
-                          }`}
-                        >
-                          All Events
-                        </button>
-                        {(['health', 'medical', 'wellness', 'behavior', 'training', 'grooming', 'nutrition'] as const).map(category => (
+                    <motion.div
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.95, opacity: 0 }}
+                      className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col mx-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Pet Profile Header — species color gradient */}
+                      <div className={`bg-gradient-to-br ${accent.header} p-6 text-white shrink-0`}>
+                        <div className="flex items-center justify-between mb-5">
                           <button
-                            key={category}
-                            onClick={() => setTimelineFilter(category)}
-                            className={`px-3 py-2 sm:px-4 rounded-full text-xs sm:text-sm font-fredoka font-medium transition-all capitalize ${
-                              timelineFilter === category 
-                                ? 'bg-sunny-yellow text-charcoal' 
-                                : 'bg-soft-gray text-medium-gray hover:bg-light-gray'
-                            }`}
+                            onClick={() => setShowPetProfile(false)}
+                            className="p-2 hover:bg-white/20 rounded-xl transition-colors"
                           >
-                            {category}
+                            <ArrowLeft className="h-5 w-5" />
                           </button>
-                        ))}
-                      </div>
+                          <button
+                            onClick={() => { setShowPetProfile(false); handleEditPet(selectedPet); }}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors font-fredoka text-sm font-medium"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                            Edit
+                          </button>
+                        </div>
 
-                      {/* Timeline */}
-                      <div className="space-y-4">
-                        {selectedPet.timeline && getFilteredTimeline(selectedPet.timeline)
-                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                          .map((entry) => {
-                            const Icon = getTimelineIcon(entry.type);
-                            return (
-                              <motion.div
-                                key={entry.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="bg-soft-gray rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all"
-                              >
-                                <div className="flex items-start space-x-3 sm:space-x-4">
-                                  <div className={`p-2 sm:p-3 rounded-xl ${getImportanceColor(entry.importance)} shrink-0`}>
-                                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between mb-2 flex-col sm:flex-row sm:items-center gap-2">
-                                      <div className="flex-1 min-w-0">
-                                        <h4 className="font-fredoka font-bold text-base sm:text-lg text-charcoal truncate">{entry.title}</h4>
-                                        <p className="text-xs sm:text-sm text-medium-gray">
-                                          {new Date(entry.date).toLocaleDateString()} • {entry.type.replace('_', ' ')}
-                                        </p>
-                                      </div>
-                                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-fredoka font-medium ${getImportanceColor(entry.importance)} shrink-0 self-start sm:self-center`}>
-                                        {entry.importance}
-                                      </span>
-                                    </div>
-                                    
-                                    {entry.description && (
-                                      <p className="text-charcoal mb-4">{entry.description}</p>
-                                    )}
+                        <div className="flex items-center gap-5">
+                          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/20 flex items-center justify-center text-4xl shrink-0 border-2 border-white/30">
+                            {selectedPet.image ? (
+                              <img src={selectedPet.image} alt={selectedPet.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{getPetTypeEmoji(selectedPet.type)}</span>
+                            )}
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-fredoka font-bold">{selectedPet.name}</h2>
+                            <p className="opacity-80 font-fredoka capitalize">{selectedPet.type} · {getPetAge(selectedPet)}</p>
+                            {selectedPet.breed && <p className="opacity-70 text-sm font-fredoka mt-0.5">{selectedPet.breed}</p>}
+                          </div>
+                        </div>
 
-                                    {/* Type-specific details */}
-                                    {entry.vetVisit && (
-                                      <div className="bg-white rounded-xl p-3 sm:p-4 space-y-2">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Veterinarian</p>
-                                            <p className="text-xs sm:text-sm text-medium-gray">{entry.vetVisit.vetName} at {entry.vetVisit.clinic}</p>
-                                          </div>
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Reason</p>
-                                            <p className="text-xs sm:text-sm text-medium-gray">{entry.vetVisit.reason}</p>
-                                          </div>
-                                          {entry.vetVisit.diagnosis && (
-                                            <div className="sm:col-span-2">
-                                              <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Diagnosis</p>
-                                              <p className="text-xs sm:text-sm text-medium-gray">{entry.vetVisit.diagnosis}</p>
-                                            </div>
-                                          )}
-                                          {entry.vetVisit.treatment && (
-                                            <div className="sm:col-span-2">
-                                              <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Treatment</p>
-                                              <p className="text-xs sm:text-sm text-medium-gray">{entry.vetVisit.treatment}</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {entry.medication && (
-                                      <div className="bg-white rounded-xl p-3 sm:p-4 space-y-2">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Medication</p>
-                                            <p className="text-xs sm:text-sm text-medium-gray">{entry.medication.name}</p>
-                                          </div>
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Dosage & Frequency</p>
-                                            <p className="text-xs sm:text-sm text-medium-gray">{entry.medication.dosage} - {entry.medication.frequency}</p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {entry.weight && (
-                                      <div className="bg-white rounded-xl p-3 sm:p-4">
-                                        <div className="flex items-center justify-between flex-col sm:flex-row gap-3 sm:gap-0">
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Weight</p>
-                                            <p className="text-xs sm:text-sm text-medium-gray">{entry.weight.weight} {entry.weight.unit}</p>
-                                          </div>
-                                          <div className="text-center sm:text-right">
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal mb-1">Body Condition</p>
-                                            <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-fredoka font-medium ${
-                                              entry.weight.bodyCondition === 'ideal' ? 'bg-mint-green/20 text-mint-green' :
-                                              entry.weight.bodyCondition === 'overweight' ? 'bg-vibrant-orange/20 text-vibrant-orange' :
-                                              'bg-coral-red/20 text-coral-red'
-                                            }`}>
-                                              {entry.weight.bodyCondition}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {entry.vaccination && (
-                                      <div className="bg-white rounded-xl p-3 sm:p-4 space-y-2">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Vaccine</p>
-                                            <p className="text-xs sm:text-sm text-medium-gray">{entry.vaccination.vaccine}</p>
-                                          </div>
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Veterinarian</p>
-                                            <p className="text-xs sm:text-sm text-medium-gray">{entry.vaccination.veterinarian}</p>
-                                          </div>
-                                          {entry.vaccination.nextDue && (
-                                            <div className="sm:col-span-2">
-                                              <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Next Due</p>
-                                              <p className="text-xs sm:text-sm text-medium-gray">{new Date(entry.vaccination.nextDue).toLocaleDateString()}</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {entry.training && (
-                                      <div className="bg-white rounded-xl p-3 sm:p-4 space-y-2">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Skill</p>
-                                            <p className="text-xs sm:text-sm text-medium-gray">{entry.training.skill}</p>
-                                          </div>
-                                          <div>
-                                            <p className="text-xs sm:text-sm font-fredoka font-medium text-charcoal">Progress</p>
-                                            <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-fredoka font-medium ${
-                                              entry.training.progress === 'mastered' ? 'bg-mint-green/20 text-mint-green' :
-                                              entry.training.progress === 'in_progress' ? 'bg-vibrant-orange/20 text-vibrant-orange' :
-                                              'bg-primary-blue/20 text-primary-blue'
-                                            }`}>
-                                              {entry.training.progress.replace('_', ' ')}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </motion.div>
-                            );
-                          })}
-                        
-                        {/* Empty Timeline State */}
-                        {(!selectedPet.timeline || getFilteredTimeline(selectedPet.timeline).length === 0) && (
-                          <div className="text-center py-12">
-                            <div className="w-16 h-16 bg-soft-gray rounded-full flex items-center justify-center mx-auto mb-4">
-                              <Activity className="h-8 w-8 text-medium-gray" />
-                            </div>
-                            <h3 className="text-lg font-fredoka font-bold text-charcoal mb-2">No timeline entries yet</h3>
-                            <p className="text-medium-gray mb-4">Start tracking {selectedPet.name}'s journey</p>
-                            <button
-                              onClick={handleAddTimelineEntry}
-                              className="px-6 py-3 bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal rounded-xl font-fredoka font-medium transition-all"
-                            >
-                              Add First Entry
-                            </button>
+                        {/* Stats row */}
+                        {(selectedPet.weight || selectedPet.gender || selectedPet.color) && (
+                          <div className="grid grid-cols-3 gap-2 mt-5">
+                            {selectedPet.weight && (
+                              <div className="bg-white/15 rounded-xl p-3 text-center">
+                                <p className="font-fredoka font-bold text-sm">{selectedPet.weight} {selectedPet.weightUnit || 'kg'}</p>
+                                <p className="text-xs opacity-70 font-fredoka">Weight</p>
+                              </div>
+                            )}
+                            {selectedPet.gender && (
+                              <div className="bg-white/15 rounded-xl p-3 text-center">
+                                <p className="font-fredoka font-bold text-sm capitalize">{selectedPet.gender}</p>
+                                <p className="text-xs opacity-70 font-fredoka">Gender</p>
+                              </div>
+                            )}
+                            {selectedPet.color && (
+                              <div className="bg-white/15 rounded-xl p-3 text-center">
+                                <p className="font-fredoka font-bold text-sm">{selectedPet.color}</p>
+                                <p className="text-xs opacity-70 font-fredoka">Color</p>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                    </div>
+
+                      {/* Pet Information Body */}
+                      <div className="overflow-y-auto flex-1 p-6 bg-soft-gray/40">
+                        <div className="space-y-3">
+                          {selectedPet.dateOfBirth && (
+                            <div className="bg-white rounded-xl p-4 flex items-center gap-3">
+                              <Calendar className="h-5 w-5 text-medium-gray shrink-0" />
+                              <div>
+                                <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide">Date of Birth</p>
+                                <p className="font-fredoka font-medium text-charcoal">{new Date(selectedPet.dateOfBirth).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedPet.isNeutered !== undefined && (
+                            <div className="bg-white rounded-xl p-4 flex items-center gap-3">
+                              <Shield className="h-5 w-5 text-mint-green shrink-0" />
+                              <div>
+                                <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide">Neutered / Spayed</p>
+                                <p className="font-fredoka font-medium text-charcoal">{selectedPet.isNeutered ? 'Yes' : 'No'}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedPet.microchipId && (
+                            <div className="bg-white rounded-xl p-4 flex items-center gap-3">
+                              <Shield className="h-5 w-5 text-lavender shrink-0" />
+                              <div>
+                                <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide">Microchip ID</p>
+                                <p className="font-fredoka font-medium text-charcoal font-mono text-sm">{selectedPet.microchipId}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedPet.medicalNotes && (
+                            <div className="bg-white rounded-xl p-4">
+                              <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide mb-2">Medical Notes</p>
+                              <p className="font-fredoka text-charcoal whitespace-pre-wrap text-sm">{selectedPet.medicalNotes}</p>
+                            </div>
+                          )}
+
+                          {selectedPet.allergies && selectedPet.allergies.length > 0 && (
+                            <div className="bg-white rounded-xl p-4">
+                              <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide mb-2">Allergies</p>
+                              <div className="flex flex-wrap gap-2">
+                                {selectedPet.allergies.map((allergy, i) => (
+                                  <span key={i} className="px-3 py-1 bg-coral-red/10 text-coral-red rounded-full text-sm font-fredoka font-medium">
+                                    {allergy}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedPet.medications && selectedPet.medications.length > 0 && (
+                            <div className="bg-white rounded-xl p-4">
+                              <p className="text-xs font-fredoka text-medium-gray uppercase tracking-wide mb-2">Current Medications</p>
+                              <div className="space-y-1.5">
+                                {selectedPet.medications.map((med, i) => (
+                                  <div key={i} className="px-3 py-2 bg-primary-blue/5 border border-primary-blue/10 rounded-lg text-sm font-fredoka text-charcoal">
+                                    {med}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {!selectedPet.dateOfBirth &&
+                           !selectedPet.microchipId &&
+                           !selectedPet.medicalNotes &&
+                           (!selectedPet.allergies || selectedPet.allergies.length === 0) &&
+                           (!selectedPet.medications || selectedPet.medications.length === 0) && (
+                            <div className="text-center py-12">
+                              <div className="w-16 h-16 bg-soft-gray rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Activity className="h-8 w-8 text-medium-gray" />
+                              </div>
+                              <h3 className="text-base font-fredoka font-bold text-charcoal mb-1">No additional details</h3>
+                              <p className="text-medium-gray font-fredoka text-sm">Edit {selectedPet.name}'s profile to add more information</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
                   </motion.div>
-                </motion.div>
-              )}
+                );
+              })()}
             </AnimatePresence>
-          </motion.div>
-        );
-
-      case 'orders':
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
-          >
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8">My Orders</h2>
-              
-              {/* Order Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-gradient-to-br from-primary-blue to-primary-blue/80 text-white rounded-xl p-4">
-                  <Package className="h-8 w-8 mb-2" />
-                  <p className="text-2xl font-fredoka font-bold">12</p>
-                  <p className="text-sm opacity-90">Total Orders</p>
-                </div>
-                <div className="bg-gradient-to-br from-mint-green to-mint-green/80 text-white rounded-xl p-4">
-                  <Truck className="h-8 w-8 mb-2" />
-                  <p className="text-2xl font-fredoka font-bold">2</p>
-                  <p className="text-sm opacity-90">In Transit</p>
-                </div>
-                <div className="bg-gradient-to-br from-sunny-yellow to-sunny-yellow/80 text-charcoal rounded-xl p-4">
-                  <Clock className="h-8 w-8 mb-2" />
-                  <p className="text-2xl font-fredoka font-bold">1</p>
-                  <p className="text-sm">Processing</p>
-                </div>
-                <div className="bg-gradient-to-br from-lavender to-lavender/80 text-white rounded-xl p-4">
-                  <Check className="h-8 w-8 mb-2" />
-                  <p className="text-2xl font-fredoka font-bold">9</p>
-                  <p className="text-sm opacity-90">Delivered</p>
-                </div>
-              </div>
-
-              {/* Orders List */}
-              <div className="space-y-4">
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="border-2 border-light-gray hover:border-primary-blue rounded-xl p-6 transition-all cursor-pointer"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-fredoka font-semibold text-lg text-charcoal">Order #PW123456789</h3>
-                      <p className="text-sm text-medium-gray flex items-center mt-1">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        Placed on March 15, 2024
-                      </p>
-                    </div>
-                    <span className="bg-mint-green/20 text-mint-green px-4 py-2 rounded-full text-sm font-fredoka font-semibold">
-                      Delivered
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <img src="/api/placeholder/80/80" alt="Product" className="w-20 h-20 object-cover rounded-xl" />
-                      <div>
-                        <p className="font-fredoka font-medium text-charcoal">Royal Canin Adult Dog Food</p>
-                        <p className="text-sm text-medium-gray">Quantity: 2 × 15kg</p>
-                        <p className="text-lg font-fredoka font-bold text-mint-green mt-1">Rs. 4,998</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-medium-gray" />
-                  </div>
-                </motion.div>
-
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="border-2 border-light-gray hover:border-primary-blue rounded-xl p-6 transition-all cursor-pointer"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-fredoka font-semibold text-lg text-charcoal">Order #PW123456788</h3>
-                      <p className="text-sm text-medium-gray flex items-center mt-1">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        Placed on March 10, 2024
-                      </p>
-                    </div>
-                    <span className="bg-primary-blue/20 text-primary-blue px-4 py-2 rounded-full text-sm font-fredoka font-semibold">
-                      In Transit
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <img src="/api/placeholder/80/80" alt="Product" className="w-20 h-20 object-cover rounded-xl" />
-                      <div>
-                        <p className="font-fredoka font-medium text-charcoal">Cat Litter - Premium Clumping</p>
-                        <p className="text-sm text-medium-gray">Quantity: 1 × 10kg</p>
-                        <p className="text-lg font-fredoka font-bold text-mint-green mt-1">Rs. 899</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-medium-gray" />
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        );
-
-      case 'wishlist':
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
-          >
-            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8">My Wishlist</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="border-2 border-light-gray hover:border-coral-red rounded-xl p-5 transition-all"
-              >
-                <div className="relative mb-4">
-                  <img src="/api/placeholder/200/200" alt="Product" className="w-full h-48 object-cover rounded-xl" />
-                  <button className="absolute top-3 right-3 bg-white/90 p-2 rounded-full hover:bg-coral-red hover:text-white transition-colors">
-                    <Heart className="h-5 w-5 fill-current" />
-                  </button>
-                </div>
-                <h3 className="font-fredoka font-semibold text-charcoal mb-2">Premium Bird Seed Mix</h3>
-                <p className="text-sm text-medium-gray mb-1">Vitakraft</p>
-                <div className="flex items-center mb-3">
-                  <div className="flex text-sunny-yellow">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-sm text-medium-gray ml-2">(4.8)</span>
-                </div>
-                <p className="text-xl font-fredoka font-bold text-mint-green mb-4">Rs. 599</p>
-                <button className="w-full bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors">
-                  Add to Cart
-                </button>
-              </motion.div>
-              
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="border-2 border-light-gray hover:border-coral-red rounded-xl p-5 transition-all"
-              >
-                <div className="relative mb-4">
-                  <img src="/api/placeholder/200/200" alt="Product" className="w-full h-48 object-cover rounded-xl" />
-                  <button className="absolute top-3 right-3 bg-white/90 p-2 rounded-full hover:bg-coral-red hover:text-white transition-colors">
-                    <Heart className="h-5 w-5 fill-current" />
-                  </button>
-                </div>
-                <h3 className="font-fredoka font-semibold text-charcoal mb-2">Interactive Cat Toy</h3>
-                <p className="text-sm text-medium-gray mb-1">Petstages</p>
-                <div className="flex items-center mb-3">
-                  <div className="flex text-sunny-yellow">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-sm text-medium-gray ml-2">(4.9)</span>
-                </div>
-                <p className="text-xl font-fredoka font-bold text-mint-green mb-4">Rs. 1,299</p>
-                <button className="w-full bg-sunny-yellow hover:bg-sunny-yellow/90 text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors">
-                  Add to Cart
-                </button>
-              </motion.div>
-            </div>
-          </motion.div>
-        );
-
-      case 'loyalty':
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
-          >
-            <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-8">Loyalty Program</h2>
-            {loyaltyCard ? (
-              <div className="space-y-6">
-                <div className="bg-gradient-to-br from-lavender to-primary-blue rounded-2xl p-6 text-white">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-sm opacity-90">Loyalty Card</p>
-                      <p className="text-2xl font-fredoka font-bold">{loyaltyCard.cardNumber}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm opacity-90">Current Tier</p>
-                      <p className="text-2xl font-fredoka font-bold">{loyaltyCard.tier}</p>
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <p className="text-sm opacity-90 mb-2">Available Points</p>
-                    <p className="text-4xl font-fredoka font-bold">{loyaltyCard.points.toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => navigate('/loyalty-cards')}
-                  className="w-full bg-lavender hover:bg-lavender/90 text-white font-fredoka font-medium py-4 rounded-xl transition-colors flex items-center justify-center space-x-2"
-                >
-                  <Gift className="h-5 w-5" />
-                  <span>View Full Loyalty Dashboard</span>
-                </button>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Award className="h-16 w-16 text-lavender mx-auto mb-4" />
-                <h3 className="text-xl font-fredoka font-bold text-charcoal mb-2">Join Our Loyalty Program!</h3>
-                <p className="text-medium-gray mb-6">Earn points on every purchase and unlock exclusive rewards</p>
-                <button 
-                  onClick={() => navigate('/loyalty-cards')}
-                  className="bg-lavender hover:bg-lavender/90 text-white px-6 py-3 rounded-xl font-fredoka font-medium transition-colors"
-                >
-                  Get Started
-                </button>
-              </div>
-            )}
           </motion.div>
         );
 
@@ -1594,15 +1371,111 @@ const Account: React.FC = () => {
                   Security
                 </h3>
                 <div className="space-y-4">
-                  <button className="w-full p-4 bg-soft-gray hover:bg-light-gray rounded-xl text-left transition-colors group">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-fredoka font-semibold text-charcoal">Change Password</p>
-                        <p className="text-sm text-medium-gray">Last changed 3 months ago</p>
+                  <div className="bg-soft-gray rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setShowPasswordForm(v => !v)}
+                      className="w-full p-4 text-left hover:bg-light-gray transition-colors group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Lock className="h-5 w-5 text-mint-green" />
+                          <div>
+                            <p className="font-fredoka font-semibold text-charcoal">Change Password</p>
+                            <p className="text-sm text-medium-gray">Update your account password</p>
+                          </div>
+                        </div>
+                        <ChevronRight className={`h-5 w-5 text-medium-gray transition-transform duration-200 ${showPasswordForm ? 'rotate-90' : ''}`} />
                       </div>
-                      <ChevronRight className="h-5 w-5 text-medium-gray group-hover:text-charcoal transition-colors" />
-                    </div>
-                  </button>
+                    </button>
+
+                    <AnimatePresence>
+                      {showPasswordForm && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.22 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 space-y-3 border-t border-light-gray pt-4">
+                            {/* Current Password */}
+                            <div className="relative">
+                              <label className="text-xs font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-1 block">Current Password</label>
+                              <input
+                                type={showCurrentPw ? 'text' : 'password'}
+                                value={passwordForm.current}
+                                onChange={e => setPasswordForm(f => ({ ...f, current: e.target.value }))}
+                                placeholder="Enter current password"
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-2.5 pr-10 text-sm font-nunito focus:outline-none focus:border-primary-blue transition-colors"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowCurrentPw(v => !v)}
+                                className="absolute right-3 top-8 text-medium-gray hover:text-charcoal transition-colors"
+                              >
+                                {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+
+                            {/* New Password */}
+                            <div className="relative">
+                              <label className="text-xs font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-1 block">New Password</label>
+                              <input
+                                type={showNewPw ? 'text' : 'password'}
+                                value={passwordForm.newPass}
+                                onChange={e => setPasswordForm(f => ({ ...f, newPass: e.target.value }))}
+                                placeholder="Min. 8 characters"
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-2.5 pr-10 text-sm font-nunito focus:outline-none focus:border-primary-blue transition-colors"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowNewPw(v => !v)}
+                                className="absolute right-3 top-8 text-medium-gray hover:text-charcoal transition-colors"
+                              >
+                                {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div className="relative">
+                              <label className="text-xs font-fredoka font-semibold text-medium-gray uppercase tracking-wide mb-1 block">Confirm New Password</label>
+                              <input
+                                type={showConfirmPw ? 'text' : 'password'}
+                                value={passwordForm.confirm}
+                                onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))}
+                                placeholder="Re-enter new password"
+                                className="w-full border-2 border-light-gray rounded-xl px-4 py-2.5 pr-10 text-sm font-nunito focus:outline-none focus:border-primary-blue transition-colors"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPw(v => !v)}
+                                className="absolute right-3 top-8 text-medium-gray hover:text-charcoal transition-colors"
+                              >
+                                {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-3 pt-1">
+                              <button
+                                onClick={() => { setShowPasswordForm(false); setPasswordForm({ current: '', newPass: '', confirm: '' }); }}
+                                className="flex-1 py-2.5 rounded-xl border-2 border-light-gray text-charcoal font-fredoka font-medium text-sm hover:bg-light-gray transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleChangePassword}
+                                disabled={passwordLoading}
+                                className="flex-1 py-2.5 rounded-xl bg-primary-blue text-white font-fredoka font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60"
+                              >
+                                {passwordLoading ? 'Saving...' : 'Update Password'}
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                   
                   <button className="w-full p-4 bg-soft-gray hover:bg-light-gray rounded-xl text-left transition-colors group">
                     <div className="flex items-center justify-between">
@@ -1612,36 +1485,6 @@ const Account: React.FC = () => {
                       </div>
                       <ChevronRight className="h-5 w-5 text-medium-gray group-hover:text-charcoal transition-colors" />
                     </div>
-                  </button>
-                </div>
-              </div>
-              
-              {/* Payment Methods */}
-              <div>
-                <h3 className="text-xl font-fredoka font-semibold text-charcoal mb-4 flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2 text-vibrant-orange" />
-                  Payment Methods
-                </h3>
-                <div className="space-y-4">
-                  <div className="p-4 bg-soft-gray rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-8 bg-primary-blue rounded flex items-center justify-center">
-                          <CreditCard className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-fredoka font-semibold text-charcoal">•••• •••• •••• 4242</p>
-                          <p className="text-sm text-medium-gray">Expires 12/25</p>
-                        </div>
-                      </div>
-                      <button className="text-coral-red hover:text-coral-red/80 transition-colors">
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <button className="w-full p-4 border-2 border-dashed border-light-gray hover:border-primary-blue rounded-xl transition-colors text-primary-blue font-fredoka font-medium">
-                    + Add New Payment Method
                   </button>
                 </div>
               </div>
@@ -1741,551 +1584,6 @@ const Account: React.FC = () => {
         </div>
       </div>
 
-      {/* Timeline Entry Form Modal */}
-      <AnimatePresence>
-        {showAddTimelineEntry && selectedPet && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowAddTimelineEntry(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="bg-primary-blue p-6 text-white flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-fredoka font-bold">Add Timeline Entry</h2>
-                    <p className="opacity-90">for {selectedPet.name}</p>
-                  </div>
-                  <button
-                    onClick={() => setShowAddTimelineEntry(false)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  >
-                    <X className="h-6 w-6" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Form Content */}
-              <div className="p-6 flex-1 overflow-y-auto">
-                <div className="space-y-6">
-                  {/* Basic Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Entry Type *
-                      </label>
-                      <select
-                        value={timelineFormData.type}
-                        onChange={(e) => handleTimelineFormChange('type', e.target.value)}
-                        className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                      >
-                        <option value="general">General</option>
-                        <option value="vet_visit">Vet Visit</option>
-                        <option value="vaccination">Vaccination</option>
-                        <option value="medication">Medication</option>
-                        <option value="weight_check">Weight Check</option>
-                        <option value="grooming">Grooming</option>
-                        <option value="training">Training</option>
-                        <option value="behavior">Behavior</option>
-                        <option value="nutrition">Nutrition</option>
-                        <option value="milestone">Milestone</option>
-                        <option value="emergency">Emergency</option>
-                        <option value="surgery">Surgery</option>
-                        <option value="dental">Dental</option>
-                        <option value="boarding">Boarding</option>
-                        <option value="travel">Travel</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Date *
-                      </label>
-                      <input
-                        type="date"
-                        value={timelineFormData.date}
-                        onChange={(e) => handleTimelineFormChange('date', e.target.value)}
-                        className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      Title *
-                    </label>
-                    <input
-                      type="text"
-                      value={timelineFormData.title}
-                      onChange={(e) => handleTimelineFormChange('title', e.target.value)}
-                      className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                      placeholder="Enter a title for this entry"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                        Importance
-                      </label>
-                      <select
-                        value={timelineFormData.importance}
-                        onChange={(e) => handleTimelineFormChange('importance', e.target.value)}
-                        className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                      >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                        <option value="critical">Critical</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={timelineFormData.description}
-                      onChange={(e) => handleTimelineFormChange('description', e.target.value)}
-                      rows={3}
-                      className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all resize-none"
-                      placeholder="Add any additional details..."
-                    />
-                  </div>
-
-                  {/* Type-specific fields */}
-                  {timelineFormData.type === 'vet_visit' && (
-                    <div className="space-y-4 p-4 bg-soft-gray rounded-xl">
-                      <h4 className="font-fredoka font-semibold text-charcoal">Vet Visit Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Veterinarian</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.vetName}
-                            onChange={(e) => handleTimelineFormChange('vetName', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Dr. Smith"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Clinic</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.clinic}
-                            onChange={(e) => handleTimelineFormChange('clinic', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Pet Care Clinic"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Reason</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.reason}
-                            onChange={(e) => handleTimelineFormChange('reason', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Annual checkup"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Cost</label>
-                          <input
-                            type="number"
-                            value={timelineFormData.cost}
-                            onChange={(e) => handleTimelineFormChange('cost', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="150"
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Diagnosis</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.diagnosis}
-                            onChange={(e) => handleTimelineFormChange('diagnosis', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Healthy overall"
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Treatment</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.treatment}
-                            onChange={(e) => handleTimelineFormChange('treatment', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Vaccination booster"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {timelineFormData.type === 'medication' && (
-                    <div className="space-y-4 p-4 bg-soft-gray rounded-xl">
-                      <h4 className="font-fredoka font-semibold text-charcoal">Medication Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Medication Name</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.medicationName}
-                            onChange={(e) => handleTimelineFormChange('medicationName', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Heartgard Plus"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Dosage</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.dosage}
-                            onChange={(e) => handleTimelineFormChange('dosage', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="1 tablet"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Frequency</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.frequency}
-                            onChange={(e) => handleTimelineFormChange('frequency', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Once monthly"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Prescribed By</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.prescribedBy}
-                            onChange={(e) => handleTimelineFormChange('prescribedBy', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Dr. Johnson"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {timelineFormData.type === 'weight_check' && (
-                    <div className="space-y-4 p-4 bg-soft-gray rounded-xl">
-                      <h4 className="font-fredoka font-semibold text-charcoal">Weight Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Weight</label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            value={timelineFormData.weight}
-                            onChange={(e) => handleTimelineFormChange('weight', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="32.5"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Body Condition</label>
-                          <select
-                            value={timelineFormData.bodyCondition}
-                            onChange={(e) => handleTimelineFormChange('bodyCondition', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                          >
-                            <option value="underweight">Underweight</option>
-                            <option value="ideal">Ideal</option>
-                            <option value="overweight">Overweight</option>
-                            <option value="obese">Obese</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {timelineFormData.type === 'vaccination' && (
-                    <div className="space-y-4 p-4 bg-soft-gray rounded-xl">
-                      <h4 className="font-fredoka font-semibold text-charcoal">Vaccination Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Vaccine</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.vaccine}
-                            onChange={(e) => handleTimelineFormChange('vaccine', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="DHPP"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Veterinarian</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.veterinarian}
-                            onChange={(e) => handleTimelineFormChange('veterinarian', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Dr. Smith"
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Next Due Date</label>
-                          <input
-                            type="date"
-                            value={timelineFormData.nextDue}
-                            onChange={(e) => handleTimelineFormChange('nextDue', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {timelineFormData.type === 'training' && (
-                    <div className="space-y-4 p-4 bg-soft-gray rounded-xl">
-                      <h4 className="font-fredoka font-semibold text-charcoal">Training Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Skill</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.skill}
-                            onChange={(e) => handleTimelineFormChange('skill', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Sit command"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Progress</label>
-                          <select
-                            value={timelineFormData.progress}
-                            onChange={(e) => handleTimelineFormChange('progress', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                          >
-                            <option value="started">Started</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="mastered">Mastered</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Trainer</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.trainer}
-                            onChange={(e) => handleTimelineFormChange('trainer', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="John Smith"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Duration (minutes)</label>
-                          <input
-                            type="number"
-                            value={timelineFormData.duration}
-                            onChange={(e) => handleTimelineFormChange('duration', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="30"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {timelineFormData.type === 'behavior' && (
-                    <div className="space-y-4 p-4 bg-soft-gray rounded-xl">
-                      <h4 className="font-fredoka font-semibold text-charcoal">Behavior Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Behavior</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.behavior}
-                            onChange={(e) => handleTimelineFormChange('behavior', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Excessive barking"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Severity</label>
-                          <select
-                            value={timelineFormData.severity}
-                            onChange={(e) => handleTimelineFormChange('severity', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                          >
-                            <option value="mild">Mild</option>
-                            <option value="moderate">Moderate</option>
-                            <option value="severe">Severe</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Triggers (comma-separated)</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.triggers}
-                            onChange={(e) => handleTimelineFormChange('triggers', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="loud noises, strangers"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Interventions (comma-separated)</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.interventions}
-                            onChange={(e) => handleTimelineFormChange('interventions', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="positive reinforcement, treats"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {timelineFormData.type === 'grooming' && (
-                    <div className="space-y-4 p-4 bg-soft-gray rounded-xl">
-                      <h4 className="font-fredoka font-semibold text-charcoal">Grooming Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Service</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.service}
-                            onChange={(e) => handleTimelineFormChange('service', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Full grooming package"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Groomer</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.groomer}
-                            onChange={(e) => handleTimelineFormChange('groomer', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Sarah Johnson"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Cost</label>
-                          <input
-                            type="number"
-                            value={timelineFormData.groomingCost}
-                            onChange={(e) => handleTimelineFormChange('groomingCost', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="75"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Next Appointment</label>
-                          <input
-                            type="date"
-                            value={timelineFormData.nextAppointment}
-                            onChange={(e) => handleTimelineFormChange('nextAppointment', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {timelineFormData.type === 'nutrition' && (
-                    <div className="space-y-4 p-4 bg-soft-gray rounded-xl">
-                      <h4 className="font-fredoka font-semibold text-charcoal">Nutrition Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Food</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.food}
-                            onChange={(e) => handleTimelineFormChange('food', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Premium Adult Dog Food"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Brand</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.brand}
-                            onChange={(e) => handleTimelineFormChange('brand', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Royal Canin"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Amount</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.amount}
-                            onChange={(e) => handleTimelineFormChange('amount', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="2 cups daily"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Calories</label>
-                          <input
-                            type="number"
-                            value={timelineFormData.calories}
-                            onChange={(e) => handleTimelineFormChange('calories', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="380"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Reason</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.nutritionReason}
-                            onChange={(e) => handleTimelineFormChange('nutritionReason', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="Weight management"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">Supplements (comma-separated)</label>
-                          <input
-                            type="text"
-                            value={timelineFormData.supplements}
-                            onChange={(e) => handleTimelineFormChange('supplements', e.target.value)}
-                            className="w-full border-2 border-light-gray rounded-xl px-4 py-3 focus:outline-none focus:border-primary-blue transition-all"
-                            placeholder="omega-3, glucosamine"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex space-x-4 p-6 border-t border-light-gray bg-soft-gray flex-shrink-0">
-                <button
-                  onClick={() => setShowAddTimelineEntry(false)}
-                  className="flex-1 px-6 py-3 border-2 border-light-gray text-medium-gray rounded-xl font-fredoka font-medium hover:bg-white transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveTimelineEntry}
-                  disabled={!timelineFormData.title.trim()}
-                  className="flex-1 px-6 py-3 bg-primary-blue hover:bg-primary-blue/90 disabled:bg-light-gray disabled:text-medium-gray text-white rounded-xl font-fredoka font-medium transition-all flex items-center justify-center space-x-2"
-                >
-                  <Save className="h-5 w-5" />
-                  <span>Add Entry</span>
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

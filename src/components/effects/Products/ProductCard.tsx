@@ -1,11 +1,11 @@
-import StarRating from "../StarRating/StarRating";
-
 interface Product {
   id: number;
   name: string;
+  brand: string;
   price: string;
-  rating: number;
+  currency: string;
   image: string;
+  discount?: number;
 }
 
 interface ProductCardProps {
@@ -13,26 +13,43 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const formattedPrice = parseFloat(product.price).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   return (
-    <div className="flex flex-col items-center text-center hover:bg-gray-50 rounded-xl p-3 transition-colors cursor-pointer">
-      <div className="w-24 h-24 flex items-center justify-center mb-2 bg-gray-50 rounded-xl">
-        <img src={product.image} alt={product.name}
-          className="object-contain w-full h-16" />
+    <div className="flex gap-3 items-center group">
+      {/* Image */}
+      <div className="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-soft-gray">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        {product.discount && (
+          <span className="absolute top-1 left-1 bg-crimson text-white text-[9px] font-fredoka font-bold px-1 rounded-full leading-4">
+            -{product.discount}%
+          </span>
+        )}
       </div>
 
-      <h3 className="font-fredoka font-medium text-mint-green text-sm mb-1 truncate">
-        {product.name}
-      </h3>
-
-      <div className="mb-1">
-        <StarRating rating={product.rating} size="sm" />
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        {product.brand && (
+          <p className="text-[10px] font-fredoka font-semibold text-primary-blue uppercase tracking-wide truncate mb-0.5">
+            {product.brand}
+          </p>
+        )}
+        <h3 className="font-fredoka font-semibold text-charcoal text-sm leading-tight line-clamp-2 mb-1">
+          {product.name}
+        </h3>
+        <p className="font-fredoka font-bold text-vibrant-orange text-sm">
+          {product.currency} {formattedPrice}
+        </p>
       </div>
-
-      <p className="font-fredoka font-medium text-vibrant-orange text-sm">
-        Rs. {product.price}
-      </p>
     </div>
-
   );
 };
+
 export default ProductCard;

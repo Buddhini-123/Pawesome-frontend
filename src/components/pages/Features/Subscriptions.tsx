@@ -1,37 +1,185 @@
 // src/pages/Subscriptions.tsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
-  Star,
   ShoppingCart,
   Award,
   HeadphonesIcon,
-  ChevronDown,
-  ChevronUp,
   Package,
   X,
   Plus,
   Minus,
   Calendar,
-  Calendar as CalendarIcon,
   Percent as PercentIcon,
   Eye,
   Check,
   TruckIcon,
   ShieldCheck,
   Heart,
-  Settings,
-  MoreHorizontal,
-  TrendingUp,
-  Trophy,
-  ShoppingBag,
+  RefreshCw,
+  PauseCircle,
+  PlayCircle,
+  SkipForward,
+  Trash2,
+  Repeat,
+  Sparkles,
+  Wand2,
+  Zap,
+  CheckCircle,
+  Star,
+  Gift,
+  Tag,
+  Mail,
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion'
 import ActiveSubscriptionsSidebar from '../../subscriptions/ActiveSubscriptionsSidebar'
-import {api, host} from "../../../services/api"
+import { api } from "../../../services/api"
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+
+// ── Paw prints for hero background (matches Gifts page) ───────────────
+const PAW_POSITIONS = [
+  { left:  '4%', top: '12%', size: 44, dur: 7,  delay: 0,   img: 'paw-left'  },
+  { left: '12%', top: '72%', size: 36, dur: 9,  delay: 1.2, img: 'paw-right' },
+  { left: '80%', top: '18%', size: 48, dur: 8,  delay: 0.5, img: 'paw-right' },
+  { left: '88%', top: '68%', size: 38, dur: 7,  delay: 1.8, img: 'paw-left'  },
+  { left: '50%', top: '82%', size: 32, dur: 10, delay: 0.3, img: 'paw-right' },
+  { left: '38%', top:  '6%', size: 40, dur: 8,  delay: 0.9, img: 'paw-left'  },
+  { left: '65%', top: '78%', size: 34, dur: 9,  delay: 1.5, img: 'paw-right' },
+  { left: '25%', top: '35%', size: 38, dur: 7,  delay: 0.6, img: 'paw-left'  },
+];
+
+// ── Hand-drawn illustrations (scattered per section) ──────────────────
+const SUB_ILLUSTRATIONS = [
+  // How section
+  { src: 'heart-illustrations.png',    left: '5%',  top: '15%', size:  90, rotate: -18, dur: 7,  delay: 0.3, opacity: 0.18, section: 'how'    },
+  { src: 'dog-illustrations.png',      left: '88%', top: '8%',  size: 110, rotate:  20, dur: 8,  delay: 0.9, opacity: 0.15, section: 'how'    },
+  { src: 'scribble-illustrations.png', left: '92%', top: '60%', size:  85, rotate: -30, dur: 6,  delay: 1.4, opacity: 0.14, section: 'how'    },
+  { src: 'hypnotize-illustrations.png',left: '2%',  top: '65%', size:  95, rotate:  12, dur: 9,  delay: 0.6, opacity: 0.13, section: 'how'    },
+  { src: 'small-hear-illustrations.png',left:'50%', top: '92%', size:  65, rotate:  25, dur: 5,  delay: 2.0, opacity: 0.16, section: 'how'    },
+  { src: 'cat-illustrations.png',      left: '40%', top: '3%',  size: 100, rotate:  -5, dur: 7,  delay: 1.2, opacity: 0.13, section: 'how'    },
+
+  // Plan builder section
+  { src: 'scribble-illustrations.png', left: '1%',  top: '10%', size:  95, rotate:  18, dur: 8,  delay: 0.5, opacity: 0.14, section: 'plan'   },
+  { src: 'heart-illustrations.png',    left: '90%', top: '5%',  size:  80, rotate: -22, dur: 6,  delay: 1.0, opacity: 0.18, section: 'plan'   },
+  { src: 'dog-illustrations.png',      left: '85%', top: '70%', size: 105, rotate:  10, dur: 7,  delay: 0.2, opacity: 0.14, section: 'plan'   },
+  { src: 'hypnotize-illustrations.png',left: '3%',  top: '75%', size:  90, rotate: -15, dur: 9,  delay: 1.6, opacity: 0.13, section: 'plan'   },
+  { src: 'small-hear-illustrations.png',left:'55%', top: '95%', size:  70, rotate:  30, dur: 5,  delay: 0.8, opacity: 0.16, section: 'plan'   },
+];
+
+// ── Leaf configs (matches Gifts page) ─────────────────────────────────
+const SUB_LEAVES = [
+  { top:  '2%', left:  '-2%', size: 260, rotate:   15, dur: 7,  delay: 0   },
+  { top:  '5%', left:  '78%', size: 280, rotate:  -55, dur: 9,  delay: 1.2 },
+  { top: '55%', left:  '88%', size: 260, rotate: -110, dur: 7,  delay: 2.1 },
+  { top: '62%', left:   '8%', size: 280, rotate:  300, dur: 9,  delay: 0.8 },
+  { top: '30%', left:   '3%', size: 270, rotate:  170, dur: 8,  delay: 1.8 },
+  { top: '74%', left:  '65%', size: 250, rotate:  130, dur: 6,  delay: 1.5 },
+];
+
+// ── Step card color palette (matches Gifts page) ──────────────────────
+const SUB_STEP_COLORS = [
+  { bg: '#FF8B61', text: '#7A2800' },
+  { bg: '#1BBBFF', text: '#004D6B' },
+  { bg: '#48FFF2', text: '#004D50' },
+  { bg: '#FFDB4D', text: '#7A5500' },
+  { bg: '#FC6884', text: '#7A0030' },
+  { bg: '#B791FF', text: '#2D0066' },
+];
+
+// ── Subscription "How to" steps ───────────────────────────────────────
+const SUB_STEPS = [
+  { id: 1, title: 'Pick Products',   emoji: '🛒', desc: 'Browse & select favourites',    illust: 'scribble-illustrations.png',  Icon: ShoppingCart },
+  { id: 2, title: 'Set Schedule',    emoji: '📅', desc: 'Daily, weekly, monthly',        illust: 'dog-illustrations.png',       Icon: Calendar     },
+  { id: 3, title: 'Unlock Benefits', emoji: '🎁', desc: 'Save 10% + free shipping',      illust: 'heart-illustrations.png',     Icon: Award        },
+  { id: 4, title: 'Relax & Enjoy',   emoji: '📦', desc: 'Auto-deliver, we handle rest',  illust: 'cat-illustrations.png',       Icon: Package      },
+];
+
+// ── Top-level benefits strip (matches Gifts page style) ───────────────
+const SUB_BENEFITS = [
+  { icon: <PercentIcon  className="w-7 h-7" />, title: 'Save Up to 10%',  desc: 'On every subscription order' },
+  { icon: <TruckIcon    className="w-7 h-7" />, title: 'Free Delivery',   desc: 'On orders above Rs. 2,000'   },
+  { icon: <RefreshCw    className="w-7 h-7" />, title: 'Skip Anytime',    desc: 'Flexible delivery control'   },
+  { icon: <ShieldCheck  className="w-7 h-7" />, title: 'Priority Care',   desc: '24/7 member support'         },
+];
+
+// ── Reusable illustration background layer ────────────────────────────
+const SubIllustrationBg: React.FC<{ section: string }> = ({ section }) => (
+  <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+    {SUB_ILLUSTRATIONS.filter(il => il.section === section).map((il, i) => (
+      <motion.img
+        key={i}
+        src={`/icons/illustrations/${il.src}`}
+        alt="" aria-hidden="true"
+        className="absolute"
+        style={{ left: il.left, top: il.top, width: il.size, height: il.size, opacity: il.opacity, rotate: `${il.rotate}deg` }}
+        animate={{ y: [0, -14, 6, -10, 0], rotate: [il.rotate, il.rotate + 8, il.rotate - 5, il.rotate + 3, il.rotate] }}
+        transition={{ duration: il.dur, repeat: Infinity, delay: il.delay, ease: 'easeInOut' }}
+      />
+    ))}
+  </div>
+);
+
+// ── Interactive hero illustration (matches Gifts page) ────────────────
+type SubIllustState = 'floating' | 'hovered' | 'clicked' | 'returning';
+type SubClickEffect = 'bounce' | 'spin' | 'wiggle' | 'pulse';
+
+const SubHeroIllust: React.FC<{
+  src: string;
+  className?: string;
+  style: React.CSSProperties;
+  floatY: number[];
+  floatRotate?: number[];
+  dur: number;
+  delay?: number;
+  hoverX?: number;
+  hoverY?: number;
+  clickEffect: SubClickEffect;
+  baseRotate?: number;
+}> = ({ src, className = '', style, floatY, floatRotate, dur, delay = 0, hoverX = 0, hoverY = -24, clickEffect, baseRotate = 0 }) => {
+  const [state, setState] = useState<SubIllustState>('floating');
+
+  const animate = (() => {
+    if (state === 'hovered') return { x: hoverX, y: hoverY, scale: 1.14, rotate: baseRotate + 6 };
+    if (state === 'clicked') {
+      if (clickEffect === 'bounce') return { y: [0, -55, 14, -28, 5, 0], scale: [1, 1.28, 0.88, 1.16, 0.96, 1], rotate: baseRotate };
+      if (clickEffect === 'spin')   return { rotate: [baseRotate, baseRotate + 360], scale: [1, 1.18, 1] };
+      if (clickEffect === 'wiggle') return { x: [0, -18, 18, -12, 12, -6, 6, 0], rotate: [baseRotate, baseRotate - 14, baseRotate + 14, baseRotate] };
+      if (clickEffect === 'pulse')  return { scale: [1, 1.55, 0.82, 1.28, 0.94, 1], rotate: baseRotate };
+    }
+    if (state === 'returning') return { x: 0, y: 0, scale: 1, rotate: baseRotate };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const a: any = { y: floatY };
+    if (floatRotate) a.rotate = floatRotate;
+    return a;
+  })();
+
+  const transition = (() => {
+    if (state === 'hovered')   return { duration: 0.22, ease: 'easeOut' as const };
+    if (state === 'clicked')   return { duration: clickEffect === 'spin' ? 0.6 : 0.52, ease: 'easeOut' as const };
+    if (state === 'returning') return { type: 'spring' as const, stiffness: 38, damping: 11 };
+    return { duration: dur, repeat: Infinity, delay, ease: 'easeInOut' as const };
+  })();
+
+  return (
+    <motion.img
+      src={src}
+      alt="" aria-hidden="true"
+      className={`absolute select-none cursor-pointer ${className}`}
+      style={style}
+      animate={animate}
+      transition={transition}
+      onHoverStart={() => { if (state === 'floating') setState('hovered'); }}
+      onHoverEnd={() => { if (state === 'hovered') setState('returning'); }}
+      onClick={() => setState('clicked')}
+      onAnimationComplete={() => {
+        if (state === 'clicked') setState('returning');
+        else if (state === 'returning') setState('floating');
+      }}
+    />
+  );
+};
 
 interface Subscription {
   id: number;
@@ -110,6 +258,14 @@ interface Product {
   subscription_discount_percentage?: number;
   min_subscription_quantity?: number;
   max_subscription_quantity?: number;
+  // Weight and dimensions
+  weight?: number;
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+    unit?: string;
+  };
 }
 
 interface MappedSubscription {
@@ -147,7 +303,7 @@ const Subscriptions = () => {
   const [endDate, setEndDate] = useState('')
   const [deliveryFrequency, setDeliveryFrequency] = useState('monthly')
   const [productQuantities, setProductQuantities] = useState<Record<string, number>>({})
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [showSidebar, setShowSidebar] = useState(false)
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null)
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -162,12 +318,36 @@ const Subscriptions = () => {
   const [intervalType, setIntervalType] = useState<'weekly' | 'monthly' | 'custom'>('weekly');
   const [intervalValue, setIntervalValue] = useState(1);
 
+  // Inline action states (replace window.confirm / prompt)
+  const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+  const [showConfirmPause, setShowConfirmPause] = useState(false);
+  const [showConfirmSkip, setShowConfirmSkip] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [showRescheduleInput, setShowRescheduleInput] = useState(false);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(12);
   const [totalProducts, setTotalProducts] = useState(0);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  // ── Section refs for scroll-driven parallax (matches Gifts page) ────
+  const heroRef = useRef<HTMLElement>(null);
+  const howRef  = useRef<HTMLElement>(null);
+  const planRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroP } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const { scrollYProgress: howP  } = useScroll({ target: howRef,  offset: ['start end',   'end start'] });
+  const { scrollYProgress: planP } = useScroll({ target: planRef, offset: ['start end',   'end start'] });
+  const heroS = useSpring(heroP, { stiffness: 55, damping: 22, restDelta: 0.001 });
+  const howS  = useSpring(howP,  { stiffness: 55, damping: 22, restDelta: 0.001 });
+  const planS = useSpring(planP, { stiffness: 55, damping: 22, restDelta: 0.001 });
+  const heroIllustY = useTransform(heroS, [0, 1], [0, -150]);
+  const heroPawY    = useTransform(heroS, [0, 1], [0,  -70]);
+  const heroTextY   = useTransform(heroS, [0, 1], [0,  -45]);
+  const howBgY      = useTransform(howS,  [0, 1], [80, -80]);
+  const howLeafY    = useTransform(howS,  [0, 1], [50, -60]);
+  const planBgY     = useTransform(planS, [0, 1], [80, -80]);
 
   const fetchSubscriptions = async () => {
     try {
@@ -235,7 +415,7 @@ const Subscriptions = () => {
       const params = new URLSearchParams({
         page: page.toString(),
         per_page: perPage.toString(),
-        subscription_enabled: 'true', // Only fetch subscription-eligible products
+        subscription_only: 'true',
       });
 
       // Add category filter if not 'all'
@@ -300,9 +480,10 @@ const Subscriptions = () => {
         setProductQuantities(newQuantities)
         return prev.filter(p => p.id !== product.id)
       } else {
-        // Add product with default quantity (respect min_subscription_quantity)
+        // Use quantity already set on product (e.g. from modal stepper), else fall back to min
         const minQty = product.min_subscription_quantity || 1;
-        setProductQuantities(prev => ({ ...prev, [product.id]: minQty }))
+        const qty = product.quantity && product.quantity >= minQty ? product.quantity : minQty;
+        setProductQuantities(prev => ({ ...prev, [product.id]: qty }))
         return [...prev, product]
       }
     })
@@ -405,7 +586,16 @@ const Subscriptions = () => {
 
       if (response.success && response.data) {
         const productData = (response.data as any)?.data?.product || (response.data as any);
-        setSelectedProduct(productData);
+
+        // Debug: Log the full API response to check weight and dimensions
+        console.log('[Subscriptions] Full API Response:', response);
+        console.log('[Subscriptions] Product Data:', productData);
+        console.log('[Subscriptions] Weight:', productData?.weight);
+        console.log('[Subscriptions] Dimensions:', productData?.dimensions);
+
+        // Pre-seed quantity: use the saved cart quantity so the stepper starts at the right value
+        const savedQty = productQuantities[productData.id];
+        setSelectedProduct({ ...productData, quantity: savedQty || productData.quantity || 1 });
         setShowProductModal(true);
       } else {
         // Product not found or API error
@@ -420,8 +610,6 @@ const Subscriptions = () => {
   };
 
  const handleCancel = async (subscriptionId: number) => {
-  if (!window.confirm("Are you sure you want to cancel this subscription?")) return;
-
   try {
     const response = await api.delete(`/subscriptions/${subscriptionId}/cancel`);
     const data = response.data as any;
@@ -429,9 +617,9 @@ const Subscriptions = () => {
     if (data.success) {
       setShowSubscriptionModal(false);
       setSelectedSubscription(null);
-
+      setShowConfirmCancel(false);
       toast.success("Subscription cancelled successfully");
-      await fetchSubscriptions(); // Refresh subscriptions list
+      await fetchSubscriptions();
     } else {
       toast.error(data.message || "Failed to cancel subscription");
     }
@@ -443,15 +631,14 @@ const Subscriptions = () => {
 };
 
 const handlePause = async (subscriptionId: number) => {
-  if (!window.confirm("Do you want to pause this subscription?")) return;
-
   try {
     const response = await api.put(`/subscriptions/${subscriptionId}/pause`);
     const data = response.data as any;
 
     if (data.success) {
       toast.success("Subscription paused successfully");
-      await fetchSubscriptions(); // Refresh subscriptions list
+      setShowConfirmPause(false);
+      await fetchSubscriptions();
       setShowSubscriptionModal(false);
     } else {
       toast.error(data.message || "Failed to pause subscription");
@@ -483,15 +670,14 @@ const handleResume = async (subscriptionId: number) => {
 };
 
 const handleSkipDelivery = async (subscriptionId: number) => {
-  if (!window.confirm("Skip the next delivery? The following delivery will be scheduled automatically.")) return;
-
   try {
     const response = await api.put(`/subscriptions/${subscriptionId}/skip-delivery`);
     const data = response.data as any;
 
     if (data.success) {
       toast.success("Next delivery skipped successfully");
-      await fetchSubscriptions(); // Refresh subscriptions list
+      setShowConfirmSkip(false);
+      await fetchSubscriptions();
     } else {
       toast.error(data.message || "Failed to skip delivery");
     }
@@ -511,7 +697,9 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
 
     if (data.success) {
       toast.success("Delivery rescheduled successfully");
-      await fetchSubscriptions(); // Refresh subscriptions list
+      setShowRescheduleInput(false);
+      setRescheduleDate('');
+      await fetchSubscriptions();
     } else {
       toast.error(data.message || "Failed to reschedule delivery");
     }
@@ -539,202 +727,432 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
   };
 
   return (
-    <div className="min-h-screen bg-soft-gray">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center items-center mb-6">
-            <Package className="text-vibrant-orange mr-3 h-12 w-12" />
-            <h1 className="text-4xl md:text-5xl font-fredoka font-bold text-calm-blue">
-              Pawsome Subscriptions
-            </h1>
-          </div>
-          <p className="text-xl text-calm-blue max-w-3xl mx-auto">
-            Never run out of your pet's essentials with our convenient subscription service
-          </p>
-        </div>
+    <div className="min-h-screen bg-warm-white">
 
-        {/* How to Subscribe Section */}
-        <div className="max-w-6xl mx-auto mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="bg-white rounded-3xl shadow-2xl overflow-hidden"
-          >
-            {/* Section Header */}
-            <div className="bg-warm-orange p-8 text-center">
-              <h2 className="text-4xl font-fredoka font-bold text-charcoal mb-2">
-                How to Start Your Subscription
-              </h2>
-              <p className="text-charcoal/90 text-lg">
-                Four simple steps to never run out of pet essentials
-              </p>
-            </div>
-            
-            {/* Steps Grid */}
-            <div className="p-8 md:p-12">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                {/* Step 1 */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-vibrant-orange"
-                >
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-vibrant-orange rounded-full flex items-center justify-center text-white font-fredoka font-bold text-xl shadow-lg">
-                    1
-                  </div>
-                  <div className="ml-4">
-                    <div className="flex items-center mb-3">
-                      <ShoppingCart className="h-6 w-6 text-vibrant-orange mr-2" />
-                      <h3 className="font-fredoka font-bold text-xl text-charcoal">
-                        Choose Your Products
-                      </h3>
-                    </div>
-                    <p className="text-medium-gray leading-relaxed">
-                      Browse our extensive catalog of premium pet products. Select food, treats, toys, and grooming essentials your pet loves.
-                    </p>
-                  </div>
-                </motion.div>
+      {/* ── Hero (Gifts-page theme) ─────────────────────────────────── */}
+      <section ref={heroRef} className="relative overflow-hidden bg-primary-blue min-h-[560px] md:min-h-[620px] flex items-center">
+        {/* Interactive illustrations — fastest parallax */}
+        <motion.div style={{ y: heroIllustY }} className="absolute inset-0">
+          <SubHeroIllust
+            src="/icons/illustrations/dog-illustrations.png"
+            className="hidden md:block"
+            style={{ width: 460, height: 460, bottom: -30, right: -30, objectFit: 'contain' }}
+            floatY={[0, -16, 0]} dur={5} hoverX={-20} hoverY={-28} clickEffect="bounce"
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/cat-illustrations.png"
+            className="hidden md:block"
+            style={{ width: 440, height: 440, bottom: -20, left: -30, objectFit: 'contain', opacity: 0.85 }}
+            floatY={[0, -12, 0]} floatRotate={[0, 4, 0]} dur={4.5} delay={0.6}
+            hoverX={20} hoverY={-24} clickEffect="wiggle"
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/heart-illustrations.png"
+            style={{ width: 110, height: 110, top: '6%', right: '14%', opacity: 0.9 }}
+            floatY={[0, -12, 0]} floatRotate={[-6, 6, -6]} dur={3.8} delay={0.4}
+            hoverY={-30} clickEffect="pulse"
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/small-hear-illustrations.png"
+            style={{ width: 72, height: 72, top: '12%', left: '22%', opacity: 0.85 }}
+            floatY={[0, -10, 0]} dur={3.2} delay={1.0}
+            hoverY={-22} clickEffect="pulse"
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/scribble-illustrations.png"
+            style={{ width: 200, height: 200, top: '-20px', left: '38%', opacity: 0.22 }}
+            floatY={[0, -8, 0]} floatRotate={[15, 22, 15]} dur={9}
+            hoverY={-18} clickEffect="spin" baseRotate={15}
+          />
+          <SubHeroIllust
+            src="/icons/illustrations/hypnotize-illustrations.png"
+            style={{ width: 130, height: 130, bottom: '8%', left: '44%', opacity: 0.28 }}
+            floatY={[0, -6, 0]} floatRotate={[0, 360, 360]} dur={14}
+            hoverY={-20} clickEffect="spin"
+          />
+        </motion.div>
 
-                {/* Step 2 */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-primary-blue"
-                >
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-primary-blue rounded-full flex items-center justify-center text-white font-fredoka font-bold text-xl shadow-lg">
-                    2
-                  </div>
-                  <div className="ml-4">
-                    <div className="flex items-center mb-3">
-                      <Calendar className="h-6 w-6 text-primary-blue mr-2" />
-                      <h3 className="font-fredoka font-bold text-xl text-charcoal">
-                        Set Your Schedule
-                      </h3>
-                    </div>
-                    <p className="text-medium-gray leading-relaxed">
-                      Choose delivery frequency - daily, weekly, or monthly. Set start and end dates that work for your lifestyle.
-                    </p>
-                  </div>
-                </motion.div>
+        {/* Paw prints — mid parallax */}
+        <motion.div style={{ y: heroPawY }} className="absolute inset-0 pointer-events-none select-none">
+          {PAW_POSITIONS.map((p, i) => (
+            <motion.img
+              key={i}
+              src={`/icons/${p.img}.png`}
+              alt="" aria-hidden="true"
+              className="absolute"
+              style={{ left: p.left, top: p.top, width: p.size, height: p.size, opacity: 0.10, filter: 'brightness(0) invert(1)' }}
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
+            />
+          ))}
+        </motion.div>
 
-                {/* Step 3 */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-mint-green"
-                >
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-mint-green rounded-full flex items-center justify-center text-white font-fredoka font-bold text-xl shadow-lg">
-                    3
-                  </div>
-                  <div className="ml-4">
-                    <div className="flex items-center mb-3">
-                      <Award className="h-6 w-6 text-mint-green mr-2" />
-                      <h3 className="font-fredoka font-bold text-xl text-charcoal">
-                        Unlock Benefits
-                      </h3>
-                    </div>
-                    <p className="text-medium-gray leading-relaxed">
-                      Enjoy 10% off every order, free shipping on orders over Rs. 2,000, and exclusive member perks.
-                    </p>
-                  </div>
-                </motion.div>
+        {/* Text — slowest parallax */}
+        <motion.div style={{ y: heroTextY }} className="relative z-10 w-full">
+          <div className="container mx-auto px-6 lg:px-12 py-20 md:py-24 flex justify-center">
+            <motion.div
+              className="text-center max-w-2xl"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+            >
+              <motion.h1
+                className="font-fredoka font-bold text-5xl md:text-6xl lg:text-7xl text-white leading-tight mb-5"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.7 }}
+              >
+                Never Run
+                <br />
+                <span className="text-sunny-yellow">Out Again</span>
+              </motion.h1>
 
-                {/* Step 4 */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-sunny-yellow"
-                >
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-sunny-yellow rounded-full flex items-center justify-center text-white font-fredoka font-bold text-xl shadow-lg">
-                    4
-                  </div>
-                  <div className="ml-4">
-                    <div className="flex items-center mb-3">
-                      <Package className="h-6 w-6 text-sunny-yellow mr-2" />
-                      <h3 className="font-fredoka font-bold text-xl text-charcoal">
-                        Sit Back & Relax
-                      </h3>
-                    </div>
-                    <p className="text-medium-gray leading-relaxed">
-                      We'll handle the rest! Track deliveries, manage subscriptions, and earn rewards automatically.
-                    </p>
-                  </div>
-                </motion.div>
-              </div>
+              <motion.p
+                className="font-nunito text-white/80 text-lg md:text-xl mb-10 leading-relaxed"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28, duration: 0.6 }}
+              >
+                Curated boxes of your pet's essentials — delivered on your schedule, with 10% off every order and zero commitment.
+              </motion.p>
 
-              {/* Benefits Cards */}
-              <div className="bg-yellow-50 rounded-2xl p-8 mb-8">
-                <h3 className="text-2xl font-fredoka font-bold text-center text-charcoal mb-8">
-                  Subscription Benefits
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
-                  >
-                    <div className="bg-sunny-yellow rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <PercentIcon className="h-10 w-10 text-white" />
-                    </div>
-                    <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Save 10%</h4>
-                    <p className="text-medium-gray">On every subscription order</p>
-                    <p className="text-2xl font-fredoka font-bold text-vibrant-orange mt-2">Rs. 250+</p>
-                    <p className="text-xs text-medium-gray">Average monthly savings</p>
-                  </motion.div>
-                  
-                  <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
-                  >
-                    <div className="bg-primary-blue rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <Package className="h-10 w-10 text-white" />
-                    </div>
-                    <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Free Shipping</h4>
-                    <p className="text-medium-gray">On orders above Rs. 2,000</p>
-                    <p className="text-2xl font-fredoka font-bold text-primary-blue mt-2">Always</p>
-                    <p className="text-xs text-medium-gray">No delivery charges</p>
-                  </motion.div>
-                  
-                  <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all"
-                  >
-                    <div className="bg-mint-green rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <HeadphonesIcon className="h-10 w-10 text-white" />
-                    </div>
-                    <h4 className="font-fredoka font-bold text-lg text-charcoal mb-2">Priority Support</h4>
-                    <p className="text-medium-gray">24/7 dedicated assistance</p>
-                    <p className="text-2xl font-fredoka font-bold text-mint-green mt-2">24/7</p>
-                    <p className="text-xs text-medium-gray">Always here to help</p>
-                  </motion.div>
-                </div>
-              </div>
-
-              {/* CTA Section */}
-              <div className="text-center">
-                <motion.button
+              <motion.div
+                className="flex flex-row items-center justify-center gap-4 flex-wrap"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.42, duration: 0.6 }}
+              >
+                <button
                   onClick={handleOpenModal}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-warm-orange hover:bg-sunny-yellow text-white font-fredoka font-bold text-xl px-16 py-5 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
+                  className="flex items-center gap-2 bg-sunny-yellow text-charcoal font-fredoka font-bold px-8 py-3.5 rounded-2xl shadow-lg hover:scale-[1.04] hover:shadow-xl transition-all duration-300"
                 >
-                  Browse Products & Start Subscription
-                </motion.button>
-                <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-medium-gray">
-                  <div className="flex items-center">
-                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
-                    <span>No commitment</span>
+                  <Package className="w-5 h-5" /> Browse Products
+                </button>
+                <button
+                  onClick={() => setShowSidebar(true)}
+                  className="flex items-center gap-2 bg-white/15 border-2 border-white/40 text-white font-fredoka font-bold px-8 py-3.5 rounded-2xl hover:bg-white/25 hover:scale-[1.04] transition-all duration-300"
+                >
+                  <Repeat className="w-5 h-5" /> My Subscriptions
+                </button>
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ── Benefits strip ──────────────────────────────────────────── */}
+      <section className="bg-primary-blue py-8 px-4">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {SUB_BENEFITS.map((b, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                className="flex flex-col items-center text-center gap-2"
+              >
+                <motion.div
+                  className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-white mb-1"
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.15 + i * 0.1, type: 'spring', stiffness: 200, damping: 14 }}
+                >
+                  {b.icon}
+                </motion.div>
+                <h4 className="font-fredoka font-bold text-white text-sm md:text-base">{b.title}</h4>
+                <p className="font-nunito text-white/70 text-xs hidden md:block">{b.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works ────────────────────────────────────────────── */}
+      <section ref={howRef} className="relative overflow-hidden bg-sky-light py-20 px-4">
+        {/* Illustration bg — fastest parallax */}
+        <motion.div style={{ y: howBgY }} className="absolute inset-0 pointer-events-none">
+          <SubIllustrationBg section="how" />
+        </motion.div>
+        {/* Leaf layer — mid parallax */}
+        <motion.div style={{ y: howLeafY }} className="absolute inset-0 pointer-events-none select-none">
+          {SUB_LEAVES.map((l, i) => (
+            <motion.img
+              key={i}
+              src="/icons/leaf-layer.png"
+              alt="" aria-hidden="true"
+              className="absolute"
+              style={{ top: l.top, left: l.left, width: l.size, height: l.size, opacity: 0.22, mixBlendMode: 'multiply' }}
+              animate={{ y: [0, -20, 10, -15, 0], rotate: [l.rotate, l.rotate + 10, l.rotate - 6, l.rotate + 4, l.rotate] }}
+              transition={{ duration: l.dur, repeat: Infinity, delay: l.delay, ease: 'easeInOut' }}
+            />
+          ))}
+        </motion.div>
+
+        <div className="relative z-10 container mx-auto max-w-7xl">
+          {/* Heading */}
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 60 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+          >
+            <motion.h2
+              className="text-4xl md:text-5xl font-fredoka font-bold mb-3"
+              style={{ color: '#004D6B' }}
+              initial={{ opacity: 0, scale: 0.92 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+            >
+              How Subscriptions Work 🐾
+            </motion.h2>
+            <motion.p
+              className="font-nunito text-lg max-w-2xl mx-auto"
+              style={{ color: '#004D6B', opacity: 0.82 }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              Four simple steps to never worry about running out of pet essentials again.
+            </motion.p>
+          </motion.div>
+
+          {/* Step cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+            {SUB_STEPS.map((step, i) => {
+              const col = SUB_STEP_COLORS[i];
+              const StepIcon = step.Icon;
+              return (
+                <motion.div
+                  key={step.id}
+                  initial={{ opacity: 0, y: 40, scale: 0.93 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, margin: '-30px' }}
+                  transition={{ duration: 0.45, delay: i * 0.08, ease: 'easeOut' }}
+                  whileHover={{ y: -7, scale: 1.03 }}
+                  className="relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-default"
+                  style={{ backgroundColor: col.bg, minHeight: 180 }}
+                >
+                  {/* Decorative step number */}
+                  <span
+                    className="absolute -top-1 right-1 font-fredoka font-bold leading-none select-none pointer-events-none"
+                    style={{ fontSize: 64, color: col.text, opacity: 0.12, lineHeight: 1 }}
+                  >
+                    {String(step.id).padStart(2, '0')}
+                  </span>
+                  {/* Illustration */}
+                  <img
+                    src={`/icons/illustrations/${step.illust}`}
+                    alt="" aria-hidden
+                    className="absolute bottom-0 right-0 w-14 h-14 object-contain pointer-events-none select-none"
+                    style={{ opacity: 0.18 }}
+                  />
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-col items-center text-center p-4 md:p-5">
+                    <div
+                      className="w-11 h-11 bg-white/30 rounded-xl flex items-center justify-center mb-2"
+                      style={{ color: col.text }}
+                    >
+                      <StepIcon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-fredoka font-bold text-lg leading-tight mb-1" style={{ color: col.text }}>
+                      {step.title}
+                    </h3>
+                    <div className="h-px w-8 rounded-full mb-1.5" style={{ backgroundColor: `${col.text}55` }} />
+                    <p className="font-nunito text-sm leading-snug" style={{ color: col.text, opacity: 0.74 }}>
+                      {step.desc}
+                    </p>
                   </div>
-                  <div className="flex items-center">
-                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
-                    <span>Cancel anytime</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Plus className="h-4 w-4 rotate-45 text-green-500 mr-1" />
-                    <span>Modify as needed</span>
-                  </div>
-                </div>
-              </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Start Your Plan CTA (split layout like Gifts "Build Your Own") ── */}
+      <section ref={planRef} className="relative overflow-hidden py-24 px-4" style={{ background: 'linear-gradient(160deg, #E8F7FF 0%, #FFFAF0 55%)' }}>
+        <motion.div style={{ y: planBgY }} className="absolute inset-0 pointer-events-none">
+          <SubIllustrationBg section="plan" />
+        </motion.div>
+        <div className="relative z-10 container mx-auto max-w-7xl">
+          {/* Heading */}
+          <motion.div
+            className="text-center mb-14"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          >
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <img src="/icons/illustrations/scribble-illustrations.png" alt="" aria-hidden className="w-10 h-10 opacity-40" style={{ rotate: '-18deg' }} />
+              <h2 className="font-fredoka font-bold text-4xl md:text-5xl" style={{ color: '#004D6B' }}>
+                Start Your Plan
+              </h2>
+              <img src="/icons/illustrations/heart-illustrations.png" alt="" aria-hidden className="w-9 h-9 opacity-40" style={{ rotate: '12deg' }} />
             </div>
+            <p className="font-nunito text-lg max-w-xl mx-auto" style={{ color: '#004D6B', opacity: 0.70 }}>
+              Pick your products, set a schedule, and save 10% on every delivery.
+            </p>
+          </motion.div>
+
+          {/* Main layout: CTA card (left) + feature pills (right) */}
+          <div className="flex flex-col md:flex-row gap-6 mb-12 items-stretch">
+            {/* CTA showcase card */}
+            <motion.div
+              initial={{ opacity: 0, x: -40, scale: 0.96 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.65, ease: 'easeOut' }}
+              className="relative overflow-hidden rounded-3xl bg-primary-blue lg:w-[40%] flex-shrink-0"
+              style={{ minHeight: 460, boxShadow: '0 24px 64px rgba(27,187,255,0.32)' }}
+            >
+              <motion.img
+                src="/icons/illustrations/dog-illustrations.png"
+                alt="" aria-hidden
+                className="absolute bottom-0 right-0 pointer-events-none select-none"
+                style={{ width: '62%', opacity: 0.58 }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <img
+                src="/icons/illustrations/scribble-illustrations.png"
+                alt="" aria-hidden
+                className="absolute top-5 right-5 w-14 pointer-events-none select-none"
+                style={{ opacity: 0.14, rotate: '28deg' }}
+              />
+              <img
+                src="/icons/illustrations/small-hear-illustrations.png"
+                alt="" aria-hidden
+                className="absolute bottom-36 left-6 w-10 pointer-events-none select-none"
+                style={{ opacity: 0.18, rotate: '-18deg' }}
+              />
+
+              <div className="relative z-10 flex flex-col h-full p-8 pt-10">
+                <h3 className="font-fredoka font-bold text-white leading-tight mb-3" style={{ fontSize: 'clamp(1.8rem, 2.4vw, 2.5rem)' }}>
+                  Your pet's<br />
+                  <span className="text-sunny-yellow">favourites</span>,<br />
+                  on autopilot.
+                </h3>
+                <p className="font-nunito text-white/65 text-sm mb-6 leading-relaxed" style={{ maxWidth: 240 }}>
+                  Pick from our full catalogue — food, treats, toys, grooming & more.
+                </p>
+
+                <div className="flex flex-col gap-2.5 mb-8">
+                  {[
+                    '10% off every recurring order',
+                    'Free delivery over Rs. 2,000',
+                    'Pause, skip, or cancel any time',
+                    'Loyalty points on every box',
+                  ].map(text => (
+                    <div key={text} className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-sunny-yellow flex-shrink-0" />
+                      <span className="font-nunito text-white/80 text-sm">{text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleOpenModal}
+                  className="inline-flex items-center gap-2 bg-sunny-yellow text-charcoal font-fredoka font-bold px-8 py-3.5 rounded-2xl shadow-lg hover:scale-105 transition-all duration-300 self-start"
+                >
+                  <ShoppingCart className="w-4 h-4" /> Build My Box
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Right feature grid */}
+            <div className="flex-1 grid grid-cols-2 gap-3">
+              {[
+                { Icon: PercentIcon, title: 'Save 10%',         desc: 'Every recurring order' },
+                { Icon: TruckIcon,   title: 'Free Delivery',    desc: 'Above Rs. 2,000'       },
+                { Icon: Calendar,    title: 'Flexible Schedule',desc: 'Daily · Weekly · Monthly' },
+                { Icon: RefreshCw,   title: 'Skip Anytime',     desc: 'Full control, always'  },
+                { Icon: Award,       title: 'Loyalty Points',   desc: 'Earn on every box'     },
+                { Icon: ShieldCheck, title: 'Priority Care',    desc: '24/7 member support'   },
+              ].map((f, i) => {
+                const col = SUB_STEP_COLORS[i];
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 30, scale: 0.94 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, margin: '-30px' }}
+                    transition={{ duration: 0.45, delay: i * 0.07, ease: 'easeOut' }}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    className="relative overflow-hidden rounded-2xl p-4 md:p-5 shadow-md hover:shadow-xl transition-all duration-300 cursor-default"
+                    style={{ backgroundColor: col.bg, minHeight: 140 }}
+                  >
+                    <div
+                      className="w-11 h-11 bg-white/30 rounded-xl flex items-center justify-center mb-2"
+                      style={{ color: col.text }}
+                    >
+                      <f.Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-fredoka font-bold text-base md:text-lg leading-tight mb-0.5" style={{ color: col.text }}>
+                      {f.title}
+                    </h3>
+                    <p className="font-nunito text-xs md:text-sm leading-snug" style={{ color: col.text, opacity: 0.74 }}>
+                      {f.desc}
+                    </p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Features bar (matches Gifts page) */}
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="relative overflow-hidden rounded-3xl bg-sunny-yellow px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
+            <img src="/icons/illustrations/scribble-illustrations.png" alt="" aria-hidden
+              className="absolute -top-5 -left-5 w-24 opacity-10 pointer-events-none select-none" style={{ rotate: '-20deg' }} />
+            <img src="/icons/illustrations/heart-illustrations.png" alt="" aria-hidden
+              className="absolute -bottom-4 -right-4 w-20 opacity-10 pointer-events-none select-none" style={{ rotate: '15deg' }} />
+
+            {[
+              { Icon: Sparkles, title: 'Hand-picked',    desc: 'Premium brands only'   },
+              { Icon: Tag,      title: 'Save 10%',       desc: 'On every order'        },
+              { Icon: Mail,     title: 'Gift-ready',     desc: 'Add a personal note'   },
+              { Icon: Zap,      title: 'Fast Dispatch',  desc: 'Order before 2 PM'     },
+            ].map((f, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ delay: 0.12 + i * 0.10, duration: 0.45, ease: 'easeOut' }}
+                className="relative z-10 text-center"
+              >
+                <motion.div
+                  className="w-14 h-14 bg-white/55 rounded-2xl flex items-center justify-center mx-auto mb-3 text-charcoal"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.18 + i * 0.10, type: 'spring', stiffness: 220, damping: 14 }}
+                  whileHover={{ scale: 1.12, rotate: -5 }}
+                >
+                  <f.Icon className="w-6 h-6" />
+                </motion.div>
+                <h3 className="font-fredoka font-bold text-charcoal mb-0.5">{f.title}</h3>
+                <p className="text-sm font-nunito text-charcoal/65">{f.desc}</p>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
+      </section>
+
+      {/* ── Confirmed plan wrapper (keeps existing logic) ───────────── */}
+      <div className="container mx-auto px-4 py-12">
 
         {/* Selected Products Section - Enhanced Design */}
         {confirmedProducts.length > 0 && (
@@ -753,18 +1171,20 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
               </div>
 
               {/* Header Section */}
-              <div className="relative bg-vibrant-orange p-8">
-                <div className="flex items-center justify-between">
+              <div className="relative bg-primary-blue p-8 overflow-hidden">
+                <img src="/icons/illustrations/scribble-illustrations.png" alt="" aria-hidden className="absolute -top-3 -right-3 w-20 pointer-events-none select-none" style={{ opacity: 0.14, rotate: '18deg' }} />
+                <img src="/icons/illustrations/heart-illustrations.png" alt="" aria-hidden className="absolute -bottom-4 left-6 w-14 pointer-events-none select-none" style={{ opacity: 0.16, rotate: '-12deg' }} />
+                <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <h2 className="text-3xl font-fredoka font-bold text-white mb-2 flex items-center">
                       <Package className="mr-3 h-8 w-8" />
                       Your Subscription Plan
                     </h2>
-                    <p className="text-white/90">Customize your delivery preferences and manage products</p>
+                    <p className="font-nunito text-white/80">Customize your delivery preferences and manage products</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-white/80 text-sm">Total Products</p>
-                    <p className="text-3xl font-fredoka font-bold text-white">{confirmedProducts.length}</p>
+                    <p className="text-white/75 text-sm font-nunito">Total Products</p>
+                    <p className="text-3xl font-fredoka font-bold text-sunny-yellow">{confirmedProducts.length}</p>
                   </div>
                 </div>
               </div>
@@ -867,13 +1287,10 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       >
                         <div className="relative">
                           <img
-                            src={
-                              product.primary_image
-                                ? `http://127.0.0.1:8000${product.primary_image.url}`
-                                : "https://via.placeholder.com/300x200?text=No+Image"
-                            }
+                            src={getProductImageSrc(product)}
                             alt={product.name}
                             className="w-full h-full object-cover rounded-xl"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
                           />
                           <div className="absolute top-2 right-2 bg-vibrant-orange text-white text-xs px-2 py-1 rounded-full">
                             Save 10%
@@ -1063,59 +1480,87 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
       <AnimatePresence>
         {isModalOpen && (
           <>
-            {/* Modal Backdrop */}
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
               onClick={() => setIsModalOpen(false)}
             />
 
-            {/* Modal Content */}
+            {/* Modal */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-0 flex items-center justify-center p-4 z-50"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+              className="fixed inset-2 sm:inset-4 md:inset-6 z-50 flex flex-col rounded-3xl overflow-hidden shadow-2xl bg-white pointer-events-auto"
             >
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-              {/* Modal Header */}
-              <div className="bg-vibrant-orange text-white p-6 flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold">Select Products for Your Subscription</h2>
-                  <p className="text-white/90 mt-1">Choose from our complete catalog of pet products</p>
+              {/* Header */}
+              <div className="relative overflow-hidden bg-primary-blue px-6 py-5 flex-shrink-0">
+                <img src="/icons/illustrations/scribble-illustrations.png" alt="" aria-hidden className="absolute -top-3 -right-2 w-16 pointer-events-none select-none" style={{ opacity: 0.16, rotate: '22deg' }} />
+                <img src="/icons/illustrations/small-hear-illustrations.png" alt="" aria-hidden className="absolute bottom-0 left-1/3 w-10 pointer-events-none select-none" style={{ opacity: 0.20, rotate: '-14deg' }} />
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white/20 rounded-2xl p-2">
+                      <ShoppingCart className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-fredoka font-bold text-white leading-tight">
+                        Build Your Subscription Box
+                      </h2>
+                      <p className="text-white/75 text-sm font-nunito">
+                        Pick the products your pet loves — save on every delivery
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {/* Selected count badge */}
+                    {selectedProducts.length > 0 && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="bg-sunny-yellow rounded-2xl px-4 py-2 flex items-center gap-2 shadow-md"
+                      >
+                        <Check className="h-4 w-4 text-charcoal" />
+                        <span className="font-fredoka font-bold text-charcoal text-sm">
+                          {selectedProducts.length} selected
+                        </span>
+                      </motion.div>
+                    )}
+                    <button
+                      onClick={() => setIsModalOpen(false)}
+                      className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                    >
+                      <X className="h-5 w-5 text-white" />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
               </div>
 
-              {/* Category Tabs */}
-              <div className="bg-soft-gray px-6 py-4 border-b border-light-gray">
-                <div className="flex space-x-4 overflow-x-auto">
+              {/* Category Filter Bar */}
+              <div className="bg-white border-b border-light-gray px-6 py-3 flex-shrink-0">
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                   <button
                     onClick={() => handleCategoryChange('all')}
-                    className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-fredoka font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                       selectedCategory === 'all'
-                        ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray'
+                        ? 'bg-primary-blue text-white shadow-sm'
+                        : 'bg-soft-gray text-medium-gray hover:bg-light-gray'
                     }`}
                   >
-                    All Products
+                    🐾 All
                   </button>
                   {categories.map(cat => (
                     <button
                       key={cat.id}
-                      className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap
-                      ${selectedCategory === cat.slug
-                        ? 'bg-warm-orange text-white'
-                        : 'bg-white text-medium-gray hover:bg-light-gray' }
-                    }`}
                       onClick={() => handleCategoryChange(cat.slug)}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-fredoka font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+                        selectedCategory === cat.slug
+                          ? 'bg-primary-blue text-white shadow-sm'
+                          : 'bg-soft-gray text-medium-gray hover:bg-light-gray'
+                      }`}
                     >
                       {cat.name}
                     </button>
@@ -1123,152 +1568,162 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                 </div>
               </div>
 
-              {/* Products Grid */}
-              <div className="flex-1 overflow-y-auto p-6">
+              {/* Products Area */}
+              <div className="flex-1 overflow-y-auto bg-off-white">
                 {isLoadingProducts ? (
-                  <div className="flex items-center justify-center h-64">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-vibrant-orange mx-auto mb-4"></div>
-                      <p className="text-medium-gray">Loading products...</p>
-                    </div>
+                  /* Skeleton grid */
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-6">
+                    {[...Array(10)].map((_, i) => (
+                      <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse">
+                        <div className="aspect-square bg-gray-100" />
+                        <div className="p-3 space-y-2">
+                          <div className="h-3 bg-gray-100 rounded w-1/2" />
+                          <div className="h-4 bg-gray-100 rounded w-full" />
+                          <div className="h-4 bg-gray-100 rounded w-3/4" />
+                          <div className="h-8 bg-gray-100 rounded-xl mt-3" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : filteredProducts.length === 0 ? (
-                  <div className="flex items-center justify-center h-64">
+                  <div className="flex flex-col items-center justify-center h-64 gap-4">
+                    <div className="text-5xl">🐾</div>
                     <div className="text-center">
-                      <Package className="h-16 w-16 text-light-gray mx-auto mb-4" />
-                      <p className="text-lg font-fredoka text-medium-gray">No products found</p>
+                      <p className="text-lg font-fredoka font-bold text-charcoal">No products found</p>
+                      <p className="text-sm text-medium-gray mt-1">Try a different category</p>
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                  <div className="p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                       {filteredProducts.map(product => (
                         <ProductCard
                           key={product.id}
                           product={product}
                           isSelected={selectedProducts.some(p => p.id === product.id)}
+                          quantity={productQuantities[product.id] || 1}
                           onToggle={handleProductToggle}
                           onViewDetails={handleViewProductDetails}
+                          onQuantityChange={handleQuantityChange}
                         />
                       ))}
                     </div>
 
-                    {/* Pagination Controls */}
+                    {/* Pagination */}
                     {totalPages > 1 && (
-                      <div className="flex items-center justify-between px-4 py-4 border-t border-light-gray bg-soft-gray">
-                        <div className="text-sm text-medium-gray">
-                          Showing {filteredProducts.length} of {totalProducts} products
+                      <div className="flex items-center justify-center gap-2 mt-8">
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className={`p-2 rounded-xl transition-all ${
+                            currentPage === 1
+                              ? 'bg-light-gray text-medium-gray cursor-not-allowed'
+                              : 'bg-white text-charcoal hover:bg-primary-blue hover:text-white shadow-sm'
+                          }`}
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum: number;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`w-9 h-9 rounded-xl font-fredoka font-semibold text-sm transition-all ${
+                                  currentPage === pageNum
+                                    ? 'bg-primary-blue text-white shadow-sm'
+                                    : 'bg-white text-charcoal hover:bg-soft-gray shadow-sm'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
                         </div>
 
-                        <div className="flex items-center space-x-2">
-                          {/* Previous Button */}
-                          <button
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className={`p-2 rounded-2xl transition-all ${
-                              currentPage === 1
-                                ? 'bg-light-gray text-medium-gray cursor-not-allowed'
-                                : 'bg-white text-charcoal hover:bg-vibrant-orange hover:text-white'
-                            }`}
-                          >
-                            <ChevronLeft className="h-5 w-5" />
-                          </button>
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className={`p-2 rounded-xl transition-all ${
+                            currentPage === totalPages
+                              ? 'bg-light-gray text-medium-gray cursor-not-allowed'
+                              : 'bg-white text-charcoal hover:bg-primary-blue hover:text-white shadow-sm'
+                          }`}
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </button>
 
-                          {/* Page Numbers */}
-                          <div className="flex items-center space-x-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                              let pageNum: number;
-                              if (totalPages <= 5) {
-                                pageNum = i + 1;
-                              } else if (currentPage <= 3) {
-                                pageNum = i + 1;
-                              } else if (currentPage >= totalPages - 2) {
-                                pageNum = totalPages - 4 + i;
-                              } else {
-                                pageNum = currentPage - 2 + i;
-                              }
-
-                              return (
-                                <button
-                                  key={pageNum}
-                                  onClick={() => handlePageChange(pageNum)}
-                                  className={`px-3 py-1 rounded-2xl font-fredoka font-medium transition-all ${
-                                    currentPage === pageNum
-                                      ? 'bg-vibrant-orange text-white'
-                                      : 'bg-white text-charcoal hover:bg-light-gray'
-                                  }`}
-                                >
-                                  {pageNum}
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          {/* Next Button */}
-                          <button
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className={`p-2 rounded-2xl transition-all ${
-                              currentPage === totalPages
-                                ? 'bg-light-gray text-medium-gray cursor-not-allowed'
-                                : 'bg-white text-charcoal hover:bg-vibrant-orange hover:text-white'
-                            }`}
-                          >
-                            <ChevronRight className="h-5 w-5" />
-                          </button>
-                        </div>
-
-                        <div className="text-sm text-medium-gray">
-                          Page {currentPage} of {totalPages}
-                        </div>
+                        <span className="text-sm text-medium-gray font-fredoka ml-2">
+                          {currentPage}/{totalPages}
+                        </span>
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
 
-              {/* Modal Footer */}
-              <div className="bg-soft-gray px-6 py-4 border-t border-light-gray">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-medium-gray">
-                      {selectedProducts.length > 0 
-                        ? `${selectedProducts.length} product${selectedProducts.length > 1 ? 's' : ''} selected`
-                        : 'Select products to add to your subscription'
-                      }
-                    </p>
-                    {selectedProducts.length > 0 && (
-                      <p className="text-sm text-mint-green font-medium">
-                        Subscription Total: Rs. {selectedProducts.reduce((total, product) => {
-                          const qty = productQuantities[product.id] || 1
-                          const discountPercent = product.subscription_discount_percentage || 0
-                          const discountMultiplier = 1 - (discountPercent / 100)
-                          return total + (product.price * qty * discountMultiplier)
-                        }, 0).toFixed(2)}
+              {/* Footer */}
+              <div className="bg-white border-t border-light-gray px-6 py-4 flex-shrink-0">
+                <div className="flex items-center justify-between gap-4">
+                  {/* Left: summary */}
+                  <div className="min-w-0">
+                    {selectedProducts.length === 0 ? (
+                      <p className="text-sm text-medium-gray font-fredoka">
+                        Select at least one product to continue
                       </p>
+                    ) : (
+                      <div>
+                        <p className="text-sm font-fredoka font-semibold text-charcoal">
+                          {selectedProducts.length} product{selectedProducts.length > 1 ? 's' : ''} in your box
+                        </p>
+                        <p className="text-sm font-fredoka text-primary-blue font-semibold">
+                          Subscription total: Rs.{' '}
+                          {selectedProducts.reduce((total, product) => {
+                            const qty = productQuantities[product.id] || 1;
+                            const disc = product.subscription_discount_percentage || 0;
+                            return total + product.price * qty * (1 - disc / 100);
+                          }, 0).toFixed(2)}
+                          {' '}<span className="text-xs text-medium-gray font-normal">/ delivery</span>
+                        </p>
+                      </div>
                     )}
                   </div>
-                  <div className="flex gap-3">
+
+                  {/* Right: actions */}
+                  <div className="flex gap-3 flex-shrink-0">
                     <button
                       onClick={() => setIsModalOpen(false)}
-                      className="bg-light-gray hover:bg-medium-gray text-gray-700 font-medium px-6 py-2 rounded-full transition-colors"
+                      className="px-5 py-2.5 bg-soft-gray hover:bg-light-gray text-charcoal font-fredoka font-medium rounded-xl transition-colors text-sm"
                     >
                       Cancel
                     </button>
-                    <button
+                    <motion.button
                       onClick={() => setIsScheduleModalOpen(true)}
                       disabled={selectedProducts.length === 0}
-                      className={`font-medium px-6 py-2 rounded-full transition-colors ${
+                      whileHover={selectedProducts.length > 0 ? { scale: 1.03 } : {}}
+                      whileTap={selectedProducts.length > 0 ? { scale: 0.97 } : {}}
+                      className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-fredoka font-bold text-sm transition-all ${
                         selectedProducts.length > 0
-                          ? 'bg-vibrant-orange hover:bg-sunny-yellow text-white'
+                          ? 'bg-sunny-yellow hover:brightness-95 text-charcoal shadow-md'
                           : 'bg-light-gray text-medium-gray cursor-not-allowed'
                       }`}
                     >
-                      Next
-                    </button>
+                      Next: Set Schedule
+                      <ChevronRight className="h-4 w-4" />
+                    </motion.button>
                   </div>
                 </div>
-              </div>
               </div>
             </motion.div>
           </>
@@ -1283,123 +1738,266 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
               onClick={() => setIsScheduleModalOpen(false)}
             />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.92, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-0 flex items-center justify-center p-4 z-50"
+              exit={{ opacity: 0, scale: 0.92, y: 24 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none"
             >
-              <div className="bg-white w-full max-w-lg p-6 rounded-2xl shadow-2xl">
+              <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden pointer-events-auto">
+                {/* Header */}
+                <div className="p-6" style={{ background: 'linear-gradient(135deg, #A4F7FF 0%, #78EEFF 100%)' }}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-fredoka font-bold" style={{ color: '#004D6B' }}>Set Your Schedule</h2>
+                      <p className="text-sm mt-0.5" style={{ color: '#004D6B', opacity: 0.7 }}>How often should we deliver?</p>
+                    </div>
+                    <button
+                      onClick={() => setIsScheduleModalOpen(false)}
+                      className="p-2 bg-white/40 hover:bg-white/60 rounded-full transition-colors"
+                    >
+                      <X className="h-5 w-5" style={{ color: '#004D6B' }} />
+                    </button>
+                  </div>
+                </div>
 
-                <h2 className="text-xl font-bold mb-4">Set Delivery Schedule</h2>
+                <div className="p-6 space-y-6">
+                  {/* Frequency Type - Visual Cards */}
+                  <div>
+                    <p className="text-sm font-fredoka font-semibold text-charcoal mb-3 uppercase tracking-wide">Frequency</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { value: 'weekly', label: 'Weekly', emoji: '📅', desc: 'Every week' },
+                        { value: 'monthly', label: 'Monthly', emoji: '🗓️', desc: 'Every month' },
+                        { value: 'custom', label: 'Custom', emoji: '⚙️', desc: 'Set your own' },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          onClick={() => {
+                            setIntervalType(opt.value as 'weekly' | 'monthly' | 'custom');
+                            setIntervalValue(opt.value === 'custom' ? 7 : 1);
+                          }}
+                          className={`flex flex-col items-center p-4 rounded-2xl border-2 transition-all ${
+                            intervalType === opt.value
+                              ? 'shadow-md'
+                              : 'border-light-gray bg-white hover:border-gray-300'
+                          }`}
+                          style={intervalType === opt.value ? { borderColor: '#FF6B35', background: '#FFF4F0' } : {}}
+                        >
+                          <span className="text-2xl mb-1">{opt.emoji}</span>
+                          <span className={`text-sm font-fredoka font-bold ${intervalType === opt.value ? '' : 'text-charcoal'}`}
+                            style={intervalType === opt.value ? { color: '#FF6B35' } : {}}>
+                            {opt.label}
+                          </span>
+                          <span className="text-xs text-medium-gray mt-0.5">{opt.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                {/* Delivery Frequency Type */}
-                <label className="block font-medium">Delivery Frequency</label>
-                <select
-                  className="w-full border rounded-2xl p-2 mt-1 mb-4"
-                  value={intervalType}
-                  onChange={e => {
-                    const type = e.target.value as 'weekly' | 'monthly' | 'custom';
-                    setIntervalType(type);
-                    // Reset interval value to 1 when changing type
-                    setIntervalValue(type === 'weekly' ? 1 : type === 'monthly' ? 1 : 7);
-                  }}
-                >
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="custom">Custom (Days)</option>
-                </select>
+                  {/* Interval Value */}
+                  <div>
+                    <p className="text-sm font-fredoka font-semibold text-charcoal mb-3 uppercase tracking-wide">Interval</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {intervalType === 'weekly' && [
+                        { v: 1, label: 'Every Week' },
+                        { v: 2, label: 'Every 2 Weeks' },
+                        { v: 3, label: 'Every 3 Weeks' },
+                        { v: 4, label: 'Every 4 Weeks' },
+                      ].map(opt => (
+                        <button
+                          key={opt.v}
+                          onClick={() => setIntervalValue(opt.v)}
+                          className={`py-2.5 px-4 rounded-xl text-sm font-fredoka font-medium transition-all border-2 ${
+                            intervalValue === opt.v
+                              ? 'text-white'
+                              : 'bg-white border-light-gray text-charcoal hover:border-gray-300'
+                          }`}
+                          style={intervalValue === opt.v ? { background: '#FF6B35', borderColor: '#FF6B35' } : {}}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                      {intervalType === 'monthly' && [
+                        { v: 1, label: 'Every Month' },
+                        { v: 2, label: 'Every 2 Months' },
+                        { v: 3, label: 'Every 3 Months' },
+                        { v: 6, label: 'Every 6 Months' },
+                      ].map(opt => (
+                        <button
+                          key={opt.v}
+                          onClick={() => setIntervalValue(opt.v)}
+                          className={`py-2.5 px-4 rounded-xl text-sm font-fredoka font-medium transition-all border-2 ${
+                            intervalValue === opt.v
+                              ? 'text-white'
+                              : 'bg-white border-light-gray text-charcoal hover:border-gray-300'
+                          }`}
+                          style={intervalValue === opt.v ? { background: '#FF6B35', borderColor: '#FF6B35' } : {}}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                      {intervalType === 'custom' && [
+                        { v: 7, label: 'Every 7 Days' },
+                        { v: 14, label: 'Every 14 Days' },
+                        { v: 21, label: 'Every 21 Days' },
+                        { v: 30, label: 'Every 30 Days' },
+                        { v: 45, label: 'Every 45 Days' },
+                        { v: 60, label: 'Every 60 Days' },
+                      ].map(opt => (
+                        <button
+                          key={opt.v}
+                          onClick={() => setIntervalValue(opt.v)}
+                          className={`py-2.5 px-4 rounded-xl text-sm font-fredoka font-medium transition-all border-2 ${
+                            intervalValue === opt.v
+                              ? 'text-white'
+                              : 'bg-white border-light-gray text-charcoal hover:border-gray-300'
+                          }`}
+                          style={intervalValue === opt.v ? { background: '#FF6B35', borderColor: '#FF6B35' } : {}}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                {/* Interval Value Selection */}
-                <label className="block font-medium">Delivery Interval</label>
-                <select
-                  className="w-full border rounded-2xl p-2 mt-1 mb-4"
-                  value={intervalValue}
-                  onChange={e => setIntervalValue(Number(e.target.value))}
-                >
-                  {intervalType === 'weekly' && (
-                    <>
-                      <option value="1">Every Week</option>
-                      <option value="2">Every 2 Weeks</option>
-                      <option value="3">Every 3 Weeks</option>
-                      <option value="4">Every 4 Weeks</option>
-                    </>
-                  )}
-                  {intervalType === 'monthly' && (
-                    <>
-                      <option value="1">Every Month</option>
-                      <option value="2">Every 2 Months</option>
-                      <option value="3">Every 3 Months</option>
-                      <option value="6">Every 6 Months</option>
-                    </>
-                  )}
-                  {intervalType === 'custom' && (
-                    <>
-                      <option value="7">Every 7 Days</option>
-                      <option value="14">Every 14 Days</option>
-                      <option value="21">Every 21 Days</option>
-                      <option value="30">Every 30 Days</option>
-                      <option value="45">Every 45 Days</option>
-                      <option value="60">Every 60 Days</option>
-                      <option value="90">Every 90 Days</option>
-                    </>
-                  )}
-                </select>
+                  {/* Dates */}
+                  {(() => {
+                    // Minimum interval in days based on selected frequency
+                    const intervalDays =
+                      intervalType === 'weekly' ? intervalValue * 7 :
+                      intervalType === 'monthly' ? intervalValue * 30 :
+                      intervalValue;
 
-                {/* Start Date */}
-                <label className="block font-medium mt-4">Start Date</label>
-                <input
-                  type="date"
-                  className="w-full border rounded-2xl p-2 mt-1"
-                  value={startDate}
-                  min={new Date().toISOString().split("T")[0]}
-                  onChange={e => setStartDate(e.target.value)}
-                />
+                    // Minimum end date = start date + one full interval
+                    const minEndDate = (() => {
+                      if (!startDate) return new Date().toISOString().split('T')[0];
+                      const d = new Date(startDate + 'T00:00:00');
+                      d.setDate(d.getDate() + intervalDays);
+                      return d.toISOString().split('T')[0];
+                    })();
 
-                {/* End Date */}
-                <label className="block font-medium mt-4">End Date (Optional)</label>
-                <input
-                  type="date"
-                  className="w-full border rounded-2xl p-2 mt-1"
-                  min={startDate || new Date().toISOString().split("T")[0]}
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                />
-                <p className="text-xs text-medium-gray mt-1">Leave empty for ongoing subscription</p>
+                    // Number of deliveries within the selected window
+                    const deliveryCount = (() => {
+                      if (!startDate || !endDate) return 0;
+                      const diffDays = Math.floor(
+                        (new Date(endDate + 'T00:00:00').getTime() - new Date(startDate + 'T00:00:00').getTime())
+                        / 86400000
+                      );
+                      return diffDays < intervalDays ? 0 : Math.floor(diffDays / intervalDays) + 1;
+                    })();
 
-                {/* Footer */}
-                <div className="flex justify-end gap-3 mt-6">
-                  <button
-                    onClick={() => setIsScheduleModalOpen(false)}
-                    className="bg-light-gray hover:bg-medium-gray px-5 py-2 rounded-full"
-                  >
-                    Cancel
-                  </button>
+                    const endDateTooEarly = !!endDate && endDate < minEndDate;
+                    const canConfirm = !!startDate && !!endDate && !endDateTooEarly;
 
-                  <button
-                    onClick={() => {
-                      setIsScheduleModalOpen(false);
-                      handleConfirmSelection({
-                        intervalType,
-                        intervalValue,
-                        startDate,
-                        endDate,
-                        deliveryPeriod: intervalType // Add this for consistency
-                      });
-                    }}
-                    disabled={!startDate}
-                    className={`px-6 py-2 rounded-full transition-colors ${
-                      startDate
-                        ? 'bg-vibrant-orange hover:bg-sunny-yellow text-white'
-                        : 'bg-light-gray text-medium-gray cursor-not-allowed'
-                    }`}
-                  >
-                    Confirm Selection
-                  </button>
+                    return (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-fredoka font-semibold text-charcoal mb-1.5 block uppercase tracking-wide">
+                              Start Date <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                              type="date"
+                              className="w-full border-2 border-light-gray rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                              style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
+                              value={startDate}
+                              min={new Date().toISOString().split('T')[0]}
+                              onChange={e => { setStartDate(e.target.value); setEndDate(''); }}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-fredoka font-semibold text-charcoal mb-1.5 block uppercase tracking-wide">
+                              End Date <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                              type="date"
+                              className={`w-full border-2 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent ${endDateTooEarly ? 'border-red-400' : 'border-light-gray'}`}
+                              style={{ '--tw-ring-color': '#FF6B35' } as React.CSSProperties}
+                              min={minEndDate}
+                              value={endDate}
+                              disabled={!startDate}
+                              onChange={e => setEndDate(e.target.value)}
+                            />
+                            {endDateTooEarly && (
+                              <p className="text-xs text-red-400 mt-1 font-nunito">
+                                Must be at least {intervalDays} days after start date to cover one delivery.
+                              </p>
+                            )}
+                            {!startDate && (
+                              <p className="text-xs text-medium-gray mt-1 font-nunito">Select a start date first.</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Summary pill */}
+                        {startDate && endDate && !endDateTooEarly && (
+                          <div className="rounded-2xl px-4 py-3 space-y-1" style={{ background: 'rgba(164,247,255,0.25)', border: '1px solid rgba(164,247,255,0.8)' }}>
+                            <div className="flex items-center gap-3">
+                              <Repeat className="h-4 w-4 flex-shrink-0" style={{ color: '#FF6B35' }} />
+                              <p className="text-sm font-fredoka" style={{ color: '#004D6B' }}>
+                                Delivering{' '}
+                                <span className="font-bold" style={{ color: '#FF6B35' }}>
+                                  {intervalType === 'weekly'
+                                    ? `every ${intervalValue === 1 ? 'week' : `${intervalValue} weeks`}`
+                                    : intervalType === 'monthly'
+                                    ? `every ${intervalValue === 1 ? 'month' : `${intervalValue} months`}`
+                                    : `every ${intervalValue} days`}
+                                </span>
+                                {' '}from{' '}
+                                <span className="font-bold" style={{ color: '#FF6B35' }}>
+                                  {new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                                {' '}to{' '}
+                                <span className="font-bold" style={{ color: '#FF6B35' }}>
+                                  {new Date(endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                              </p>
+                            </div>
+                            <p className="text-xs font-fredoka pl-7" style={{ color: '#004D6B', opacity: 0.75 }}>
+                              {deliveryCount} {deliveryCount === 1 ? 'delivery' : 'deliveries'} scheduled
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="flex gap-3 pt-2">
+                          <button
+                            onClick={() => setIsScheduleModalOpen(false)}
+                            className="flex-1 bg-soft-gray hover:bg-light-gray text-charcoal font-fredoka font-medium py-3 rounded-xl transition-colors"
+                          >
+                            Back
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsScheduleModalOpen(false);
+                              handleConfirmSelection({
+                                intervalType,
+                                intervalValue,
+                                startDate,
+                                endDate,
+                                deliveryPeriod: intervalType
+                              });
+                            }}
+                            disabled={!canConfirm}
+                            className={`flex-1 font-fredoka font-bold py-3 rounded-xl transition-all ${
+                              canConfirm
+                                ? 'text-white shadow-md hover:shadow-lg'
+                                : 'bg-light-gray text-medium-gray cursor-not-allowed'
+                            }`}
+                            style={canConfirm ? { background: '#FF6B35' } : {}}
+                          >
+                            Confirm & Continue
+                          </button>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </motion.div>
@@ -1418,7 +2016,14 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black bg-opacity-50 z-50"
-              onClick={() => setShowSubscriptionModal(false)}
+              onClick={() => {
+                setShowSubscriptionModal(false);
+                setShowConfirmCancel(false);
+                setShowConfirmPause(false);
+                setShowConfirmSkip(false);
+                setShowRescheduleInput(false);
+                setRescheduleDate('');
+              }}
             />
 
             {/* Modal Content */}
@@ -1437,7 +2042,14 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                       <p className="text-white/90 mt-1">Subscription ID: #{selectedSubscription.id}</p>
                     </div>
                     <button
-                      onClick={() => setShowSubscriptionModal(false)}
+                      onClick={() => {
+                        setShowSubscriptionModal(false);
+                        setShowConfirmCancel(false);
+                        setShowConfirmPause(false);
+                        setShowConfirmSkip(false);
+                        setShowRescheduleInput(false);
+                        setRescheduleDate('');
+                      }}
                       className="p-2 hover:bg-white/20 rounded-full transition-colors"
                     >
                       <X className="h-6 w-6" />
@@ -1524,63 +2136,182 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                 </div>
 
                 {/* Modal Footer */}
-                <div className="bg-soft-gray px-6 py-4 border-t border-light-gray">
-                  {/* Management Actions Row */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                    {selectedSubscription.status === 'Active' && (
-                      <button
-                        onClick={() => handlePause(selectedSubscription.id)}
-                        className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-fredoka font-medium rounded-full transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Package className="h-4 w-4" />
-                        Pause
-                      </button>
-                    )}
-                    {selectedSubscription.status === 'Paused' && (
-                      <button
-                        onClick={() => handleResume(selectedSubscription.id)}
-                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-fredoka font-medium rounded-full transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Package className="h-4 w-4" />
-                        Resume
-                      </button>
-                    )}
-                    {selectedSubscription.status === 'Active' && (
-                      <button
-                        onClick={() => handleSkipDelivery(selectedSubscription.id)}
-                        className="px-4 py-2 bg-primary-blue hover:bg-blue-700 text-white font-fredoka font-medium rounded-full transition-colors flex items-center justify-center gap-2"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                        Skip Next
-                      </button>
-                    )}
-                    {(selectedSubscription.status === 'Active' || selectedSubscription.status === 'Paused') && selectedSubscription.nextDelivery && (
-                      <button
-                        onClick={() => {
-                          const newDate = prompt("Enter new delivery date (YYYY-MM-DD):", selectedSubscription.nextDelivery || undefined);
-                          if (newDate) handleReschedule(selectedSubscription.id, newDate);
-                        }}
-                        className="px-4 py-2 bg-mint-green hover:bg-green-600 text-white font-fredoka font-medium rounded-full transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Calendar className="h-4 w-4" />
-                        Reschedule
-                      </button>
-                    )}
-                  </div>
+                <div className="bg-soft-gray px-6 py-5 border-t border-light-gray space-y-4">
 
-                  {/* Primary Actions Row */}
+                  {/* Inline Reschedule */}
+                  {showRescheduleInput && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="bg-white rounded-2xl p-4 border-2 border-mint-green/40"
+                    >
+                      <p className="text-sm font-fredoka font-semibold text-charcoal mb-2">Pick a new delivery date</p>
+                      <div className="flex gap-3 items-center">
+                        <input
+                          type="date"
+                          value={rescheduleDate}
+                          min={new Date().toISOString().split('T')[0]}
+                          onChange={e => setRescheduleDate(e.target.value)}
+                          className="flex-1 border-2 border-light-gray rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mint-green focus:border-transparent"
+                        />
+                        <button
+                          onClick={() => { if (rescheduleDate) handleReschedule(selectedSubscription.id, rescheduleDate); }}
+                          disabled={!rescheduleDate}
+                          className="bg-mint-green hover:bg-green-600 text-white font-fredoka font-medium px-4 py-2 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={() => { setShowRescheduleInput(false); setRescheduleDate(''); }}
+                          className="text-medium-gray hover:text-charcoal text-sm px-2"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Inline Confirm Pause */}
+                  {showConfirmPause && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="bg-yellow-50 rounded-2xl p-4 border-2 border-yellow-300"
+                    >
+                      <p className="text-sm font-fredoka font-semibold text-charcoal mb-3">⏸️ Pause this subscription?</p>
+                      <p className="text-xs text-medium-gray mb-3">Your deliveries will stop until you resume. You can resume anytime.</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handlePause(selectedSubscription.id)}
+                          className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-fredoka font-medium py-2 rounded-xl text-sm transition-colors"
+                        >
+                          Yes, Pause
+                        </button>
+                        <button
+                          onClick={() => setShowConfirmPause(false)}
+                          className="flex-1 bg-white text-charcoal font-fredoka font-medium py-2 rounded-xl text-sm border border-light-gray transition-colors"
+                        >
+                          Keep Active
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Inline Confirm Skip */}
+                  {showConfirmSkip && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="bg-blue-50 rounded-2xl p-4 border-2 border-blue-200"
+                    >
+                      <p className="text-sm font-fredoka font-semibold text-charcoal mb-3">⏭️ Skip the next delivery?</p>
+                      <p className="text-xs text-medium-gray mb-3">The following delivery will be scheduled automatically.</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleSkipDelivery(selectedSubscription.id)}
+                          className="flex-1 bg-primary-blue hover:bg-blue-700 text-white font-fredoka font-medium py-2 rounded-xl text-sm transition-colors"
+                        >
+                          Yes, Skip
+                        </button>
+                        <button
+                          onClick={() => setShowConfirmSkip(false)}
+                          className="flex-1 bg-white text-charcoal font-fredoka font-medium py-2 rounded-xl text-sm border border-light-gray transition-colors"
+                        >
+                          Keep Delivery
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Inline Confirm Cancel */}
+                  {showConfirmCancel && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="bg-red-50 rounded-2xl p-4 border-2 border-red-200"
+                    >
+                      <p className="text-sm font-fredoka font-semibold text-charcoal mb-3">🗑️ Cancel this subscription?</p>
+                      <p className="text-xs text-medium-gray mb-3">This action is permanent and cannot be undone.</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleCancel(selectedSubscription.id)}
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-white font-fredoka font-medium py-2 rounded-xl text-sm transition-colors"
+                        >
+                          Yes, Cancel
+                        </button>
+                        <button
+                          onClick={() => setShowConfirmCancel(false)}
+                          className="flex-1 bg-white text-charcoal font-fredoka font-medium py-2 rounded-xl text-sm border border-light-gray transition-colors"
+                        >
+                          Keep Subscription
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Action Pills */}
+                  {!showConfirmCancel && !showConfirmPause && !showConfirmSkip && !showRescheduleInput && (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSubscription.status === 'Active' && (
+                        <button
+                          onClick={() => setShowConfirmPause(true)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-fredoka font-medium rounded-full text-sm transition-colors"
+                        >
+                          <PauseCircle className="h-4 w-4" />
+                          Pause
+                        </button>
+                      )}
+                      {selectedSubscription.status === 'Paused' && (
+                        <button
+                          onClick={() => handleResume(selectedSubscription.id)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 font-fredoka font-medium rounded-full text-sm transition-colors"
+                        >
+                          <PlayCircle className="h-4 w-4" />
+                          Resume
+                        </button>
+                      )}
+                      {selectedSubscription.status === 'Active' && (
+                        <button
+                          onClick={() => setShowConfirmSkip(true)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-fredoka font-medium rounded-full text-sm transition-colors"
+                        >
+                          <SkipForward className="h-4 w-4" />
+                          Skip Next
+                        </button>
+                      )}
+                      {(selectedSubscription.status === 'Active' || selectedSubscription.status === 'Paused') && selectedSubscription.nextDelivery && (
+                        <button
+                          onClick={() => { setRescheduleDate(selectedSubscription.nextDelivery || ''); setShowRescheduleInput(true); }}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-teal-100 hover:bg-teal-200 text-teal-700 font-fredoka font-medium rounded-full text-sm transition-colors"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Reschedule
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Close / Cancel row */}
                   <div className="flex gap-3 justify-end">
                     <button
-                      onClick={() => setShowSubscriptionModal(false)}
-                      className="px-6 py-2 bg-light-gray hover:bg-medium-gray text-gray-700 font-fredoka font-medium rounded-full transition-colors"
+                      onClick={() => {
+                        setShowSubscriptionModal(false);
+                        setShowConfirmCancel(false);
+                        setShowConfirmPause(false);
+                        setShowConfirmSkip(false);
+                        setShowRescheduleInput(false);
+                        setRescheduleDate('');
+                      }}
+                      className="px-6 py-2 bg-white hover:bg-soft-gray text-charcoal font-fredoka font-medium rounded-full border border-light-gray transition-colors"
                     >
                       Close
                     </button>
-                    {(selectedSubscription.status === 'Active' || selectedSubscription.status === 'Paused') && (
+                    {(selectedSubscription.status === 'Active' || selectedSubscription.status === 'Paused') && !showConfirmCancel && (
                       <button
-                        className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-fredoka font-medium rounded-full transition-colors"
-                        onClick={() => handleCancel(selectedSubscription.id)}
+                        onClick={() => setShowConfirmCancel(true)}
+                        className="flex items-center gap-1.5 px-5 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-fredoka font-medium rounded-full border border-red-200 text-sm transition-colors"
                       >
+                        <Trash2 className="h-4 w-4" />
                         Cancel Subscription
                       </button>
                     )}
@@ -1603,404 +2334,433 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
 
       {/* Product Details Modal */}
       <AnimatePresence>
-        {showProductModal && selectedProduct && (
-          <>
-            {/* Modal Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 z-50"
-              onClick={() => setShowProductModal(false)}
-            />
+        {showProductModal && selectedProduct && (() => {
+          const isOutOfStock = !selectedProduct.is_in_stock || selectedProduct.stock_quantity <= 0;
+          const isAlreadyAdded = selectedProducts.some(p => p.id === selectedProduct.id);
+          const currencyCode = typeof selectedProduct.currency === 'object'
+            ? (selectedProduct.currency as any)?.code || 'Rs.'
+            : selectedProduct.currency || 'Rs.';
+          const subPrice = selectedProduct.subscription_discount_percentage && selectedProduct.subscription_discount_percentage > 0
+            ? (selectedProduct.price * (1 - selectedProduct.subscription_discount_percentage / 100)).toFixed(2)
+            : null;
+          const minQty = selectedProduct.min_subscription_quantity || 1;
+          const maxQty = Math.min(
+            selectedProduct.stock_quantity || 99,
+            selectedProduct.max_subscription_quantity || 99
+          );
+          const currentQty = Math.max(minQty, selectedProduct.quantity || minQty);
+          const brandName = typeof selectedProduct.brand === 'object'
+            ? (selectedProduct.brand as any)?.name
+            : selectedProduct.brand;
 
-            {/* Modal Content */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-0 flex items-center justify-center p-4 z-50"
-            >
-              <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                {/* Modal Header */}
-                <div className="relative h-80 bg-primary-blue">
-                  <div className="absolute inset-0 bg-black/20" />
-                  <button
-                    onClick={() => setShowProductModal(false)}
-                    className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-colors z-10"
-                  >
-                    <X className="h-6 w-6 text-white" />
-                  </button>
-                  <div className="relative h-full flex items-center justify-center">
-                    <motion.img
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      src={
-                        selectedProduct.images && selectedProduct.images.length > 0
-                          ? `http://127.0.0.1:8000${selectedProduct.images[0].url}`
-                          : "https://via.placeholder.com/300x200?text=No+Image"
-                      }
-                      alt={selectedProduct?.name || "Product image"}
-                      className="max-h-64 max-w-sm object-contain drop-shadow-2xl"
+          return (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 z-50"
+                onClick={() => setShowProductModal(false)}
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 16 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                className="fixed inset-0 flex items-center justify-center p-4 z-50"
+              >
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+
+                  {/* ── Header ─────────────────────────────────────────── */}
+                  <div className="relative flex-shrink-0 bg-primary-blue px-5 py-4 flex items-center gap-3">
+                    <img
+                      src="/icons/illustrations/scribble-illustrations.png"
+                      alt="" aria-hidden="true"
+                      className="absolute right-14 top-0 h-full w-auto opacity-10 pointer-events-none select-none"
+                      style={{ rotate: '18deg' }}
                     />
-
-                  </div>
-                </div>
-
-                {/* Modal Body */}
-                <div className="p-8 overflow-y-auto max-h-[calc(90vh-320px)]">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left Column - Product Info */}
-                    <div>
-                      <div className="mb-6">
-                        <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-2">
-                          {selectedProduct.name}
-                        </h2>
-                        <p className="text-lg text-medium-gray flex items-center gap-2">
-                          by <span className="font-fredoka font-semibold text-vibrant-orange">
-                            {typeof selectedProduct.brand === 'object' ? (selectedProduct.brand as any)?.name : selectedProduct.brand}
-                          </span>
-                        </p>
-                      </div>
-
-                      {/* Rating and Reviews */}
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-5 w-5 ${
-                                i < Math.floor(selectedProduct.rating || 0)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'fill-gray-200 text-gray-200'
-                              }`}
-                            />
-                          ))}
-                          <span className="ml-2 font-fredoka font-semibold text-charcoal">
-                            {selectedProduct.rating}
-                          </span>
-                        </div>
-                        <span className="text-medium-gray">
-                          ({selectedProduct.review_count} reviews)
-                        </span>
-                        <span className={`px-3 py-1 rounded-full text-sm font-fredoka font-medium ${
-                          selectedProduct.is_in_stock 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {selectedProduct.is_in_stock ? 'In Stock' : 'Out of Stock'}
-                        </span>
-                      </div>
-
-                      {/* Description */}
-                      <div className="mb-6">
-                        <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-2">Description</h3>
-                        <p className="text-medium-gray leading-relaxed">
-                          {selectedProduct.description || `Premium ${
-                            typeof selectedProduct.category === 'object' ? (selectedProduct.category as any)?.name : selectedProduct.category
-                          } for your beloved pet. This high-quality product from ${
-                            typeof selectedProduct.brand === 'object' ? (selectedProduct.brand as any)?.name : selectedProduct.brand
-                          } is designed to provide the best care and comfort for your furry friend. Made with carefully selected ingredients and materials to ensure safety and effectiveness.`}
-                        </p>
-                      </div>
-
-                      {/* Features */}
-                      <div className="mb-6">
-                        <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-3">Key Features</h3>
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Check className="h-5 w-5 text-green-500" />
-                            </div>
-                            <p className="text-medium-gray">High-quality ingredients and materials</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Check className="h-5 w-5 text-green-500" />
-                            </div>
-                            <p className="text-medium-gray">Veterinarian recommended</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Check className="h-5 w-5 text-green-500" />
-                            </div>
-                            <p className="text-medium-gray">Suitable for all life stages</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Check className="h-5 w-5 text-green-500" />
-                            </div>
-                            <p className="text-medium-gray">100% satisfaction guarantee</p>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="bg-white/20 rounded-xl p-2 flex-shrink-0">
+                      <Eye className="h-5 w-5 text-white" />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-fredoka font-bold text-base text-white leading-tight truncate">
+                        {selectedProduct.name}
+                      </h2>
+                      <p className="text-white/60 text-xs font-nunito">Product Details</p>
+                    </div>
+                    <button
+                      onClick={() => setShowProductModal(false)}
+                      className="flex-shrink-0 p-2 bg-white/15 hover:bg-white/30 rounded-xl transition-colors"
+                    >
+                      <X className="h-5 w-5 text-white" />
+                    </button>
+                  </div>
 
-                    {/* Right Column - Pricing and Actions */}
-                    <div>
-                      {/* Pricing Card */}
-                      <div className="bg-yellow-50 rounded-2xl p-6 mb-6">
-                        <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-4">Pricing Options</h3>
-                        
-                        {/* One-time Purchase */}
-                        {/* <div className="mb-4 p-4 bg-white rounded-xl"> */}
-                          {/* <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-700 font-fredoka font-medium">One-time Purchase</span>
-                            {selectedProduct.discount_percentage && (
-                              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                {selectedProduct.discount_percentage}% OFF
-                              </span>
-                            )}
-                          </div> */}
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-fredoka font-bold text-charcoal">
-                              {typeof selectedProduct?.currency === 'object'
-                                ? (selectedProduct.currency as any)?.code || 'Rs.'
-                                : selectedProduct?.currency || 'Rs.'} {selectedProduct.price}
-                            </span>
-                            {/* {selectedProduct.price && (
-                              <span className="text-lg text-gray-400 line-through">
-                                {selectedProduct.currency} {selectedProduct.price}
-                              </span>
-                            )} */}
-                          {/* </div> */}
-                        </div>
+                  {/* ── Body ───────────────────────────────────────────── */}
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 min-h-0">
 
-                        {/* Subscription Option */}
-                        {/* <div className="p-4 bg-mint-green/20 rounded-xl border-2 border-mint-green">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-700 font-fredoka font-medium">Subscribe & Save</span>
-                            <span className="bg-mint-green text-white text-xs px-2 py-1 rounded-full">
-                              Save 10%
-                            </span>
-                          </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-fredoka font-bold text-mint-green">
-                              {selectedProduct.currency} {Math.floor(selectedProduct.price * 0.9)}
-                            </span>
-                            <span className="text-sm text-medium-gray">per delivery</span>
-                          </div>
-                          <p className="text-xs text-medium-gray mt-2">
-                            + Free shipping on all subscription orders
-                          </p>
-                        </div> */}
-                      </div>
-
-                      {/* Benefits */}
-                      <div className="bg-blue-50 rounded-2xl p-6 mb-6">
-                        <h3 className="font-fredoka font-semibold text-lg text-charcoal mb-3">Why Choose Subscription?</h3>
-                        <div className="space-y-3">
-                          {/* <div className="flex items-center gap-3">
-                            <PercentIcon className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Save 10% on every order</span>
-                          </div> */}
-                          <div className="flex items-center gap-3">
-                            <TruckIcon className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Products to your doorstep</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Calendar className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Flexible delivery schedule</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <ShieldCheck className="h-5 w-5 text-vibrant-orange" />
-                            <span className="text-gray-700">Cancel or pause anytime</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Quantity
-                        </label>
-                        <input
-                          type="number"
-                          min={1}
-                          value={selectedProduct.quantity || 1}
-                          onChange={(e) =>
-                            setSelectedProduct({
-                              ...selectedProduct,
-                              quantity: parseInt(e.target.value, 10),
-                            })
-                          }
-                          className="border rounded-xl px-3 py-2 w-24"
+                      {/* Image panel */}
+                      <div className="bg-primary-blue/8 flex items-center justify-center p-8 md:min-h-[280px]" style={{ background: 'rgba(0,77,107,0.06)' }}>
+                        <motion.img
+                          initial={{ scale: 0.85, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.12 }}
+                          src={getProductImageSrc(selectedProduct)}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
+                          alt={selectedProduct.name}
+                          className="max-h-52 max-w-full object-contain drop-shadow-lg"
                         />
                       </div>
-                      {/* Action Buttons */}
-                      <div className="space-y-3">
+
+                      {/* Info panel */}
+                      <div className="p-6 flex flex-col gap-4">
+
+                        {/* Name · Brand · Stock */}
+                        <div>
+                          <h3 className="text-2xl font-fredoka font-bold text-charcoal leading-tight">
+                            {selectedProduct.name}
+                          </h3>
+                          {brandName && (
+                            <p className="text-sm font-nunito text-medium-gray mt-0.5">
+                              by{' '}
+                              <span className="font-semibold text-primary-blue">{brandName}</span>
+                            </p>
+                          )}
+                          <span className={`inline-block mt-2 px-3 py-0.5 rounded-full text-xs font-fredoka font-semibold ${
+                            isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {isOutOfStock ? '✗ Out of Stock' : '✓ In Stock'}
+                          </span>
+                        </div>
+
+                        {/* Pricing */}
+                        <div className="rounded-2xl border border-primary-blue/20 overflow-hidden" style={{ background: 'rgba(0,77,107,0.04)' }}>
+                          <div className="px-4 py-3 flex items-baseline gap-1">
+                            <span className="text-xs font-nunito text-medium-gray mr-1">Regular</span>
+                            <span className="text-2xl font-fredoka font-bold text-charcoal">
+                              {currencyCode} {selectedProduct.price?.toLocaleString()}
+                            </span>
+                          </div>
+                          {subPrice && (
+                            <div className="bg-primary-blue px-4 py-2.5 flex items-center justify-between">
+                              <span className="text-xs font-fredoka font-semibold text-white/80">
+                                Subscribe & Save {selectedProduct.subscription_discount_percentage}%
+                              </span>
+                              <span className="font-fredoka font-bold text-sunny-yellow text-base">
+                                {currencyCode} {subPrice}
+                                <span className="text-white/60 text-xs font-normal ml-1">/delivery</span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Description — only if present */}
+                        {selectedProduct.description && (
+                          <div>
+                            <p className="text-xs font-nunito font-semibold text-medium-gray uppercase tracking-wide mb-1">
+                              Description
+                            </p>
+                            <p className="text-sm font-nunito text-medium-gray leading-relaxed line-clamp-4">
+                              {selectedProduct.description}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Specs — only if data exists */}
+                        {(selectedProduct.weight || selectedProduct.dimensions) && (
+                          <div className="grid grid-cols-2 gap-2">
+                            {selectedProduct.weight && (
+                              <div className="bg-primary-blue/10 border border-primary-blue/20 rounded-xl p-3 text-center">
+                                <Package className="h-4 w-4 text-primary-blue mx-auto mb-1" />
+                                <p className="text-xs font-nunito text-medium-gray">Weight</p>
+                                <p className="font-fredoka font-bold text-primary-blue text-sm">{selectedProduct.weight} kg</p>
+                              </div>
+                            )}
+                            {selectedProduct.dimensions && (
+                              <div className="bg-primary-blue/10 border border-primary-blue/20 rounded-xl p-3 text-center">
+                                <Package className="h-4 w-4 text-primary-blue mx-auto mb-1" />
+                                <p className="text-xs font-nunito text-medium-gray">Dimensions</p>
+                                <p className="font-fredoka font-bold text-primary-blue text-xs">
+                                  {selectedProduct.dimensions.length}×{selectedProduct.dimensions.width}×{selectedProduct.dimensions.height}
+                                  <span className="text-medium-gray font-normal"> {selectedProduct.dimensions.unit || 'cm'}</span>
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── Footer ─────────────────────────────────────────── */}
+                  <div className="flex-shrink-0 border-t border-light-gray bg-white px-5 py-4">
+                    <div className="flex items-center gap-3 flex-wrap">
+
+                      {/* Quantity stepper */}
+                      <div className="flex items-center gap-1 bg-soft-gray rounded-xl p-1">
                         <button
+                          onClick={() => setSelectedProduct({ ...selectedProduct, quantity: Math.max(minQty, currentQty - 1) })}
+                          disabled={isOutOfStock || currentQty <= minQty}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm hover:bg-primary-blue hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-9 text-center font-fredoka font-bold text-charcoal text-sm select-none">
+                          {currentQty}
+                        </span>
+                        <button
+                          onClick={() => setSelectedProduct({ ...selectedProduct, quantity: Math.min(maxQty, currentQty + 1) })}
+                          disabled={isOutOfStock || currentQty >= maxQty}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm hover:bg-primary-blue hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      {/* CTA — three states */}
+                      {isOutOfStock ? (
+                        <button
+                          disabled
+                          className="flex-1 min-w-[140px] py-3 px-5 rounded-2xl font-fredoka font-bold text-sm bg-light-gray text-medium-gray cursor-not-allowed"
+                        >
+                          Out of Stock
+                        </button>
+                      ) : isAlreadyAdded ? (
+                        <>
+                          {/* Update quantity for the product already in cart */}
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => {
+                              setProductQuantities(prev => ({ ...prev, [selectedProduct.id]: currentQty }));
+                              toast.success('Quantity updated');
+                              setShowProductModal(false);
+                            }}
+                            className="flex-1 min-w-[140px] py-3 px-5 rounded-2xl font-fredoka font-bold text-sm bg-primary-blue text-white shadow-md hover:brightness-110 transition-all"
+                          >
+                            ✓ Update Quantity
+                          </motion.button>
+                          {/* Remove from subscription */}
+                          <button
+                            onClick={() => {
+                              handleProductToggle(selectedProduct);
+                              setShowProductModal(false);
+                            }}
+                            title="Remove from subscription"
+                            className="py-3 px-4 bg-red-50 border-2 border-red-200 text-red-500 hover:bg-red-100 rounded-2xl transition-colors flex-shrink-0"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.97 }}
                           onClick={() => {
                             handleProductToggle(selectedProduct);
                             setShowProductModal(false);
                           }}
-                          className={`w-full py-4 px-6 rounded-2xl font-fredoka font-bold text-lg transition-all transform hover:scale-105 ${
-                            selectedProducts.some(p => p.id === selectedProduct.id)
-                              ? 'bg-light-gray text-medium-gray'
-                              : 'bg-vibrant-orange hover:bg-sunny-yellow text-white shadow-lg'
-                          }`}
-                          disabled={selectedProducts.some(p => p.id === selectedProduct.id)}
+                          className="flex-1 min-w-[140px] py-3 px-5 rounded-2xl font-fredoka font-bold text-sm bg-primary-blue text-white shadow-md hover:brightness-110 transition-all"
                         >
-                          {selectedProducts.some(p => p.id === selectedProduct.id)
-                            ? 'Already Added to Subscription'
-                            : 'Add to Subscription'
-                          }
-                        </button>
-                        <button
-                          onClick={() => setShowProductModal(false)}
-                          className="w-full py-3 px-6 bg-white border-2 border-light-gray rounded-2xl font-fredoka font-medium text-charcoal hover:bg-soft-gray transition-colors"
-                        >
-                          Close
-                        </button>
-                      </div>
+                          + Add to Subscription
+                        </motion.button>
+                      )}
 
-                      {/* Trust Badges */}
-                      <div className="mt-6 flex items-center justify-center gap-4 text-xs text-medium-gray">
-                        <div className="flex items-center gap-1">
-                          <ShieldCheck className="h-4 w-4" />
-                          <span>Secure</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Heart className="h-4 w-4" />
-                          <span>Pet Safe</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Award className="h-4 w-4" />
-                          <span>Quality Assured</span>
-                        </div>
-                      </div>
+                      {/* Close */}
+                      <button
+                        onClick={() => setShowProductModal(false)}
+                        className="py-3 px-4 bg-soft-gray hover:bg-light-gray rounded-2xl font-fredoka font-medium text-charcoal text-sm transition-colors flex-shrink-0"
+                      >
+                        Close
+                      </button>
                     </div>
                   </div>
+
                 </div>
-              </div>
-            </motion.div>
-          </>
-        )}
+              </motion.div>
+            </>
+          );
+        })()}
       </AnimatePresence>
     </div>
   )
 }
 
+// Inline SVG placeholder — no external dependency
+const PRODUCT_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f5f5f5'/%3E%3Cpath d='M150 90a60 60 0 1 0 0 120 60 60 0 0 0 0-120zm0 108a48 48 0 1 1 0-96 48 48 0 0 1 0 96z' fill='%23d0d0d0'/%3E%3Ccircle cx='150' cy='135' r='18' fill='%23d0d0d0'/%3E%3Cpath d='M110 195c0-22 18-40 40-40s40 18 40 40' fill='%23d0d0d0'/%3E%3C/svg%3E";
+
+const getProductImageSrc = (product: Product): string => {
+  if (product.images && product.images.length > 0) {
+    const url = product.images[0].url;
+    return url.startsWith('http') ? url : PRODUCT_PLACEHOLDER;
+  }
+  if (!product.primary_image?.url) return PRODUCT_PLACEHOLDER;
+  const url = product.primary_image.url;
+  return url.startsWith('http') ? url : PRODUCT_PLACEHOLDER;
+};
+
 // Product Card Component for Modal
 interface ProductCardProps {
   product: Product;
   isSelected: boolean;
+  quantity: number;
   onToggle: (product: Product) => void;
   onViewDetails: (product: Product) => void;
+  onQuantityChange: (productId: string, change: number) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onToggle, onViewDetails }) => {
-  
+const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, quantity, onToggle, onViewDetails, onQuantityChange }) => {
+  const isOutOfStock = !product.is_in_stock || product.stock_quantity <= 0;
+  const brandName = typeof product.brand === 'string' ? product.brand : (product.brand as any)?.name || '';
+  const subPrice = product.subscription_discount_percentage && product.subscription_discount_percentage > 0
+    ? product.price * (1 - product.subscription_discount_percentage / 100)
+    : null;
+
   return (
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`relative bg-white rounded-2xl border-2 transition-all ${
-        isSelected ? 'border-vibrant-orange shadow-lg' : 'border-light-gray hover:border-medium-gray'
-      }`}
+      whileHover={!isOutOfStock ? { y: -3 } : {}}
+      className={`relative bg-white rounded-2xl overflow-hidden flex flex-col transition-all duration-200 ${
+        isSelected
+          ? 'ring-2 ring-primary-blue shadow-lg shadow-blue-100'
+          : 'shadow-sm hover:shadow-md'
+      } ${isOutOfStock ? 'opacity-70' : ''}`}
     >
-      {/* Selection Indicator */}
-      {isSelected && (
-        <div className="absolute top-2 right-2 bg-vibrant-orange text-white rounded-full p-1 z-10">
-          <Plus className="h-4 w-4 rotate-45" />
-        </div>
-      )}
-
-      {/* Subscription Discount Badge */}
-      {product.subscription_discount_percentage && product.subscription_discount_percentage > 0 && (
-        <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-fredoka font-bold z-10 shadow-lg">
-          Save {product.subscription_discount_percentage}%
-        </div>
-      )}
-
-      {/* Product Image */}
+      {/* Image area */}
       <div
-        className="aspect-square overflow-hidden rounded-t-lg bg-soft-gray cursor-pointer relative"
-        onClick={() => onToggle(product)}
+        className="relative aspect-square bg-soft-gray cursor-pointer overflow-hidden"
+        onClick={() => !isOutOfStock && onToggle(product)}
       >
-       <img
-          src={
-            product.primary_image?.url
-              ? product.primary_image.url.startsWith('http')
-                ? product.primary_image.url
-                : `${host}${product.primary_image.url}`
-              : "https://via.placeholder.com/300x200?text=No+Image"
-          }
+        <img
+          src={getProductImageSrc(product)}
           alt={product.name}
-          className="w-full h-full object-cover rounded-xl"
+          className={`w-full h-full object-cover transition-transform duration-300 ${!isOutOfStock ? 'group-hover:scale-105' : ''}`}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
         />
+
+        {/* Out of stock overlay */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+            <span className="bg-gray-700 text-white text-xs font-fredoka font-bold px-3 py-1 rounded-full">
+              Out of Stock
+            </span>
+          </div>
+        )}
+
+        {/* Save badge */}
+        {product.subscription_discount_percentage && product.subscription_discount_percentage > 0 && !isOutOfStock && (
+          <div className="absolute top-2 left-2 bg-mint-green text-white text-[10px] font-fredoka font-bold px-2 py-0.5 rounded-full shadow">
+            Save {product.subscription_discount_percentage}%
+          </div>
+        )}
+
+        {/* Selected checkmark */}
+        {isSelected && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute top-2 right-2 bg-primary-blue text-white rounded-full p-1 shadow-md"
+          >
+            <Check className="h-3.5 w-3.5" />
+          </motion.div>
+        )}
+
       </div>
 
-      {/* Product Info */}
-      <div className="p-4">
+      {/* Info area */}
+      <div className="p-3 flex flex-col flex-1">
+        {brandName && (
+          <p className="text-[10px] font-fredoka font-semibold text-primary-blue uppercase tracking-wide truncate mb-0.5">
+            {brandName}
+          </p>
+        )}
         <h3
-          className="font-fredoka font-semibold text-charcoal text-sm mb-1 line-clamp-2 cursor-pointer hover:text-vibrant-orange transition-colors"
-          onClick={() => onToggle(product)}
+          className="font-fredoka font-semibold text-charcoal text-sm leading-tight line-clamp-2 mb-2 flex-1 cursor-pointer hover:text-vibrant-orange transition-colors"
+          onClick={() => !isOutOfStock && onToggle(product)}
         >
           {product.name}
         </h3>
-        <p className="text-xs text-medium-gray mb-2">
-          {typeof product.brand === 'string' ? product.brand : (product.brand as any)?.name || 'Unknown Brand'}
-        </p>
-        
-        {/* Price */}
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            {product.originalPrice && (
-              <span className="text-xs text-gray-400 line-through mr-2">
-                LKR {product.originalPrice}
-              </span>
-            )}
-            <span className="font-fredoka font-bold text-vibrant-orange">
-              LKR {product.price}
-            </span>
-          </div>
-          
-          {/* Rating */}
-          <div className="flex items-center">
-            <Star className="h-3 w-3 fill-current text-yellow-400" />
-            <span className="text-xs text-medium-gray ml-1">{product.rating}</span>
-          </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails(product);
-            }}
-            className="flex-1 bg-primary-blue hover:bg-blue-700 text-white text-xs font-fredoka font-medium py-2 px-3 rounded-2xl transition-colors flex items-center justify-center gap-1"
-          >
-            <Eye className="h-3 w-3" />
-            View Details
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle(product);
-            }}
-            className={`flex-1 text-xs font-fredoka font-medium py-2 px-3 rounded-2xl transition-colors ${
-              isSelected 
-                ? 'bg-red-500 hover:bg-red-600 text-white' 
-                : 'bg-warm-orange hover:bg-vibrant-yellow text-white'
-            }`}
-          >
-            {isSelected ? 'Remove' : 'Add'}
-          </button>
-        </div>
-
-        {/* Subscription Price */}
-        {product.subscription_discount_percentage && product.subscription_discount_percentage > 0 && (
-          <div className="mt-3 pt-2 border-t border-light-gray">
-            <p className="text-xs text-mint-green font-fredoka font-medium text-center">
-              Subscription: Rs. {(product.price * (1 - product.subscription_discount_percentage / 100)).toFixed(2)} (Save {product.subscription_discount_percentage}%)
+        {/* Price block */}
+        <div className="mb-2">
+          {subPrice !== null ? (
+            <>
+              <p className="text-[11px] text-gray-400 line-through leading-none">
+                LKR {product.price.toLocaleString()}
+              </p>
+              <p className="font-fredoka font-bold text-vibrant-orange text-base leading-tight">
+                LKR {subPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </>
+          ) : (
+            <p className="font-fredoka font-bold text-vibrant-orange text-base">
+              LKR {product.price.toLocaleString()}
             </p>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* View Details button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onViewDetails(product); }}
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 mb-2 rounded-xl text-xs font-fredoka font-semibold text-primary-blue bg-blue-50 hover:bg-blue-100 transition-colors"
+        >
+          <Eye className="h-3.5 w-3.5" />
+          View Details
+        </button>
+
+        {/* Quantity controls — visible only when selected */}
+        <AnimatePresence>
+          {isSelected && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.18 }}
+              className="overflow-hidden mb-2"
+            >
+              <div className="flex items-center justify-between bg-soft-gray rounded-xl px-3 py-2">
+                <span className="text-xs font-fredoka font-semibold text-charcoal">Qty</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onQuantityChange(String(product.id), -1); }}
+                    className="w-7 h-7 rounded-lg bg-white hover:bg-primary-blue hover:text-white text-charcoal flex items-center justify-center transition-colors shadow-sm"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <span className="w-6 text-center font-fredoka font-bold text-charcoal text-sm">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onQuantityChange(String(product.id), 1); }}
+                    className="w-7 h-7 rounded-lg bg-white hover:bg-primary-blue hover:text-white text-charcoal flex items-center justify-center transition-colors shadow-sm"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Toggle button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); if (!isOutOfStock) onToggle(product); }}
+          disabled={isOutOfStock}
+          className={`w-full py-2 rounded-xl text-sm font-fredoka font-bold transition-all ${
+            isOutOfStock
+              ? 'bg-soft-gray text-medium-gray cursor-not-allowed'
+              : isSelected
+                ? 'bg-red-50 hover:bg-red-100 text-red-500 border border-red-200'
+                : 'bg-sunny-yellow hover:brightness-95 text-charcoal shadow-sm'
+          }`}
+        >
+          {isOutOfStock ? 'Unavailable' : isSelected ? '✓ Added — Remove' : '+ Add to Box'}
+        </button>
       </div>
     </motion.div>
-  )
+  );
 }
 
 export default Subscriptions

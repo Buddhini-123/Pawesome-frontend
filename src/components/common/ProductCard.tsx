@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Plus, Star, Heart, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 import { Product } from '../../types';
 import { formatters } from '../../utils/formatters';
 
 interface ProductCardProps {
   id: string;
+  slug?: string;
   name: string;
   brand: string;
   price: number;
@@ -21,6 +23,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({
   id,
+  slug,
   name,
   brand,
   price,
@@ -33,10 +36,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
   discount
 }) => {
   const { addItem } = useCart();
+  const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const product: Product = {
       id,
       name,
@@ -51,7 +56,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     };
     addItem(product);
     setIsAdded(true);
-    
+
     // Reset after animation
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -61,12 +66,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
     setIsLiked(!isLiked);
   };
 
+  const handleCardClick = () => {
+    if (slug) navigate(`/product/${slug}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5 }}
-      className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group pet-card"
+      onClick={handleCardClick}
+      className={`bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group pet-card ${slug ? 'cursor-pointer' : ''}`}
     >
       <div className="relative overflow-hidden">
         {/* Image Container */}

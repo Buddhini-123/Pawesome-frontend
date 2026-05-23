@@ -34,6 +34,7 @@ export const normalizeCartItem = (item: any) => {
     total_weight: item.total_weight,
     dimensions: item.dimensions || product.dimensions,
     subtotal: item.subtotal,
+    metadata: item.metadata ?? null, // Preserve metadata for gift box grouping
 
     product: {
       id: String(product.id ?? item.id),

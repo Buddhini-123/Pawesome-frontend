@@ -7,9 +7,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, phone?: string, referralCode?: string, termsAccepted?: boolean) => Promise<void>;
+  register: (email: string, password: string, firstName: string, lastName: string, phone?: string, referralCode?: string, termsAccepted?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,7 +31,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const token = localStorage.getItem("auth_token");
 
         if (savedUser && token) {
-          setUser(JSON.parse(savedUser));
+          const backendUser = JSON.parse(savedUser);
+
+          // Transform backend user data to frontend format
+          const user = {
+            ...backendUser,
+            name: backendUser.first_name && backendUser.last_name
+              ? `${backendUser.first_name} ${backendUser.last_name}`
+              : backendUser.name || backendUser.first_name || 'User'
+          };
+
+          setUser(user);
         }
       } catch (error) {
         console.error('Error loading auth data:', error);
@@ -56,7 +67,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       if (data.success) {
-        const { user, access_token } = data.data;
+        const { user: backendUser, access_token } = data.data;
+
+        // Transform backend user data to frontend format
+        const user = {
+          ...backendUser,
+          name: backendUser.first_name && backendUser.last_name
+            ? `${backendUser.first_name} ${backendUser.last_name}`
+            : backendUser.name || backendUser.first_name || 'User'
+        };
 
         // Save to localStorage with correct keys
         localStorage.setItem("auth_token", access_token);
@@ -76,14 +95,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = useCallback(async (
     email: string,
     password: string,
-    name: string,
+    firstName: string,
+    lastName: string,
     phone?: string,
     referralCode?: string,
     termsAccepted: boolean = true
   ) => {
     try {
       const response = await api.post("/auth/register", {
-        name,
+        first_name: firstName,
+        last_name: lastName,
         email,
         password,
         password_confirmation: password,
@@ -99,7 +120,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       if (data.success) {
-        const { user, access_token } = data.data;
+        const { user: backendUser, access_token } = data.data;
+
+        // Transform backend user data to frontend format
+        const user = {
+          ...backendUser,
+          name: backendUser.first_name && backendUser.last_name
+            ? `${backendUser.first_name} ${backendUser.last_name}`
+            : backendUser.name || backendUser.first_name || 'User'
+        };
 
         // Save to localStorage (auto-login) with correct keys
         localStorage.setItem("auth_token", access_token);
@@ -128,7 +157,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const updateUser = useCallback((userData: Partial<User>) => {
-    setUser(prev => prev ? { ...prev, ...userData } : null);
+    setUser(prev => {
+      if (!prev) return null;
+
+      const updatedUser = { ...prev, ...userData };
+
+      // Also update localStorage to persist the changes
+      localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+
+      return updatedUser;
+    });
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        return;
+      }
+
+      // Fetch current user data from backend
+      const response = await api.get("/auth/user");
+
+      if (response.success && response.data) {
+        let backendUser: any = response.data;
+
+        // Handle double-wrapped response
+        if (backendUser.data) {
+          backendUser = backendUser.data;
+        }
+
+        // Transform backend user data to frontend format
+        const user = {
+          ...backendUser,
+          name: backendUser.first_name && backendUser.last_name
+            ? `${backendUser.first_name} ${backendUser.last_name}`
+            : backendUser.name || backendUser.first_name || 'User'
+        };
+
+        // Update localStorage and state
+        localStorage.setItem("auth_user", JSON.stringify(user));
+        setUser(user);
+      }
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
   }, []);
 
   const value: AuthContextType = {
@@ -138,7 +211,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
-    updateUser
+    updateUser,
+    refreshUser
   };
 
   return (

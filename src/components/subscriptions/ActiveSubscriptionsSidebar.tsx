@@ -9,7 +9,6 @@ import {
   TrendingUp,
   Trophy,
   Plus,
-  ShoppingBag,
   Clock,
   DollarSign,
 } from 'lucide-react';
@@ -60,27 +59,47 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
 
   return (
     <>
-      {/* Floating Action Button */}
-      <AnimatePresence>
-        {!isOpen && subscriptions.length > 0 && (
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onClose}
-            className="fixed right-6 bottom-24 bg-primary-blue hover:bg-vibrant-orange text-white p-4 rounded-full shadow-2xl transition-all duration-300 z-40 group"
-          >
-            <div className="relative">
+      {/* Floating Action Button — always visible, toggles sidebar */}
+      <motion.button
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.93 }}
+        onClick={onClose}
+        title={isOpen ? 'Close My Subscriptions' : 'My Subscriptions'}
+        className="fixed right-6 bottom-24 bg-primary-blue text-white p-4 rounded-2xl shadow-2xl z-40"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          {isOpen ? (
+            <motion.span
+              key="close"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="flex items-center justify-center"
+            >
+              <X className="h-6 w-6" />
+            </motion.span>
+          ) : (
+            <motion.span
+              key="open"
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="flex items-center justify-center relative"
+            >
               <Package className="h-6 w-6" />
-              <span className="absolute -top-2 -right-2 bg-crimson text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {subscriptions.length}
-              </span>
-            </div>
-          </motion.button>
-        )}
-      </AnimatePresence>
+              {subscriptions.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-vibrant-orange text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {subscriptions.length}
+                </span>
+              )}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
 
       {/* Sidebar */}
       <AnimatePresence>
@@ -301,13 +320,6 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
                     <p className="text-medium-gray mb-6 max-w-sm">
                       Start saving with our subscription service and never run out of your pet's essentials!
                     </p>
-                    <button
-                      onClick={onClose}
-                      className="bg-primary-blue hover:bg-vibrant-orange text-white font-fredoka font-medium px-6 py-3 rounded-full transition-colors flex items-center"
-                    >
-                      <ShoppingBag className="h-5 w-5 mr-2" />
-                      Start Shopping
-                    </button>
                   </div>
                 )}
               </div>

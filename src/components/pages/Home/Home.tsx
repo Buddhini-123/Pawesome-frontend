@@ -348,7 +348,7 @@ const Home: React.FC = () => {
     <>
       {isLoading && <Loading3D />}
       
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-sky-50 to-amber-50 relative overflow-hidden">
+      <div className="min-h-screen bg-sky-light relative overflow-hidden">
         {/* Enhanced Particle Effects */}
         {/* <EnhancedParticleSystem intensity={1.5} mouseInteractive={true} /> */}
         {/* <MouseTrailEffect /> */}
@@ -371,11 +371,6 @@ const Home: React.FC = () => {
           </Canvas>
         </div>
 
-        {/* Animated Background Layers */}
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-br from-amber-100/40 via-sky-100/30 to-yellow-100/40 pointer-events-none -z-20"
-          style={{ y, opacity }}
-        />
 
         {/* Content Sections */}
         <div className="relative z-20">
@@ -466,7 +461,7 @@ const Home: React.FC = () => {
           </motion.section>
 
           {/* Enhanced Main Service Cards */}
-          <section ref={cardsRef} className="py-10 px-4 relative bg-white/95 backdrop-blur-lg z-30">
+          <section ref={cardsRef} className="py-10 px-4 relative z-30">
             <div className="container mx-auto max-w-7xl">
               {/* <motion.div
                 className="text-center mb-20"
