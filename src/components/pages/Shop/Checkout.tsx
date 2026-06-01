@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useCart } from '../../../hooks/useCart';
 import { useAuth } from '../../../hooks/useAuth';
 import { useLoyalty } from '../../../hooks/useLoyalty';
@@ -28,7 +28,9 @@ import {
   Info,
   Tag,
   Clock,
-  Star
+  Star,
+  X,
+  Plus
 } from 'lucide-react';
 import RedemptionSlider from '../../loyalty/RedemptionSlider';
 import { useLocation } from "react-router-dom";
@@ -104,6 +106,68 @@ const Checkout: React.FC = () => {
   const [addressOption, setAddressOption] = useState<'select' | 'custom'>('select');
   const [addresses, setAddresses] = useState<any[]>([]);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
+  const [provinceSearch, setProvinceSearch] = useState('');
+  const provinceDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Quick Add Address modal
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+  const [quickAddSaving, setQuickAddSaving] = useState(false);
+  const [quickAddForm, setQuickAddForm] = useState({
+    fullName: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    addressType: 'home' as 'home' | 'work' | 'other',
+  });
+  const [quickAddErrors, setQuickAddErrors] = useState<Record<string, string>>({});
+  const [showModalCityDropdown, setShowModalCityDropdown] = useState(false);
+  const [modalCitySearch, setModalCitySearch] = useState('');
+  const [showModalProvinceDropdown, setShowModalProvinceDropdown] = useState(false);
+  const [modalProvinceSearch, setModalProvinceSearch] = useState('');
+  const modalCityRef = useRef<HTMLDivElement>(null);
+  const modalProvinceRef = useRef<HTMLDivElement>(null);
+
+  const SRI_LANKA_PROVINCES = [
+    'Western Province',
+    'Central Province',
+    'Southern Province',
+    'Northern Province',
+    'Eastern Province',
+    'North Western Province',
+    'North Central Province',
+    'Uva Province',
+    'Sabaragamuwa Province',
+  ];
+
+  const SRI_LANKA_CITIES = [
+    'Ampara', 'Ambalangoda', 'Anuradhapura', 'Avissawella',
+    'Badulla', 'Balangoda', 'Bandarawela', 'Batticaloa', 'Battaramulla', 'Beruwala', 'Boralesgamuwa',
+    'Chilaw', 'Colombo',
+    'Dambulla', 'Dehiwala', 'Dikwella', 'Divulapitiya',
+    'Embilipitiya',
+    'Galle', 'Gampaha', 'Gampola',
+    'Hambantota', 'Haputale', 'Hatton', 'Hendala', 'Hikkaduwa', 'Homagama',
+    'Ja-Ela', 'Jaffna',
+    'Kadugannawa', 'Kaduwela', 'Kalmunai', 'Kalutara', 'Kandy', 'Kandana', 'Kattankudy', 'Katunayake',
+    'Kegalle', 'Kekirawa', 'Kelaniya', 'Kilinochchi', 'Kolonnawa', 'Kuliyapitiya', 'Kurunegala',
+    'Maharagama', 'Mahiyanganaya', 'Maho', 'Mannar', 'Matale', 'Matara', 'Medawachchiya',
+    'Minuwangoda', 'Mirigama', 'Mirissa', 'Monaragala', 'Moratuwa', 'Mullaitivu',
+    'Nawalapitiya', 'Negombo', 'Nugegoda', 'Nuwara Eliya',
+    'Panadura', 'Pelmadulla', 'Peradeniya', 'Piliyandala', 'Point Pedro', 'Polonnaruwa', 'Puttalam',
+    'Ragama', 'Ratnapura',
+    'Seeduwa', 'Sri Jayawardenepura Kotte',
+    'Tangalle', 'Thalawathugoda', 'Tissamaharama', 'Trincomalee',
+    'Vavuniya',
+    'Wattala', 'Welimada', 'Weligama', 'Wennappuwa',
+  ];
 
   // Pricing API integration states
   const [pricing, setPricing] = useState<PricingCalculation | null>(null);
@@ -282,6 +346,30 @@ const Checkout: React.FC = () => {
     fetchAddresses();
   }, []);
 
+  // Close all dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (provinceDropdownRef.current && !provinceDropdownRef.current.contains(e.target as Node)) {
+        setShowProvinceDropdown(false);
+        setProvinceSearch('');
+      }
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
+        setShowCityDropdown(false);
+        setCitySearch('');
+      }
+      if (modalCityRef.current && !modalCityRef.current.contains(e.target as Node)) {
+        setShowModalCityDropdown(false);
+        setModalCitySearch('');
+      }
+      if (modalProvinceRef.current && !modalProvinceRef.current.contains(e.target as Node)) {
+        setShowModalProvinceDropdown(false);
+        setModalProvinceSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Fetch pricing from backend API
   const fetchPricing = async (subtotal: number) => {
     if (subtotal <= 0) return;
@@ -331,15 +419,12 @@ const Checkout: React.FC = () => {
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    navigate('/login', { state: { from: { pathname: '/checkout' } } });
-    return null;
+    return <Navigate to="/login" state={{ from: { pathname: '/checkout' } }} replace />;
   }
-  
 
-  // Redirect to cart if empty
-  if (!isSubscription && cart.length === 0) {
-    navigate('/cart');
-    return null;
+  // Redirect to cart if empty — but not while processing (cart is cleared before navigate)
+  if (!isSubscription && cart.length === 0 && !isProcessing) {
+    return <Navigate to="/cart" replace />;
   }
 
   // Calculate pricing - use backend API shipping cost (weight-based)
@@ -436,15 +521,11 @@ const Checkout: React.FC = () => {
       }
 
       if (!city.trim()) {
-        errors.city = 'City is required';
-      } else if (!/^[a-zA-Z\s\u00C0-\u024F]+$/.test(city.trim())) {
-        errors.city = 'City name can only contain letters';
+        errors.city = 'Please select a city';
       }
 
       if (!state.trim()) {
-        errors.state = 'Province / State is required';
-      } else if (!/^[a-zA-Z\s\u00C0-\u024F]+$/.test(state.trim())) {
-        errors.state = 'Province name can only contain letters';
+        errors.state = 'Please select a province';
       }
 
       if (!pincode.trim()) {
@@ -518,18 +599,23 @@ const Checkout: React.FC = () => {
   const buildShippingAddress = () => {
     // If user selected saved address
     if (addressOption === 'select' && selectedAddressId) {
-      const selected = addresses.find(a => a.id === selectedAddressId);
+      // addresses = API-fetched; savedAddresses = from user object (localStorage)
+      // Fall back to savedAddresses when API is unavailable (401)
+      const selected = addresses.find(a => a.id === selectedAddressId)
+        || savedAddresses.find(a => a.id === selectedAddressId);
 
       return {
         fullName: formData.shippingAddress.fullName,
         phone: formData.shippingAddress.phone,
-        address: selected?.formatted_address ?? null,
+        // API response uses formatted_address; localStorage uses address
+        address: selected?.formatted_address ?? selected?.address ?? null,
         street: selected?.street ?? null,
         city: selected?.city ?? null,
         state: selected?.state ?? null,
         pincode: selected?.pincode ?? null,
         landmark: selected?.landmark ?? null,
-        addressType: selected?.address_type ?? 'home',
+        // API response uses address_type; localStorage uses type
+        addressType: selected?.address_type ?? selected?.type ?? 'home',
       };
     }
 
@@ -626,7 +712,11 @@ const Checkout: React.FC = () => {
 
         const payhereRes = await api.post('/payment/initiate', { order_id: subOrderId });
         if (!payhereRes.success || !payhereRes.data) {
-          throw new Error(payhereRes.error || 'Failed to initiate payment. Please try again.');
+          const isAuthError = (payhereRes as any).response?.status === 401
+            || payhereRes.error?.includes('Unauthenticated');
+          throw new Error(isAuthError
+            ? 'Online payment requires a valid session. Please log out and log in again, or use Cash on Delivery.'
+            : (payhereRes.error || 'Failed to initiate payment. Please try again.'));
         }
 
         const rawParams = payhereRes.data as any;
@@ -695,7 +785,11 @@ const Checkout: React.FC = () => {
         const payhereRes = await api.post('/payment/initiate', { order_id: orderId });
 
         if (!payhereRes.success || !payhereRes.data) {
-          throw new Error(payhereRes.error || 'Failed to initiate payment. Please try again.');
+          const isAuthError = (payhereRes as any).response?.status === 401
+            || payhereRes.error?.includes('Unauthenticated');
+          throw new Error(isAuthError
+            ? 'Online payment requires a valid session. Please log out and log in again, or use Cash on Delivery.'
+            : (payhereRes.error || 'Failed to initiate payment. Please try again.'));
         }
 
         // Unwrap nested backend response: { success: true, data: { checkout_url, ... } }
@@ -738,9 +832,8 @@ const Checkout: React.FC = () => {
         : "Order placed successfully!";
       toast.success(pointsMessage);
 
-      await clearCart();
-
       navigate(`/order-confirmation/${orderId}`);
+      clearCart(); // fire-and-forget — Checkout is already navigating away
 
     } catch (err: any) {
       
@@ -789,6 +882,96 @@ const Checkout: React.FC = () => {
     }
   };
 
+  const openQuickAddModal = () => {
+    setQuickAddForm({
+      fullName: user?.name || '',
+      phone: user?.phone || '',
+      address: '',
+      city: '',
+      state: '',
+      pincode: '',
+      addressType: 'home',
+    });
+    setQuickAddErrors({});
+    setShowQuickAddModal(true);
+  };
+
+  const handleQuickAddSave = async () => {
+    const errors: Record<string, string> = {};
+    if (!quickAddForm.fullName.trim()) errors.fullName = 'Full name is required';
+    const rawPhone = quickAddForm.phone.replace(/\s/g, '');
+    if (!rawPhone) errors.phone = 'Phone is required';
+    else if (!/^(0?7[0-9]{8})$/.test(rawPhone)) errors.phone = 'Enter a valid Sri Lankan mobile number';
+    if (!quickAddForm.address.trim()) errors.address = 'Address is required';
+    if (!quickAddForm.city.trim()) errors.city = 'Please select a city';
+    if (!quickAddForm.state.trim()) errors.state = 'Please select a province';
+    if (!quickAddForm.pincode.trim()) errors.pincode = 'Postal code is required';
+    else if (!/^\d{5}$/.test(quickAddForm.pincode.trim())) errors.pincode = 'Enter a valid 5-digit postal code';
+
+    if (Object.keys(errors).length > 0) {
+      setQuickAddErrors(errors);
+      return;
+    }
+
+    setQuickAddSaving(true);
+    try {
+      let newAddress: any = null;
+
+      const res = await api.post('/users/addresses', {
+        type: quickAddForm.addressType,
+        full_name: quickAddForm.fullName,
+        phone: quickAddForm.phone,
+        address_line1: quickAddForm.address,
+        city: quickAddForm.city,
+        district: quickAddForm.state,
+        postal_code: quickAddForm.pincode,
+      });
+
+      if (res.success && res.data) {
+        const d = res.data as any;
+        newAddress = d?.data?.address ?? d?.address ?? d?.data ?? d;
+      }
+
+      // Fallback: build local address object if backend unavailable
+      if (!newAddress?.id) {
+        newAddress = {
+          id: `local-${Date.now()}`,
+          type: quickAddForm.addressType,
+          fullName: quickAddForm.fullName,
+          phone: quickAddForm.phone,
+          address: quickAddForm.address,
+          city: quickAddForm.city,
+          state: quickAddForm.state,
+          pincode: quickAddForm.pincode,
+          isDefault: savedAddresses.length === 0,
+        };
+      }
+
+      setSavedAddresses(prev => [...prev, newAddress]);
+      setSelectedAddressId(newAddress.id);
+      setFormData(prev => ({
+        ...prev,
+        shippingAddress: {
+          ...prev.shippingAddress,
+          fullName: quickAddForm.fullName,
+          phone: quickAddForm.phone,
+          address: quickAddForm.address,
+          city: quickAddForm.city,
+          state: quickAddForm.state,
+          pincode: quickAddForm.pincode,
+          addressType: quickAddForm.addressType,
+        },
+      }));
+
+      setShowQuickAddModal(false);
+      toast.success('Address saved!');
+    } catch {
+      toast.error('Failed to save address. Please try again.');
+    } finally {
+      setQuickAddSaving(false);
+    }
+  };
+
   const renderStepContent = () => {
     switch(step) {
       case 1:
@@ -804,6 +987,26 @@ const Checkout: React.FC = () => {
               Shipping Information
             </h2>
 
+            {/* Empty address state */}
+            {savedAddresses.length === 0 && (
+              <div className="mb-8 flex flex-col items-center justify-center p-8 border-2 border-dashed border-light-gray rounded-2xl text-center">
+                <div className="w-16 h-16 rounded-full bg-soft-gray flex items-center justify-center mb-4">
+                  <MapPin className="h-8 w-8 text-medium-gray" />
+                </div>
+                <p className="font-fredoka font-bold text-charcoal text-lg mb-1">No saved addresses</p>
+                <p className="text-sm text-medium-gray mb-5">Add a delivery address to continue with your order</p>
+                <button
+                  type="button"
+                  onClick={openQuickAddModal}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-fredoka font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+                  style={{ background: '#FF6B35' }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Address
+                </button>
+              </div>
+            )}
+
             {/* Saved Addresses */}
             {savedAddresses.length > 0 && (
               <div className="mb-8">
@@ -818,8 +1021,8 @@ const Checkout: React.FC = () => {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleAddressSelect(addr.id)}
                       className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        selectedAddressId === addr.id 
-                          ? 'border-primary-blue bg-primary-blue/5' 
+                        selectedAddressId === addr.id
+                          ? 'border-primary-blue bg-primary-blue/5'
                           : 'border-light-gray hover:border-primary-blue/50'
                       }`}
                     >
@@ -831,8 +1034,8 @@ const Checkout: React.FC = () => {
                             ) : (
                               <Building className="h-4 w-4 mr-2 text-primary-blue" />
                             )}
-                            <span className="font-fredoka font-semibold text-charcoal">
-                              {addr.type === 'home' ? 'Home' : 'Work'}
+                            <span className="font-fredoka font-semibold text-charcoal capitalize">
+                              {addr.type || 'Home'}
                             </span>
                             {addr.isDefault && (
                               <span className="ml-2 px-2 py-1 bg-mint-green/20 text-mint-green text-xs rounded-full">
@@ -859,18 +1062,20 @@ const Checkout: React.FC = () => {
                     </motion.div>
                   ))}
                 </div>
-                
+
                 <button
-                  onClick={() => setSelectedAddressId(null)}
-                  className="text-primary-blue font-fredoka font-medium hover:underline"
+                  type="button"
+                  onClick={openQuickAddModal}
+                  className="inline-flex items-center gap-1.5 text-primary-blue font-fredoka font-medium hover:underline"
                 >
-                  + Add New Address
+                  <Plus className="h-4 w-4" />
+                  Add New Address
                 </button>
               </div>
             )}
 
-            {/* Address Form */}
-            {(!savedAddresses.length || !selectedAddressId) && (
+            {/* Address Form — shown only when addresses exist but none selected */}
+            {(savedAddresses.length > 0 && !selectedAddressId) && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -1007,17 +1212,78 @@ const Checkout: React.FC = () => {
                           <Building className="inline h-4 w-4 mr-2" />
                           City *
                         </label>
-                        <input
-                          type="text"
-                          value={formData.shippingAddress.city}
-                          onChange={e => handleShippingChange('city', e.target.value)}
-                          className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
-                            fieldErrors.city
-                              ? 'border-red-400 focus:ring-red-300'
-                              : 'border-light-gray focus:ring-primary-blue'
-                          }`}
-                          placeholder="e.g. Colombo"
-                        />
+                        <div className="relative" ref={cityDropdownRef}>
+                          {/* Trigger */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowCityDropdown(prev => !prev);
+                              setCitySearch('');
+                            }}
+                            className={`w-full px-4 py-3 border-2 rounded-xl flex items-center justify-between transition-all text-left ${
+                              fieldErrors.city
+                                ? 'border-red-400'
+                                : showCityDropdown
+                                  ? 'border-primary-blue ring-2 ring-primary-blue ring-opacity-30'
+                                  : 'border-light-gray hover:border-primary-blue'
+                            }`}
+                          >
+                            <span className={formData.shippingAddress.city ? 'text-charcoal' : 'text-gray-400 text-sm'}>
+                              {formData.shippingAddress.city || 'Select city...'}
+                            </span>
+                            <ChevronRight className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${showCityDropdown ? 'rotate-90' : ''}`} />
+                          </button>
+
+                          {/* Dropdown panel */}
+                          {showCityDropdown && (
+                            <div className="absolute z-50 w-full mt-1 bg-white border-2 border-primary-blue rounded-xl shadow-xl overflow-hidden">
+                              {/* Search */}
+                              <div className="p-2 border-b border-light-gray">
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  value={citySearch}
+                                  onChange={e => setCitySearch(e.target.value)}
+                                  placeholder="Search city..."
+                                  className="w-full px-3 py-2 text-sm border border-light-gray rounded-lg focus:outline-none focus:border-primary-blue"
+                                />
+                              </div>
+                              {/* List */}
+                              <ul className="max-h-52 overflow-y-auto py-1">
+                                {SRI_LANKA_CITIES
+                                  .filter(c => c.toLowerCase().includes(citySearch.toLowerCase()))
+                                  .map(city => (
+                                    <li
+                                      key={city}
+                                      onMouseDown={() => {
+                                        handleShippingChange('city', city);
+                                        setShowCityDropdown(false);
+                                        setCitySearch('');
+                                      }}
+                                      className={`px-4 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors ${
+                                        formData.shippingAddress.city === city
+                                          ? 'bg-primary-blue/10 text-primary-blue font-semibold'
+                                          : 'text-charcoal hover:bg-blue-50'
+                                      }`}
+                                    >
+                                      {formData.shippingAddress.city === city && (
+                                        <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                                      )}
+                                      {city}
+                                    </li>
+                                  ))
+                                }
+                                {SRI_LANKA_CITIES.filter(c =>
+                                  c.toLowerCase().includes(citySearch.toLowerCase())
+                                ).length === 0 && (
+                                  <li className="px-4 py-3 text-sm text-gray-400 text-center">
+                                    No cities found
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
                         {fieldErrors.city && (
                           <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />{fieldErrors.city}
@@ -1030,19 +1296,80 @@ const Checkout: React.FC = () => {
                       <div>
                         <label className="block text-sm font-fredoka font-medium text-charcoal mb-2">
                           <MapPin className="inline h-4 w-4 mr-2" />
-                          Province / State *
+                          Province *
                         </label>
-                        <input
-                          type="text"
-                          value={formData.shippingAddress.state}
-                          onChange={e => handleShippingChange('state', e.target.value)}
-                          className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
-                            fieldErrors.state
-                              ? 'border-red-400 focus:ring-red-300'
-                              : 'border-light-gray focus:ring-primary-blue'
-                          }`}
-                          placeholder="e.g. Western Province"
-                        />
+                        <div className="relative" ref={provinceDropdownRef}>
+                          {/* Trigger */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowProvinceDropdown(prev => !prev);
+                              setProvinceSearch('');
+                            }}
+                            className={`w-full px-4 py-3 border-2 rounded-xl flex items-center justify-between transition-all text-left ${
+                              fieldErrors.state
+                                ? 'border-red-400'
+                                : showProvinceDropdown
+                                  ? 'border-primary-blue ring-2 ring-primary-blue ring-opacity-30'
+                                  : 'border-light-gray hover:border-primary-blue'
+                            }`}
+                          >
+                            <span className={formData.shippingAddress.state ? 'text-charcoal' : 'text-gray-400 text-sm'}>
+                              {formData.shippingAddress.state || 'Select province...'}
+                            </span>
+                            <ChevronRight className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${showProvinceDropdown ? 'rotate-90' : ''}`} />
+                          </button>
+
+                          {/* Dropdown panel */}
+                          {showProvinceDropdown && (
+                            <div className="absolute z-50 w-full mt-1 bg-white border-2 border-primary-blue rounded-xl shadow-xl overflow-hidden">
+                              {/* Search */}
+                              <div className="p-2 border-b border-light-gray">
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  value={provinceSearch}
+                                  onChange={e => setProvinceSearch(e.target.value)}
+                                  placeholder="Search province..."
+                                  className="w-full px-3 py-2 text-sm border border-light-gray rounded-lg focus:outline-none focus:border-primary-blue"
+                                />
+                              </div>
+                              {/* List */}
+                              <ul className="max-h-52 overflow-y-auto py-1">
+                                {SRI_LANKA_PROVINCES
+                                  .filter(p => p.toLowerCase().includes(provinceSearch.toLowerCase()))
+                                  .map(province => (
+                                    <li
+                                      key={province}
+                                      onMouseDown={() => {
+                                        handleShippingChange('state', province);
+                                        setShowProvinceDropdown(false);
+                                        setProvinceSearch('');
+                                      }}
+                                      className={`px-4 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors ${
+                                        formData.shippingAddress.state === province
+                                          ? 'bg-primary-blue/10 text-primary-blue font-semibold'
+                                          : 'text-charcoal hover:bg-blue-50'
+                                      }`}
+                                    >
+                                      {formData.shippingAddress.state === province && (
+                                        <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                                      )}
+                                      {province}
+                                    </li>
+                                  ))
+                                }
+                                {SRI_LANKA_PROVINCES.filter(p =>
+                                  p.toLowerCase().includes(provinceSearch.toLowerCase())
+                                ).length === 0 && (
+                                  <li className="px-4 py-3 text-sm text-gray-400 text-center">
+                                    No provinces found
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
                         {fieldErrors.state && (
                           <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />{fieldErrors.state}
@@ -2085,6 +2412,324 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Quick Add Address Modal ─────────────────────────────── */}
+      <AnimatePresence>
+        {showQuickAddModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.5)' }}
+            onMouseDown={(e) => { if (e.target === e.currentTarget) setShowQuickAddModal(false); }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-light-gray">
+                <h3 className="text-xl font-fredoka font-bold text-charcoal flex items-center gap-2">
+                  <MapPin className="h-5 w-5" style={{ color: '#FF6B35' }} />
+                  Add New Address
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddModal(false)}
+                  className="p-2 rounded-lg text-medium-gray hover:bg-soft-gray hover:text-charcoal transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-5 space-y-4">
+
+                {/* Address type toggle */}
+                <div className="flex gap-2">
+                  {(['home', 'work', 'other'] as const).map(type => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setQuickAddForm(prev => ({ ...prev, addressType: type }))}
+                      className={`flex-1 py-2.5 px-2 rounded-xl border-2 text-sm font-fredoka font-medium capitalize transition-all ${
+                        quickAddForm.addressType === type
+                          ? 'border-primary-blue bg-primary-blue/10 text-primary-blue'
+                          : 'border-light-gray text-medium-gray hover:border-primary-blue/40'
+                      }`}
+                    >
+                      {type === 'home' ? '🏠 Home' : type === 'work' ? '🏢 Work' : '📍 Other'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Full Name + Phone */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-fredoka font-semibold text-charcoal mb-1.5">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={quickAddForm.fullName}
+                      onChange={e => {
+                        setQuickAddForm(prev => ({ ...prev, fullName: e.target.value }));
+                        setQuickAddErrors(prev => ({ ...prev, fullName: '' }));
+                      }}
+                      className={`w-full px-3 py-2.5 border-2 rounded-xl text-sm focus:outline-none transition-all ${
+                        quickAddErrors.fullName ? 'border-red-400' : 'border-light-gray focus:border-primary-blue'
+                      }`}
+                      placeholder="Full name"
+                    />
+                    {quickAddErrors.fullName && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{quickAddErrors.fullName}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-fredoka font-semibold text-charcoal mb-1.5">
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      value={quickAddForm.phone}
+                      onChange={e => {
+                        setQuickAddForm(prev => ({ ...prev, phone: e.target.value }));
+                        setQuickAddErrors(prev => ({ ...prev, phone: '' }));
+                      }}
+                      className={`w-full px-3 py-2.5 border-2 rounded-xl text-sm focus:outline-none transition-all ${
+                        quickAddErrors.phone ? 'border-red-400' : 'border-light-gray focus:border-primary-blue'
+                      }`}
+                      placeholder="07X XXXXXXX"
+                    />
+                    {quickAddErrors.phone && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{quickAddErrors.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className="block text-xs font-fredoka font-semibold text-charcoal mb-1.5">
+                    Street Address *
+                  </label>
+                  <textarea
+                    value={quickAddForm.address}
+                    onChange={e => {
+                      setQuickAddForm(prev => ({ ...prev, address: e.target.value }));
+                      setQuickAddErrors(prev => ({ ...prev, address: '' }));
+                    }}
+                    rows={2}
+                    className={`w-full px-3 py-2.5 border-2 rounded-xl text-sm focus:outline-none resize-none transition-all ${
+                      quickAddErrors.address ? 'border-red-400' : 'border-light-gray focus:border-primary-blue'
+                    }`}
+                    placeholder="House/Flat no., Street name"
+                  />
+                  {quickAddErrors.address && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />{quickAddErrors.address}
+                    </p>
+                  )}
+                </div>
+
+                {/* City + Province dropdowns */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* City */}
+                  <div>
+                    <label className="block text-xs font-fredoka font-semibold text-charcoal mb-1.5">
+                      City *
+                    </label>
+                    <div className="relative" ref={modalCityRef}>
+                      <button
+                        type="button"
+                        onClick={() => { setShowModalCityDropdown(prev => !prev); setModalCitySearch(''); }}
+                        className={`w-full px-3 py-2.5 border-2 rounded-xl flex items-center justify-between text-sm transition-all text-left ${
+                          quickAddErrors.city
+                            ? 'border-red-400'
+                            : showModalCityDropdown
+                              ? 'border-primary-blue ring-2 ring-primary-blue ring-opacity-20'
+                              : 'border-light-gray hover:border-primary-blue'
+                        }`}
+                      >
+                        <span className={quickAddForm.city ? 'text-charcoal' : 'text-gray-400'}>
+                          {quickAddForm.city || 'Select city...'}
+                        </span>
+                        <ChevronRight className={`h-3.5 w-3.5 text-gray-400 flex-shrink-0 transition-transform duration-200 ${showModalCityDropdown ? 'rotate-90' : ''}`} />
+                      </button>
+                      {showModalCityDropdown && (
+                        <div className="absolute z-[70] w-full mt-1 bg-white border-2 border-primary-blue rounded-xl shadow-xl overflow-hidden">
+                          <div className="p-1.5 border-b border-light-gray">
+                            <input
+                              autoFocus
+                              type="text"
+                              value={modalCitySearch}
+                              onChange={e => setModalCitySearch(e.target.value)}
+                              placeholder="Search city..."
+                              className="w-full px-2 py-1.5 text-xs border border-light-gray rounded-lg focus:outline-none focus:border-primary-blue"
+                            />
+                          </div>
+                          <ul className="max-h-44 overflow-y-auto py-1">
+                            {SRI_LANKA_CITIES
+                              .filter(c => c.toLowerCase().includes(modalCitySearch.toLowerCase()))
+                              .map(city => (
+                                <li
+                                  key={city}
+                                  onMouseDown={() => {
+                                    setQuickAddForm(prev => ({ ...prev, city }));
+                                    setQuickAddErrors(prev => ({ ...prev, city: '' }));
+                                    setShowModalCityDropdown(false);
+                                    setModalCitySearch('');
+                                  }}
+                                  className={`px-3 py-2 text-xs cursor-pointer flex items-center gap-2 transition-colors ${
+                                    quickAddForm.city === city
+                                      ? 'bg-primary-blue/10 text-primary-blue font-semibold'
+                                      : 'text-charcoal hover:bg-blue-50'
+                                  }`}
+                                >
+                                  {quickAddForm.city === city && <CheckCircle className="h-3 w-3 flex-shrink-0" />}
+                                  {city}
+                                </li>
+                              ))
+                            }
+                            {SRI_LANKA_CITIES.filter(c => c.toLowerCase().includes(modalCitySearch.toLowerCase())).length === 0 && (
+                              <li className="px-3 py-2.5 text-xs text-gray-400 text-center">No cities found</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    {quickAddErrors.city && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{quickAddErrors.city}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Province */}
+                  <div>
+                    <label className="block text-xs font-fredoka font-semibold text-charcoal mb-1.5">
+                      Province *
+                    </label>
+                    <div className="relative" ref={modalProvinceRef}>
+                      <button
+                        type="button"
+                        onClick={() => { setShowModalProvinceDropdown(prev => !prev); setModalProvinceSearch(''); }}
+                        className={`w-full px-3 py-2.5 border-2 rounded-xl flex items-center justify-between text-sm transition-all text-left ${
+                          quickAddErrors.state
+                            ? 'border-red-400'
+                            : showModalProvinceDropdown
+                              ? 'border-primary-blue ring-2 ring-primary-blue ring-opacity-20'
+                              : 'border-light-gray hover:border-primary-blue'
+                        }`}
+                      >
+                        <span className={quickAddForm.state ? 'text-charcoal' : 'text-gray-400'}>
+                          {quickAddForm.state || 'Select province...'}
+                        </span>
+                        <ChevronRight className={`h-3.5 w-3.5 text-gray-400 flex-shrink-0 transition-transform duration-200 ${showModalProvinceDropdown ? 'rotate-90' : ''}`} />
+                      </button>
+                      {showModalProvinceDropdown && (
+                        <div className="absolute z-[70] w-full mt-1 bg-white border-2 border-primary-blue rounded-xl shadow-xl overflow-hidden">
+                          <div className="p-1.5 border-b border-light-gray">
+                            <input
+                              autoFocus
+                              type="text"
+                              value={modalProvinceSearch}
+                              onChange={e => setModalProvinceSearch(e.target.value)}
+                              placeholder="Search province..."
+                              className="w-full px-2 py-1.5 text-xs border border-light-gray rounded-lg focus:outline-none focus:border-primary-blue"
+                            />
+                          </div>
+                          <ul className="max-h-44 overflow-y-auto py-1">
+                            {SRI_LANKA_PROVINCES
+                              .filter(p => p.toLowerCase().includes(modalProvinceSearch.toLowerCase()))
+                              .map(prov => (
+                                <li
+                                  key={prov}
+                                  onMouseDown={() => {
+                                    setQuickAddForm(prev => ({ ...prev, state: prov }));
+                                    setQuickAddErrors(prev => ({ ...prev, state: '' }));
+                                    setShowModalProvinceDropdown(false);
+                                    setModalProvinceSearch('');
+                                  }}
+                                  className={`px-3 py-2 text-xs cursor-pointer flex items-center gap-2 transition-colors ${
+                                    quickAddForm.state === prov
+                                      ? 'bg-primary-blue/10 text-primary-blue font-semibold'
+                                      : 'text-charcoal hover:bg-blue-50'
+                                  }`}
+                                >
+                                  {quickAddForm.state === prov && <CheckCircle className="h-3 w-3 flex-shrink-0" />}
+                                  {prov}
+                                </li>
+                              ))
+                            }
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    {quickAddErrors.state && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />{quickAddErrors.state}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Postal code */}
+                <div>
+                  <label className="block text-xs font-fredoka font-semibold text-charcoal mb-1.5">
+                    Postal Code *
+                  </label>
+                  <input
+                    type="text"
+                    value={quickAddForm.pincode}
+                    onChange={e => {
+                      setQuickAddForm(prev => ({ ...prev, pincode: e.target.value }));
+                      setQuickAddErrors(prev => ({ ...prev, pincode: '' }));
+                    }}
+                    className={`w-full px-3 py-2.5 border-2 rounded-xl text-sm focus:outline-none transition-all ${
+                      quickAddErrors.pincode ? 'border-red-400' : 'border-light-gray focus:border-primary-blue'
+                    }`}
+                    placeholder="e.g. 10100"
+                    maxLength={5}
+                  />
+                  {quickAddErrors.pincode && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />{quickAddErrors.pincode}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex gap-3 px-6 py-5 border-t border-light-gray">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddModal(false)}
+                  className="flex-1 py-3 border-2 border-light-gray rounded-xl font-fredoka font-semibold text-medium-gray hover:border-primary-blue hover:text-primary-blue transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleQuickAddSave}
+                  disabled={quickAddSaving}
+                  className="flex-1 py-3 rounded-xl font-fredoka font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
+                  style={{ background: '#FF6B35' }}
+                >
+                  {quickAddSaving ? 'Saving...' : 'Save Address'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

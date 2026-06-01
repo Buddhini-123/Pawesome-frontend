@@ -535,15 +535,11 @@ class MockDatabase {
 
   // Get current user from session
   getCurrentUser(): User | null {
-    const token = localStorage.getItem('authToken');
-    if (!token) return null;
-    
-    // In a real app, we'd validate the token
-    // For mock, we'll just get the user from the token (which contains userId)
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const user = this.users.get(payload.userId);
-      return user || null;
+      // AuthContext persists the full user object under 'auth_user'
+      const userData = localStorage.getItem('auth_user');
+      if (!userData) return null;
+      return JSON.parse(userData) as User;
     } catch {
       return null;
     }

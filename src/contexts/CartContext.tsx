@@ -212,24 +212,35 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         if (localBackup.length > 0) {
           console.log('[CartContext] Found localStorage backup with', localBackup.length, 'items');
           setCart(localBackup);
+          // Calculate shipping locally since backend is unavailable
+          const fallbackWeight = localBackup.reduce(
+            (sum, item) => sum + parseFloat((item.product as any)?.weight || '0') * (item.quantity || 1),
+            0
+          );
+          setShippingCost(calculateLocalShipping(fallbackWeight));
         } else {
           console.log('[CartContext] No backup found, cart is empty');
           setCart([]);
+          setShippingCost(0);
         }
-        setShippingCost(0);
         setShippingBreakdown(null);
         setTaxAmount(0);
       }
     } catch (error) {
       console.error('[CartContext] Failed to fetch backend cart:', error);
-      // Fall back to local cart
+      // Fall back to local cart and calculate shipping locally
       const localCart = loadLocalCart();
       console.log('[CartContext] Error fallback: loaded', localCart.length, 'items from localStorage');
       setCart(localCart);
+      const fallbackWeight = localCart.reduce(
+        (sum, item) => sum + parseFloat((item.product as any)?.weight || '0') * (item.quantity || 1),
+        0
+      );
+      setShippingCost(calculateLocalShipping(fallbackWeight));
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, user, convertBackendCart, loadLocalCart, loadOriginalPrices]);
+  }, [isAuthenticated, user, convertBackendCart, loadLocalCart, loadOriginalPrices, calculateLocalShipping]);
 
   // Initialize cart on mount and when authentication changes
   useEffect(() => {
