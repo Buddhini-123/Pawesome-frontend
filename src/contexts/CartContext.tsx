@@ -58,6 +58,7 @@ interface CartContextType {
   shippingBreakdown: ShippingBreakdown | null;
   taxAmount: number;
   isLoading: boolean;
+  isCartInitialized: boolean;
   refreshCart: () => Promise<void>;
 }
 
@@ -559,33 +560,23 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Clear cart
   const clearCart = useCallback(async () => {
-    if (isAuthenticated) {
-      // Use backend API
-      try {
-        setIsLoading(true);
-        await cartService.clearCart();
-        setCart([]);
-        setShippingCost(0);
-        setShippingBreakdown(null);
-        setTaxAmount(0);
+    // Always clear in-memory state immediately (order was placed)
+    setCart([]);
+    setShippingCost(0);
+    setShippingBreakdown(null);
+    setTaxAmount(0);
+    saveOriginalPrices({});
+    saveLocalCart([]);
 
-        // Clear original prices and localStorage backup so stale items don't reappear on refresh
-        saveOriginalPrices({});
-        saveLocalCart([]);
+    if (isAuthenticated) {
+      // Best-effort backend sync — failure is non-fatal since we already cleared locally
+      try {
+        await cartService.clearCart();
       } catch (error) {
-        console.error('[CartContext] Failed to clear cart via backend:', error);
-        // Fall back to local clear
-        setCart([]);
-        saveOriginalPrices({});
-        saveLocalCart([]);
-      } finally {
-        setIsLoading(false);
+        // Backend clear failed (e.g. token expired after order was placed).
+        // Local state and localStorage were already cleared above — nothing more to do.
+        console.warn('[CartContext] Backend cart clear failed (non-fatal):', error);
       }
-    } else {
-      // Guest user: use local cart
-      setCart([]);
-      saveOriginalPrices({});
-      saveLocalCart([]);
     }
   }, [isAuthenticated, saveOriginalPrices, saveLocalCart]);
 
@@ -619,6 +610,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     shippingBreakdown,
     taxAmount,
     isLoading,
+    isCartInitialized: isInitialized,
     refreshCart
   };
 

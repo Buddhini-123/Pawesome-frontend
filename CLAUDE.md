@@ -7,7 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Development
 npm start                    # Start dev server on http://localhost:3000
-npm test                     # Run test suite with Jest
+npm test                     # Run test suite with Jest (watch mode)
+npm test -- --watchAll=false # Run tests once (CI mode)
+npm test -- Checkout         # Run a single test file matching "Checkout"
 npm run build               # Production build to /build directory
 
 # Image Optimization
@@ -20,12 +22,12 @@ npm run install:image-deps  # Install image optimization dependencies
 
 ### Application Structure
 
-**Entry Point & Routing**: App.tsx configures client-side routing with React Router DOM v7. The app wraps routes in a multi-layer context provider hierarchy:
-1. `BrowserRouter` (routing)
-2. `AuthProvider` (authentication state)
-3. `CartProvider` (shopping cart state)
-4. `LoyaltyProvider` (loyalty program state)
-5. `ErrorBoundary` (error handling)
+**Entry Point & Routing**: `src/index.tsx` mounts the app and defines the context provider hierarchy (outermost → innermost); `App.tsx` configures the client-side routes with React Router DOM v7:
+1. `ErrorBoundary` (error handling — outermost)
+2. `BrowserRouter` (routing)
+3. `AuthProvider` (authentication state)
+4. `CartProvider` (shopping cart state)
+5. `LoyaltyProvider` (loyalty program state — innermost)
 
 **Layout Conditionals**: Header/Footer are hidden on `/login` and `/admin/*` routes.
 
@@ -55,17 +57,19 @@ npm run install:image-deps  # Install image optimization dependencies
 
 ### API Integration
 
-**Base Service** (`src/services/api.ts`):
-- Backend URL: `http://127.0.0.1:8000/api`
-- Generic methods: get<T>(), post<T>(), put<T>(), delete<T>(), patch<T>()
-- Auto-adds Bearer token from localStorage (`auth_token`)
-- Typed responses with `ApiResponse<T>` generic
+**Base URL config** (`src/config.ts`): `API_BASE_URL = process.env.REACT_APP_API_BASE_URL ?? '/api'`. By default this is the *relative* `/api`, which the CRA dev-server `proxy` (set in `package.json`) forwards to `http://127.0.0.1:8000`. Override the backend with `REACT_APP_API_BASE_URL`.
 
-**Service Layer**:
+**Two HTTP layers share the same base URL and token logic** — match whichever an existing service already uses:
+- `src/services/api.ts` — hand-rolled `fetch` wrapper (`ApiService` class). Generic `get<T>()/post<T>()/put<T>()/delete<T>()/patch<T>()`, auto-adds Bearer token from localStorage (`auth_token`), typed `ApiResponse<T>` responses.
+- `src/services/axiosInstance.ts` — axios instance with a request interceptor that injects the same Bearer token.
+
+**Service Layer** (all under `src/services/`):
 - `auth.service.ts` - Authentication with demo accounts
 - `products.service.ts` - Product catalog with filtering/sorting/pagination
 - `loyalty.service.ts` - Loyalty program with hybrid localStorage + API
-- `orders.service.ts` - Order creation and tracking
+- `order.service.ts` / `orders.service.ts` - Order creation and tracking (two files exist — confirm which the calling code imports before editing)
+- `cart.service.ts`, `gift.service.ts`, `pet.service.ts`, `emailVerification.service.ts` - Feature services
+- `admin.service.ts`, `adminOrder.service.ts`, `adminUser.service.ts`, `adminSubscription.service.ts`, `adminDeals.service.ts` - Admin panel services
 - `mockDb.ts` - In-memory database with localStorage persistence
 
 **Demo Accounts**:
@@ -328,11 +332,16 @@ Example: `import { Product } from '@/types'`
 - **Styling**: Tailwind CSS 3, Custom CSS
 - **Animations**: Framer Motion 12, GSAP 3
 - **3D Graphics**: Three.js, React Three Fiber, Drei
-- **HTTP**: Fetch API (wrapped in api.ts)
+- **HTTP**: Fetch API (wrapped in `api.ts`) + axios (`axiosInstance.ts`)
 - **Icons**: Lucide React, React Icons
 - **Notifications**: React Toastify
 - **Build**: React Scripts 5 (Create React App)
-- **Backend**: Flask/Django at `http://127.0.0.1:8000/api` (optional)
+- **Testing**: Jest + React Testing Library (via react-scripts); Playwright available as a devDependency for browser automation
+- **Backend**: Flask/Django at `http://127.0.0.1:8000` (optional); dev server proxies `/api` to it
+
+## Linting
+
+There is **no standalone lint script**. ESLint runs through `react-scripts` (config `react-app` + `react-app/jest` in `package.json`) during `npm start` and `npm run build`, surfacing warnings in the terminal. There is no Prettier/format command configured.
 
 ## Known Limitations
 

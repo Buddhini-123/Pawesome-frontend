@@ -70,9 +70,24 @@ class OrderService {
         return order;
       }
 
-      throw new Error('Failed to create order');
-    } catch (error) {
-      // Mock implementation for development
+      // Surface authentication errors — never fall back to mock for 401
+      const httpStatus = (response as any).response?.status;
+      if (httpStatus === 401 || response.error?.toLowerCase().includes('unauthenticated')) {
+        throw new Error('Your session has expired. Please log in again to place your order.');
+      }
+
+      throw new Error(response.error || 'Failed to create order');
+    } catch (error: any) {
+      // Re-throw auth / session errors so the cart is never cleared on auth failure
+      if (
+        error.message?.includes('session has expired') ||
+        error.message?.includes('log in again') ||
+        error.message?.toLowerCase().includes('unauthenticated')
+      ) {
+        throw error;
+      }
+
+      // Mock implementation for development (non-auth failures only)
       const currentUser = mockDb.getCurrentUser();
       if (!currentUser) {
         throw new Error('User not authenticated');

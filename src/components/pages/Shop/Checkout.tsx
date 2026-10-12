@@ -91,7 +91,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, fallback
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, totalPrice, shippingCost, shippingBreakdown, clearCart } = useCart();
+  const { cart, totalPrice, shippingCost, shippingBreakdown, clearCart, isCartInitialized } = useCart();
   const { user, isAuthenticated } = useAuth();
   const { loyaltyCard } = useLoyalty();
   const [step, setStep] = useState(1);
@@ -422,7 +422,16 @@ const Checkout: React.FC = () => {
     return <Navigate to="/login" state={{ from: { pathname: '/checkout' } }} replace />;
   }
 
-  // Redirect to cart if empty — but not while processing (cart is cleared before navigate)
+  // Wait for cart to finish loading before acting on empty state
+  if (!isCartInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#FF6B35' }} />
+      </div>
+    );
+  }
+
+  // Redirect to cart only once we KNOW the cart is empty (not during initialization or order processing)
   if (!isSubscription && cart.length === 0 && !isProcessing) {
     return <Navigate to="/cart" replace />;
   }

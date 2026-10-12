@@ -22,10 +22,10 @@ const PAW_POSITIONS = [
 ];
 
 const PETS = [
-  { icon: '/icons/dog.png', name: 'Dogs' },
-  { icon: '/icons/cat.png', name: 'Cats' },
-  { icon: '/icons/bird.png', name: 'Birds' },
-  { icon: '/icons/rabbit.png', name: 'Rabbits' },
+  { icon: '/icons/dog.png', name: 'Dog' },
+  { icon: '/icons/cat.png', name: 'Cat' },
+  { icon: '/icons/bird.png', name: 'Bird' },
+  { icon: '/icons/rabbit.png', name: 'Rabbit' },
 ];
 
 const HeroSection: React.FC = () => {
