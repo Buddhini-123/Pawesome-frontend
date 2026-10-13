@@ -2033,9 +2033,9 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="fixed inset-0 flex items-center justify-center p-4 z-50"
             >
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
                 {/* Modal Header */}
-                <div className="bg-primary-blue text-white p-6">
+                <div className="bg-primary-blue text-white p-6 shrink-0">
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-2xl font-bold">{selectedSubscription.name}</h2>
@@ -2058,7 +2058,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                <div className="p-6 overflow-y-auto flex-1 min-h-0">
                   {/* Subscription Status */}
                   <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
                     <div className="flex items-center justify-between">
@@ -2136,7 +2136,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
                 </div>
 
                 {/* Modal Footer */}
-                <div className="bg-soft-gray px-6 py-5 border-t border-light-gray space-y-4">
+                <div className="bg-soft-gray px-6 py-5 border-t border-light-gray space-y-4 shrink-0 max-h-[60vh] overflow-y-auto">
 
                   {/* Inline Reschedule */}
                   {showRescheduleInput && (
@@ -2330,6 +2330,7 @@ const handleReschedule = async (subscriptionId: number, newDate: string) => {
         subscriptions={activeSubscriptions}
         onSubscriptionClick={handleSubscriptionClick}
         onManageSubscription={handleManageSubscription}
+        onAddSubscription={() => { setShowSidebar(false); handleOpenModal(); }}
       />
 
       {/* Product Details Modal */}

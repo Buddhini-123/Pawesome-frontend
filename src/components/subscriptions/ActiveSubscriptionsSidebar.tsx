@@ -44,6 +44,7 @@ interface ActiveSubscriptionsSidebarProps {
   subscriptions: Subscription[];
   onSubscriptionClick: (subscription: Subscription) => void;
   onManageSubscription: (e: React.MouseEvent, subscription: Subscription) => void;
+  onAddSubscription: () => void;
 }
 
 const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
@@ -52,6 +53,7 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
   subscriptions,
   onSubscriptionClick,
   onManageSubscription,
+  onAddSubscription,
 }) => {
   const totalMonthlySpend = subscriptions.reduce((sum, sub) => sum + sub.total, 0);
   const totalSavings = Math.floor(totalMonthlySpend * 0.1);
@@ -328,7 +330,7 @@ const ActiveSubscriptionsSidebar: React.FC<ActiveSubscriptionsSidebarProps> = ({
               {subscriptions.length > 0 && (
                 <div className="p-4 bg-soft-gray/30 rounded-b-2xl">
                   <button
-                    onClick={onClose}
+                    onClick={onAddSubscription}
                     className="w-full bg-vibrant-orange hover:bg-sunny-yellow text-white font-fredoka font-medium py-3 rounded-2xl transition-colors flex items-center justify-center"
                   >
                     <Plus className="h-5 w-5 mr-2" />
