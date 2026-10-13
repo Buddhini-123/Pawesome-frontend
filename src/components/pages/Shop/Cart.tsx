@@ -100,6 +100,12 @@ const Cart: React.FC = () => {
     navigate('/');
   };
 
+  // Empty-cart CTA: send the user straight to a page where they can start
+  // adding products rather than back to Home.
+  const handleStartShopping = () => {
+    navigate('/subscriptions');
+  };
+
   const handleRemoveItem = async (itemId: string) => {
     setRemovingItem(itemId);
     setTimeout(() => {
@@ -185,8 +191,8 @@ const Cart: React.FC = () => {
             </motion.div>
             <h2 className="text-3xl font-fredoka font-bold text-charcoal mb-4">Your cart is empty</h2>
             <p className="text-medium-gray mb-8 text-lg">Let's fill it with amazing products for your furry friends!</p>
-            <motion.button 
-              onClick={handleContinueShopping}
+            <motion.button
+              onClick={handleStartShopping}
               className="bg-vibrant-orange hover:bg-vibrant-orange/90 text-white font-fredoka font-bold px-10 py-4 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
