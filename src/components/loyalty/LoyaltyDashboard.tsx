@@ -17,9 +17,15 @@ import { loyaltyService } from '../../services/loyalty.service';
 
 interface LoyaltyDashboardProps {
   onNavigateToRewards?: () => void;
+  onNavigateToReferrals?: () => void;
+  onNavigateToHistory?: () => void;
 }
 
-const LoyaltyDashboard: React.FC<LoyaltyDashboardProps> = ({ onNavigateToRewards }) => {
+const LoyaltyDashboard: React.FC<LoyaltyDashboardProps> = ({
+  onNavigateToRewards,
+  onNavigateToReferrals,
+  onNavigateToHistory,
+}) => {
   const { loyaltyCard, tierBenefits, badges } = useLoyalty();
   const [balanceData, setBalanceData] = useState<LoyaltyBalance | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -310,7 +316,10 @@ const LoyaltyDashboard: React.FC<LoyaltyDashboardProps> = ({ onNavigateToRewards
           </div>
         </button>
 
-        <button className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group">
+        <button
+          onClick={onNavigateToReferrals}
+          className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="bg-primary-blue/10 p-3 rounded-xl">
@@ -325,7 +334,10 @@ const LoyaltyDashboard: React.FC<LoyaltyDashboardProps> = ({ onNavigateToRewards
           </div>
         </button>
 
-        <button className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group">
+        <button
+          onClick={onNavigateToHistory}
+          className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="bg-mint-green/10 p-3 rounded-xl">

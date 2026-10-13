@@ -708,7 +708,13 @@ const LoyaltyCards: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
-            {activeTab === 'dashboard' && <LoyaltyDashboard onNavigateToRewards={() => setActiveTab('rewards')} />}
+            {activeTab === 'dashboard' && (
+              <LoyaltyDashboard
+                onNavigateToRewards={() => setActiveTab('rewards')}
+                onNavigateToReferrals={() => setActiveTab('referral')}
+                onNavigateToHistory={() => setActiveTab('history')}
+              />
+            )}
             {activeTab === 'rewards'   && <RewardsGrid />}
             {activeTab === 'history'   && <PointsHistory />}
             {activeTab === 'badges'    && <BadgesGrid />}
